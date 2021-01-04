@@ -237,15 +237,15 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`RecapitoNonPreferito` (
   `Recapito` VARCHAR(40) NOT NULL,
   `Tipo` VARCHAR(20) NOT NULL,
   `InformazioneAnagrafica_CF` VARCHAR(16) NOT NULL,
-  PRIMARY KEY (`Recapito`, `InformazioneAnagrafica_CF`),
-  CONSTRAINT `fk_Recapito non preferito_Informazione Anagrafica1`
+  PRIMARY KEY (`InformazioneAnagrafica_CF`, `Recapito`),
+  CONSTRAINT `fk_RecapitoNonPreferito_InformazioneAnagrafica1`
     FOREIGN KEY (`InformazioneAnagrafica_CF`)
     REFERENCES `BachecaElettronicadb`.`InformazioneAnagrafica` (`CF`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
-CREATE INDEX `fk_RecapitoNonPreferito_Informazione Anagrafica1_idx` ON `BachecaElettronicadb`.`RecapitoNonPreferito` (`InformazioneAnagrafica_CF` ASC) VISIBLE;
+CREATE INDEX `fk_RecapitoNonPreferito_InformazioneAnagrafica1_idx` ON `BachecaElettronicadb`.`RecapitoNonPreferito` (`InformazioneAnagrafica_CF` ASC) VISIBLE;
 
 CREATE UNIQUE INDEX `InformazioneAnagrafica_CF_UNIQUE` ON `BachecaElettronicadb`.`RecapitoNonPreferito` (`InformazioneAnagrafica_CF` ASC) VISIBLE;
 
@@ -375,23 +375,23 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Modificato-UCC` (
   `InformazioneAnagrafica_CF` VARCHAR(16) NOT NULL,
   `UCC_Username` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`InformazioneAnagrafica_CF`),
-  CONSTRAINT `fk_Modificato-UCC_InformazioneAnagrafica1`
-    FOREIGN KEY (`InformazioneAnagrafica_CF`)
-    REFERENCES `BachecaElettronicadb`.`InformazioneAnagrafica` (`CF`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
   CONSTRAINT `fk_Modificato-UCC_UCC1`
     FOREIGN KEY (`UCC_Username`)
     REFERENCES `BachecaElettronicadb`.`UCC` (`Username`)
     ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Modificato-UCC_InformazioneAnagrafica1`
+    FOREIGN KEY (`InformazioneAnagrafica_CF`)
+    REFERENCES `BachecaElettronicadb`.`InformazioneAnagrafica` (`CF`)
+    ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
-CREATE INDEX `fk_Modificato-UCC_InformazioneAnagrafica1_idx` ON `BachecaElettronicadb`.`Modificato-UCC` (`InformazioneAnagrafica_CF` ASC) VISIBLE;
-
 CREATE INDEX `fk_Modificato-UCC_UCC1_idx` ON `BachecaElettronicadb`.`Modificato-UCC` (`UCC_Username` ASC) VISIBLE;
 
-CREATE UNIQUE INDEX `Informazione Anagrafica_CF_UNIQUE` ON `BachecaElettronicadb`.`Modificato-UCC` (`InformazioneAnagrafica_CF` ASC) VISIBLE;
+CREATE INDEX `fk_Modificato-UCC_InformazioneAnagrafica1_idx` ON `BachecaElettronicadb`.`Modificato-UCC` (`InformazioneAnagrafica_CF` ASC) VISIBLE;
+
+CREATE UNIQUE INDEX `InformazioneAnagrafica_CF_UNIQUE` ON `BachecaElettronicadb`.`Modificato-UCC` (`InformazioneAnagrafica_CF` ASC) VISIBLE;
 
 
 -- -----------------------------------------------------
@@ -400,26 +400,26 @@ CREATE UNIQUE INDEX `Informazione Anagrafica_CF_UNIQUE` ON `BachecaElettronicadb
 DROP TABLE IF EXISTS `BachecaElettronicadb`.`Modificato-USCC` ;
 
 CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Modificato-USCC` (
-  `Informazione Anagrafica_CF` VARCHAR(16) NOT NULL,
+  `InformazioneAnagrafica_CF` VARCHAR(16) NOT NULL,
   `USCC_Username` VARCHAR(45) NOT NULL,
-  PRIMARY KEY (`Informazione Anagrafica_CF`),
-  CONSTRAINT `fk_Modificato-USCC_InformazioneAnagrafica1`
-    FOREIGN KEY (`Informazione Anagrafica_CF`)
-    REFERENCES `BachecaElettronicadb`.`InformazioneAnagrafica` (`CF`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+  PRIMARY KEY (`InformazioneAnagrafica_CF`),
   CONSTRAINT `fk_Modificato-USCC_USCC1`
     FOREIGN KEY (`USCC_Username`)
     REFERENCES `BachecaElettronicadb`.`USCC` (`Username`)
     ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Modificato-USCC_InformazioneAnagrafica1`
+    FOREIGN KEY (`InformazioneAnagrafica_CF`)
+    REFERENCES `BachecaElettronicadb`.`InformazioneAnagrafica` (`CF`)
+    ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
-CREATE INDEX `fk_Modificato-USCC_Informazione Anagrafica1_idx` ON `BachecaElettronicadb`.`Modificato-USCC` (`Informazione Anagrafica_CF` ASC) VISIBLE;
-
 CREATE INDEX `fk_Modificato-USCC_USCC1_idx` ON `BachecaElettronicadb`.`Modificato-USCC` (`USCC_Username` ASC) VISIBLE;
 
-CREATE UNIQUE INDEX `Informazione Anagrafica_CF_UNIQUE` ON `BachecaElettronicadb`.`Modificato-USCC` (`Informazione Anagrafica_CF` ASC) VISIBLE;
+CREATE INDEX `fk_Modificato-USCC_InformazioneAnagrafica1_idx` ON `BachecaElettronicadb`.`Modificato-USCC` (`InformazioneAnagrafica_CF` ASC) VISIBLE;
+
+CREATE UNIQUE INDEX `InformazioneAnagrafica_CF_UNIQUE` ON `BachecaElettronicadb`.`Modificato-USCC` (`InformazioneAnagrafica_CF` ASC) VISIBLE;
 
 
 SET SQL_MODE=@OLD_SQL_MODE;
@@ -435,4 +435,3 @@ BEGIN
 END//
 
 DELIMITER ;
-
