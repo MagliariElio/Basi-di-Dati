@@ -15,6 +15,19 @@ CREATE SCHEMA IF NOT EXISTS `BachecaElettronicadb` DEFAULT CHARACTER SET utf8 ;
 USE `BachecaElettronicadb` ;
 
 -- -----------------------------------------------------
+-- Table `BachecaElettronicadb`.`StoricoConversazione`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `BachecaElettronicadb`.`StoricoConversazione` ;
+
+CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`StoricoConversazione` (
+  `ID` INT NOT NULL,
+  PRIMARY KEY (`ID`))
+ENGINE = InnoDB;
+
+CREATE UNIQUE INDEX `ID_UNIQUE` ON `BachecaElettronicadb`.`StoricoConversazione` (`ID` ASC) VISIBLE;
+
+
+-- -----------------------------------------------------
 -- Table `BachecaElettronicadb`.`UCC`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `BachecaElettronicadb`.`UCC` ;
@@ -27,10 +40,18 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`UCC` (
   `NomeIntestatario` VARCHAR(20) NOT NULL,
   `DataScadenza` DATE NOT NULL,
   `CVC` INT NOT NULL,
-  PRIMARY KEY (`Username`))
+  `StoricoConversazione_ID` INT NOT NULL,
+  PRIMARY KEY (`Username`),
+  CONSTRAINT `fk_UCC_StoricoConversazione1`
+    FOREIGN KEY (`StoricoConversazione_ID`)
+    REFERENCES `BachecaElettronicadb`.`StoricoConversazione` (`ID`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 CREATE UNIQUE INDEX `Username_UNIQUE` ON `BachecaElettronicadb`.`UCC` (`Username` ASC) VISIBLE;
+
+CREATE INDEX `fk_UCC_StoricoConversazione1_idx` ON `BachecaElettronicadb`.`UCC` (`StoricoConversazione_ID` ASC) VISIBLE;
 
 
 -- -----------------------------------------------------
@@ -157,10 +178,18 @@ DROP TABLE IF EXISTS `BachecaElettronicadb`.`USCC` ;
 CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`USCC` (
   `Username` VARCHAR(45) NOT NULL,
   `Password` VARCHAR(45) NOT NULL,
-  PRIMARY KEY (`Username`))
+  `StoricoConversazione_ID` INT NOT NULL,
+  PRIMARY KEY (`Username`),
+  CONSTRAINT `fk_USCC_StoricoConversazione1`
+    FOREIGN KEY (`StoricoConversazione_ID`)
+    REFERENCES `BachecaElettronicadb`.`StoricoConversazione` (`ID`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 CREATE UNIQUE INDEX `Username_UNIQUE` ON `BachecaElettronicadb`.`USCC` (`Username` ASC) VISIBLE;
+
+CREATE INDEX `fk_USCC_StoricoConversazione1_idx` ON `BachecaElettronicadb`.`USCC` (`StoricoConversazione_ID` ASC) VISIBLE;
 
 
 -- -----------------------------------------------------
@@ -311,34 +340,6 @@ CREATE UNIQUE INDEX `USCC_Username_UNIQUE` ON `BachecaElettronicadb`.`Seguito-US
 
 
 -- -----------------------------------------------------
--- Table `BachecaElettronicadb`.`Partecipa-UCC-UCC`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `BachecaElettronicadb`.`Partecipa-UCC-UCC` ;
-
-CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Partecipa-UCC-UCC` (
-  `Conversazione_Codice` INT NOT NULL,
-  `UCC_Username` VARCHAR(45) NOT NULL,
-  PRIMARY KEY (`Conversazione_Codice`),
-  CONSTRAINT `fk_Partecipa-UCC-UCC_Conversazione1`
-    FOREIGN KEY (`Conversazione_Codice`)
-    REFERENCES `BachecaElettronicadb`.`Conversazione` (`Codice`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_Partecipa-UCC-UCC_UCC1`
-    FOREIGN KEY (`UCC_Username`)
-    REFERENCES `BachecaElettronicadb`.`UCC` (`Username`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
-CREATE INDEX `fk_Partecipa-UCC-UCC_Conversazione1_idx` ON `BachecaElettronicadb`.`Partecipa-UCC-UCC` (`Conversazione_Codice` ASC) VISIBLE;
-
-CREATE INDEX `fk_Partecipa-UCC-UCC_UCC1_idx` ON `BachecaElettronicadb`.`Partecipa-UCC-UCC` (`UCC_Username` ASC) VISIBLE;
-
-CREATE UNIQUE INDEX `Conversazione_Codice_UNIQUE` ON `BachecaElettronicadb`.`Partecipa-UCC-UCC` (`Conversazione_Codice` ASC) VISIBLE;
-
-
--- -----------------------------------------------------
 -- Table `BachecaElettronicadb`.`Partecipa-USCC`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `BachecaElettronicadb`.`Partecipa-USCC` ;
@@ -422,9 +423,106 @@ CREATE INDEX `fk_Modificato-USCC_InformazioneAnagrafica1_idx` ON `BachecaElettro
 CREATE UNIQUE INDEX `InformazioneAnagrafica_CF_UNIQUE` ON `BachecaElettronicadb`.`Modificato-USCC` (`InformazioneAnagrafica_CF` ASC) VISIBLE;
 
 
-SET SQL_MODE=@OLD_SQL_MODE;
-SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
-SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+-- -----------------------------------------------------
+-- Table `BachecaElettronicadb`.`ConversazioneCodice`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `BachecaElettronicadb`.`ConversazioneCodice` ;
+
+CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`ConversazioneCodice` (
+  `CodiceConv` INT NOT NULL,
+  `StoricoConversazione_ID` INT NOT NULL,
+  PRIMARY KEY (`CodiceConv`, `StoricoConversazione_ID`),
+  CONSTRAINT `fk_ConversazioneCodice_StoricoConversazione1`
+    FOREIGN KEY (`StoricoConversazione_ID`)
+    REFERENCES `BachecaElettronicadb`.`StoricoConversazione` (`ID`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+CREATE INDEX `fk_ConversazioneCodice_StoricoConversazione1_idx` ON `BachecaElettronicadb`.`ConversazioneCodice` (`StoricoConversazione_ID` ASC) VISIBLE;
+
+CREATE UNIQUE INDEX `StoricoConversazione_ID_UNIQUE` ON `BachecaElettronicadb`.`ConversazioneCodice` (`StoricoConversazione_ID` ASC) VISIBLE;
+
+CREATE UNIQUE INDEX `CodiceConv_UNIQUE` ON `BachecaElettronicadb`.`ConversazioneCodice` (`CodiceConv` ASC) VISIBLE;
+
+
+-- -----------------------------------------------------
+-- Table `BachecaElettronicadb`.`Tracciato`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `BachecaElettronicadb`.`Tracciato` ;
+
+CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Tracciato` (
+  `Conversazione_Codice` INT NOT NULL,
+  `StoricoConversazione_ID` INT NOT NULL,
+  `StoricoConversazione_ID1` INT NOT NULL,
+  PRIMARY KEY (`Conversazione_Codice`, `StoricoConversazione_ID`, `StoricoConversazione_ID1`),
+  CONSTRAINT `fk_Tracciato_Conversazione1`
+    FOREIGN KEY (`Conversazione_Codice`)
+    REFERENCES `BachecaElettronicadb`.`Conversazione` (`Codice`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Tracciato_StoricoConversazione1`
+    FOREIGN KEY (`StoricoConversazione_ID`)
+    REFERENCES `BachecaElettronicadb`.`StoricoConversazione` (`ID`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Tracciato_StoricoConversazione2`
+    FOREIGN KEY (`StoricoConversazione_ID1`)
+    REFERENCES `BachecaElettronicadb`.`StoricoConversazione` (`ID`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+CREATE INDEX `fk_Tracciato_Conversazione1_idx` ON `BachecaElettronicadb`.`Tracciato` (`Conversazione_Codice` ASC) VISIBLE;
+
+CREATE UNIQUE INDEX `Conversazione_Codice_UNIQUE` ON `BachecaElettronicadb`.`Tracciato` (`Conversazione_Codice` ASC) VISIBLE;
+
+CREATE INDEX `fk_Tracciato_StoricoConversazione1_idx` ON `BachecaElettronicadb`.`Tracciato` (`StoricoConversazione_ID` ASC) VISIBLE;
+
+CREATE INDEX `fk_Tracciato_StoricoConversazione2_idx` ON `BachecaElettronicadb`.`Tracciato` (`StoricoConversazione_ID1` ASC) VISIBLE;
+
+CREATE UNIQUE INDEX `StoricoConversazione_ID_UNIQUE` ON `BachecaElettronicadb`.`Tracciato` (`StoricoConversazione_ID` ASC) VISIBLE;
+
+CREATE UNIQUE INDEX `StoricoConversazione_ID1_UNIQUE` ON `BachecaElettronicadb`.`Tracciato` (`StoricoConversazione_ID1` ASC) VISIBLE;
+
+
+-- -----------------------------------------------------
+-- Table `BachecaElettronicadb`.`Partecipa-UCC`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `BachecaElettronicadb`.`Partecipa-UCC` ;
+
+CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Partecipa-UCC` (
+  `Conversazione_Codice` INT NOT NULL,
+  `UCC_Username` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`Conversazione_Codice`, `UCC_Username`),
+  CONSTRAINT `fk_Partecipa-UCC_Conversazione1`
+    FOREIGN KEY (`Conversazione_Codice`)
+    REFERENCES `BachecaElettronicadb`.`Conversazione` (`Codice`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Partecipa-UCC_UCC1`
+    FOREIGN KEY (`UCC_Username`)
+    REFERENCES `BachecaElettronicadb`.`UCC` (`Username`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+CREATE INDEX `fk_Partecipa-UCC_Conversazione1_idx` ON `BachecaElettronicadb`.`Partecipa-UCC` (`Conversazione_Codice` ASC) VISIBLE;
+
+CREATE UNIQUE INDEX `Conversazione_Codice_UNIQUE` ON `BachecaElettronicadb`.`Partecipa-UCC` (`Conversazione_Codice` ASC) VISIBLE;
+
+CREATE INDEX `fk_Partecipa-UCC_UCC1_idx` ON `BachecaElettronicadb`.`Partecipa-UCC` (`UCC_Username` ASC) VISIBLE;
+
+CREATE UNIQUE INDEX `UCC_Username_UNIQUE` ON `BachecaElettronicadb`.`Partecipa-UCC` (`UCC_Username` ASC) VISIBLE;
+
+
+DELIMITER //
+CREATE PROCEDURE BachecaElettronicadb.registra_utente_UCC (IN username VARCHAR(45), IN password VARCHAR(45), IN numeroCarta INT, IN cognomeIntestatario VARCHAR(20), IN nomeIntestatario VARCHAR(20), IN dataScadenza DATE, IN cvc INT, IN idStoricoConversazione INT)
+BEGIN
+	INSERT INTO UCC (Username, Password, NumeroCarta, CognomeIntestatario, NomeIntestatario, DataScadenza, CVC, StoricoConversazione_ID)
+	VALUES(username, password, numeroCarta, cognomeIntestatario, nomeIntestatario, dataScadenza, cvc, idStoricoConversazione);
+END//
+DELIMITER ;
 
 
 DELIMITER //
@@ -433,5 +531,25 @@ BEGIN
 	INSERT INTO USCC (Username, Password) 
 	VALUES(username, password);
 END//
-
 DELIMITER ;
+
+
+DELIMITER //
+CREATE PROCEDURE BachecaElettronicadb.modificaInfoAnagrafiche (IN cf VARCHAR(16), IN cognome VARCHAR(20), IN nome VARCHAR(20), IN indirizzoDiResidenza VARCHAR(20), IN cap INT, IN indirizzoDiFatturazione VARCHAR(20), IN tipoRecapitoPreferito VARCHAR(20), IN recapitoPreferito VARCHAR(40))
+BEGIN
+	IF indirizzoDiFatturazione IS NULL THEN
+		INSERT INTO InformazioneAnagrafica (CF, Cognome, Nome, IndirizzoDiResidenza, CAP, IndirizzoDiFatturazione, TipoRecapitPreferito, RecapitoPreferito) 
+		VALUES(cf, cognome, nome, indirizzoDiResidenza, cap, indirizzoDiFatturazione, tipoRecapitoPreferito, recapitoPreferito);
+	ELSE
+		INSERT INTO InformazioneAnagrafica (CF, Cognome, Nome, IndirizzoDiResidenza, CAP, TipoRecapitPreferito, RecapitoPreferito) 
+		VALUES(username, password);
+	END IF;
+END//
+DELIMITER ;
+
+
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
