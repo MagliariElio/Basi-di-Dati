@@ -648,7 +648,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Inserimento di una foto in annuncio ------------------------------- Impostare un livello di isolamento per evitare repeatible read
+-- Inserimento di una foto in annuncio ------------------------------- Impostare un livello di isolamento per evitare repeatible read - Attivare evento avverti utente che seguono l'annuncio
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.inserimentoFotoAnnuncio ;
 CREATE PROCEDURE BachecaElettronicadb.inserimentoFotoAnnuncio (IN codice INT, IN foto BINARY)
@@ -673,7 +673,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Inserimento commento ----------------------------------------------
+-- Inserimento commento ---------------------------------------------- Attivare evento avverti utente che seguono l'annuncio
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.inserimentoCommento ;
 CREATE PROCEDURE BachecaElettronicadb.inserimentoCommento (IN testo VARCHAR(45), IN annuncio_codice INT)
@@ -685,7 +685,21 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Invio messaggio da parte USCC -------------------------------------	
+-- Visualizzazione commento ------------------------------------------ Impostare un livello di isolamento
+DELIMITER //
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaCommento ;
+CREATE PROCEDURE BachecaElettronicadb.visualizzaCommento (IN annuncio_codice INT)
+BEGIN
+	if ((SELECT(count(Annuncio_Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=annuncio_codice AND BachecaElettronicadb.Annuncio.Stato='Attivo') = 1) then
+		SELECT Testo, Annuncio_codice AS "Codice dell'annuncio"
+		FROM BachecaElettronicadb.Commento
+		WHERE Annuncio_Codice = annuncio_codice;
+		end if;
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
+
+-- Invio messaggio da parte USCC ------------------------------------- Evento: arrivato un nuovo messaggio
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.invioMessaggioUSCC ;
 CREATE PROCEDURE BachecaElettronicadb.invioMessaggioUSCC (IN conversazione_codice INT, IN uscc_username VARCHAR(45), IN ucc_username VARCHAR(45), IN testo VARCHAR(100))
@@ -735,19 +749,19 @@ DELIMITER ;
 -- -------------------------------------------------------------------
 
 
--- Inserimento Conversazione UCC ------------------------------------- Impostare un livello di isolamento
+-- Inserimento Conversazione ----------------------------------------- Impostare un livello di isolamento
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.inserimentoConversazione ;
 CREATE PROCEDURE BachecaElettronicadb.inserimentoConversazione (OUT id_conversazione INT)
 BEGIN
-	INSERT INTO BachecaElettronicadb.Conversazione (Codice, UCC_Username) VALUES(NULL, ucc_username);
+	INSERT INTO BachecaElettronicadb.Conversazione (Codice) VALUES(NULL);
 	SET id_conversazione = LAST_INSERT_ID();
 END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
 
--- Invio messaggio da parte UCC AD UN USCC -------------------------------------	
+-- Invio messaggio da parte UCC AD UN USCC --------------------------- Evento: arrivato un nuovo messaggio
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.invioMessaggio_UCC_USCC ;
 CREATE PROCEDURE BachecaElettronicadb.invioMessaggio_UCC_USCC (IN conversazione_codice INT, IN ucc_username VARCHAR(45), IN uscc_username VARCHAR(45), IN testo VARCHAR(100))
@@ -797,8 +811,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
-
--- Invio messaggio da parte UCC AD UN UCC ----------------------------	
+-- Invio messaggio da parte UCC AD UN UCC ---------------------------- Evento: arrivato un nuovo messaggio
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.invioMessaggio_UCC_UCC ;
 CREATE PROCEDURE BachecaElettronicadb.invioMessaggio_UCC_UCC (IN conversazione_codice INT, IN ucc_username_1 VARCHAR(45), IN ucc_username_2 VARCHAR(45), IN testo VARCHAR(100))
@@ -899,6 +912,20 @@ CREATE PROCEDURE BachecaElettronicadb.inserisciNota (IN codice_annuncio INT, IN 
 BEGIN
 	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE Codice=codice_annuncio and Stato='Attivo') = 1) then
 		INSERT INTO BachecaElettronicadb.Nota (ID, Testo, Annuncio_Codice) VALUES(NULL, testo, codice_annuncio);
+	end if;
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
+
+-- Visualizza nota --------------------------------------------------- Impostare un livello di isolamento
+DELIMITER //
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaNota ;
+CREATE PROCEDURE BachecaElettronicadb.visualizzaNota (IN annuncio_Codice INT)
+BEGIN
+	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE Codice=annuncio_Codice and Stato='Attivo') = 1) then
+		SELECT Testo, Annuncio_Codice AS "Codice dell'annuncio"
+		FROM BachecaElettronicadb.Nota
+		WHERE Annuncio_Codice = annuncio_Codice;
 	end if;
 END//
 DELIMITER ;
@@ -1016,5 +1043,38 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
+-- Selezione Conversazione dallo Storico UCC -------------------------
+DELIMITER //
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.selezionaConversazioneStorico_UCC ;
+CREATE PROCEDURE BachecaElettronicadb.selezionaConversazioneStorico_UCC (IN ucc_username VARCHAR(45), IN codiceConv INT)
+BEGIN
+	declare idStorico INT;
+	if ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE Username=ucc_username) = 1) then
+		SELECT StoricoConversazione_ID INTO idStorico FROM BachecaElettronicadb.UCC WHERE Username=ucc_username;
+		
+		SELECT CodiceConv AS `Codice Conversazione`
+		FROM BachecaElettronicadb.ConversazioneCodice
+		WHERE StoricoConversazione_ID = idStorico and CodiceConv = codiceConv;
+	end if;
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
+
+-- Selezione Conversazione dallo Storico USCC ------------------------
+DELIMITER //
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.selezionaConversazioneStorico_USCC ;
+CREATE PROCEDURE BachecaElettronicadb.selezionaConversazioneStorico_USCC (IN ucc_username VARCHAR(45), IN codiceConv INT)
+BEGIN
+	declare idStorico INT;
+	if ((SELECT(count(Username)) FROM BachecaElettronicadb.USCC WHERE Username=uscc_username) = 1) then
+		SELECT StoricoConversazione_ID INTO idStorico FROM BachecaElettronicadb.USCC WHERE Username=uscc_username;
+		
+		SELECT CodiceConv AS `Codice Conversazione`
+		FROM BachecaElettronicadb.ConversazioneCodice
+		WHERE StoricoConversazione_ID = idStorico and CodiceConv = codiceConv;
+	end if;
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
 
 
