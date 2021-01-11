@@ -20,7 +20,7 @@ USE `BachecaElettronicadb` ;
 DROP TABLE IF EXISTS `BachecaElettronicadb`.`StoricoConversazione` ;
 
 CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`StoricoConversazione` (
-  `ID` INT AUTO_INCREMENT INT NOT NULL,
+  `ID` INT AUTO_INCREMENT NOT NULL,
   PRIMARY KEY (`ID`))
 ENGINE = InnoDB AUTO_INCREMENT=1;
 
@@ -101,7 +101,7 @@ CREATE UNIQUE INDEX `Nome_UNIQUE` ON `BachecaElettronicadb`.`Categoria` (`Nome` 
 DROP TABLE IF EXISTS `BachecaElettronicadb`.`Annuncio` ;
 
 CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Annuncio` (
-  `Codice` INT AUTO_INCREMENT INT NOT NULL,
+  `Codice` INT AUTO_INCREMENT NOT NULL,
   `Stato` VARCHAR(7) NOT NULL,
   `Descrizione` VARCHAR(100) NOT NULL,
   `Importo` INT NULL,
@@ -134,7 +134,7 @@ CREATE INDEX `fk_Annuncio_Categoria1_idx` ON `BachecaElettronicadb`.`Annuncio` (
 DROP TABLE IF EXISTS `BachecaElettronicadb`.`Nota` ;
 
 CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Nota` (
-  `ID` INT AUTO_INCREMENT INT NOT NULL,
+  `ID` INT AUTO_INCREMENT NOT NULL,
   `Testo` VARCHAR(45) NOT NULL,
   `Annuncio_Codice` INT NOT NULL,
   PRIMARY KEY (`ID`, `Annuncio_Codice`),
@@ -156,7 +156,7 @@ CREATE UNIQUE INDEX `Annuncio_Codice_UNIQUE` ON `BachecaElettronicadb`.`Nota` (`
 DROP TABLE IF EXISTS `BachecaElettronicadb`.`Commento` ;
 
 CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Commento` (
-  `ID` INT AUTO_INCREMENT INT NOT NULL,
+  `ID` INT AUTO_INCREMENT NOT NULL,
   `Testo` VARCHAR(45) NOT NULL,
   `Annuncio_Codice` INT NOT NULL,
   PRIMARY KEY (`ID`, `Annuncio_Codice`),
@@ -233,19 +233,11 @@ CREATE INDEX `fk_USCC_InformazioneAnagrafica1_idx` ON `BachecaElettronicadb`.`US
 DROP TABLE IF EXISTS `BachecaElettronicadb`.`Conversazione` ;
 
 CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Conversazione` (
-  `Codice` INT AUTO_INCREMENT INT NOT NULL,
-  `UCC_Username` VARCHAR(45) NOT NULL,
-  PRIMARY KEY (`Codice`),
-  CONSTRAINT `fk_Conversazione_UCC1`
-    FOREIGN KEY (`UCC_Username`)
-    REFERENCES `BachecaElettronicadb`.`UCC` (`Username`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB AUTO_INCREMENT=1;
+  `Codice` INT AUTO_INCREMENT NOT NULL,
+  PRIMARY KEY (`Codice`))
+ENGINE = InnoDB;
 
 CREATE UNIQUE INDEX `Codice_UNIQUE` ON `BachecaElettronicadb`.`Conversazione` (`Codice` ASC) VISIBLE;
-
-CREATE INDEX `fk_Conversazione_UCC1_idx` ON `BachecaElettronicadb`.`Conversazione` (`UCC_Username` ASC) VISIBLE;
 
 
 -- -----------------------------------------------------
@@ -254,7 +246,7 @@ CREATE INDEX `fk_Conversazione_UCC1_idx` ON `BachecaElettronicadb`.`Conversazion
 DROP TABLE IF EXISTS `BachecaElettronicadb`.`Messaggio` ;
 
 CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Messaggio` (
-  `ID` INT AUTO_INCREMENT INT NOT NULL,
+  `ID` INT AUTO_INCREMENT NOT NULL,
   `Data` DATETIME NOT NULL,
   `Conversazione_Codice` INT NOT NULL,
   `Testo` VARCHAR(100) NOT NULL,
@@ -264,7 +256,7 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Messaggio` (
     REFERENCES `BachecaElettronicadb`.`Conversazione` (`Codice`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
-ENGINE = InnoDB AUTO_INCREMENT=1;
+ENGINE = InnoDB;
 
 CREATE INDEX `fk_Messaggio_Conversazione1_idx` ON `BachecaElettronicadb`.`Messaggio` (`Conversazione_Codice` ASC) VISIBLE;
 
@@ -528,15 +520,16 @@ SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
 -- Registrazione di un utente UCC-------------------------------------
 DELIMITER //   -- controllare CF e le sue relazioni
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.registra_utente_UCC ;
-CREATE PROCEDURE BachecaElettronicadb.registra_utente_UCC (IN username VARCHAR(45), IN password VARCHAR(45), IN numeroCarta INT, IN cognomeIntestatario VARCHAR(20), IN nomeIntestatario VARCHAR(20), IN dataScadenza DATE, IN cvc INT, IN cf_anagrafico VARCHAR(16))
+CREATE PROCEDURE BachecaElettronicadb.registra_utente_UCC (IN username VARCHAR(45), IN password VARCHAR(45), IN numeroCarta INT, IN cognomeIntestatario VARCHAR(20), IN nomeIntestatario VARCHAR(20), IN dataScadenza DATE, IN cvc INT, IN cf_anagrafico VARCHAR(16), IN cognome VARCHAR(20), IN nome VARCHAR(20), IN indirizzoDiResidenza VARCHAR(20), IN cap INT, IN indirizzoDiFatturazione VARCHAR(20), IN tipoRecapitoPreferito VARCHAR(20), IN recapitoPreferito VARCHAR(40))
 BEGIN
 	declare idStorico INT;
-	if ((SELECT count(Username) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username=username)=0) then
+	if ((SELECT count(Username) FROM BachecaElettronicadb.UCC WHERE Username=username)=0) then
 		
-		call(BachecaElettronicadb.inserisci_Storico(idStorico));
+		call BachecaElettronicadb.inserisci_Storico(idStorico);
+		call BachecaElettronicadb.inserimentoInfoAnagrafiche(cf_anagrafico, cognome, nome, indirizzoDiResidenza, cap, indirizzoDiFatturazione, tipoRecapitoPreferito, recapitoPreferito);
 		
 		INSERT INTO BachecaElettronicadb.UCC (Username, Password, NumeroCarta, CognomeIntestatario, NomeIntestatario, DataScadenza, CVC, StoricoConversazione_ID, CF_Anagrafico)
-		VALUES(username, password, numeroCarta, cognomeIntestatario, nomeIntestatario, dataScadenza, cvc, idStorico, CF_Anagrafico);
+		VALUES(username, password, numeroCarta, cognomeIntestatario, nomeIntestatario, dataScadenza, cvc, idStorico, cf_anagrafico);
 	end if;
 END//
 DELIMITER ;
@@ -556,11 +549,16 @@ DELIMITER ;
 -- Registrazione di un utente USCC -----------------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.registra_utente_USCC ;
-CREATE PROCEDURE BachecaElettronicadb.registra_utente_USCC (IN username VARCHAR(45), IN password VARCHAR(45))
+CREATE PROCEDURE BachecaElettronicadb.registra_utente_USCC (IN username VARCHAR(45), IN password VARCHAR(45), IN cf_anagrafico VARCHAR(16))
 BEGIN
+	declare idStorico INT;
+
 	if ((SELECT count(Username) FROM BachecaElettronicadb.USCC WHERE BachecaElettronicadb.USCC.Username=username)=0) then
-	INSERT INTO BachecaElettronicadb.USCC (Username, Password) 
-	VALUES(username, password);
+		call BachecaElettronicadb.inserisci_Storico(idStorico);
+		call BachecaElettronicadb.inserimentoInfoAnagrafiche(cf_anagrafico, cognome, nome, indirizzoDiResidenza, cap, indirizzoDiFatturazione, tipoRecapitoPreferito, recapitoPreferito);
+		
+		INSERT INTO BachecaElettronicadb.USCC (Username, Password, StoricoConversazione_ID, CF_Anagrafico) 
+		VALUES(username, password, idStorico, cf_anagrafico);
 	end if;
 END//
 DELIMITER ;
@@ -571,13 +569,13 @@ DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.inserimentoInfoAnagrafiche ;
 CREATE PROCEDURE BachecaElettronicadb.inserimentoInfoAnagrafiche (IN cf VARCHAR(16), IN cognome VARCHAR(20), IN nome VARCHAR(20), IN indirizzoDiResidenza VARCHAR(20), IN cap INT, IN indirizzoDiFatturazione VARCHAR(20), IN tipoRecapitoPreferito VARCHAR(20), IN recapitoPreferito VARCHAR(40))
 BEGIN
-	if ((SELECT count(CF) FROM BachecaElettronicadb.InformazioneAnagrafica WHERE BachecaElettronicadb.InformazioneAnagrafica.CF=cf)=0) then
+	if ((SELECT count(CF) FROM BachecaElettronicadb.InformazioneAnagrafica WHERE CF=cf)=0) then
 		IF indirizzoDiFatturazione IS NOT NULL THEN
 			INSERT INTO InformazioneAnagrafica (CF, Cognome, Nome, IndirizzoDiResidenza, CAP, IndirizzoDiFatturazione, tipoRecapitoPreferito, RecapitoPreferito) 
 			VALUES(cf, cognome, nome, indirizzoDiResidenza, cap, indirizzoDiFatturazione, tipoRecapitoPreferito, recapitoPreferito);
 		ELSE
 			INSERT INTO InformazioneAnagrafica (CF, Cognome, Nome, IndirizzoDiResidenza, CAP, tipoRecapitoPreferito, RecapitoPreferito) 
-			VALUES(username, password);
+			VALUES(cf, cognome, nome, indirizzoDiResidenza, cap, tipoRecapitoPreferito, recapitoPreferito);
 		END IF;
 	end if;
 END//
@@ -591,39 +589,25 @@ CREATE PROCEDURE BachecaElettronicadb.modificaInfoAnagrafiche (IN cf VARCHAR(16)
 BEGIN
 	if ((SELECT count(CF) FROM BachecaElettronicadb.InformazioneAnagrafica WHERE BachecaElettronicadb.InformazioneAnagrafica.CF=cf)=1) then
 		IF cognome IS NOT NULL THEN
-			UPDATE BachecaElettronicadb.InformazioneAnagrafica
-			SET Cognome=cognome
-			WHERE CF=cf;
+			UPDATE BachecaElettronicadb.InformazioneAnagrafica SET Cognome=cognome WHERE CF=cf;
 		END IF;
 		IF nome IS NOT NULL THEN
-			UPDATE BachecaElettronicadb.InformazioneAnagrafica
-			SET Nome=nome
-			WHERE CF=cf;
+			UPDATE BachecaElettronicadb.InformazioneAnagrafica SET Nome=nome WHERE CF=cf;
 		END IF;
 		IF indirizzoDiResidenza IS NOT NULL THEN
-			UPDATE BachecaElettronicadb.InformazioneAnagrafica
-			SET IndirizzoDiResidenza=indirizzoDiResidenza
-			WHERE CF=cf;
+			UPDATE BachecaElettronicadb.InformazioneAnagrafica SET IndirizzoDiResidenza=indirizzoDiResidenza WHERE CF=cf;
 		END IF;
 		IF indirizzoDiFatturazione IS NOT NULL THEN
-			UPDATE BachecaElettronicadb.InformazioneAnagrafica
-			SET IndirizzoDiFatturazione=indirizzoDiFatturazione
-			WHERE CF=cf;
+			UPDATE BachecaElettronicadb.InformazioneAnagrafica SET IndirizzoDiFatturazione=indirizzoDiFatturazione WHERE CF=cf;
 		END IF;
 		IF cap IS NOT NULL THEN
-			UPDATE BachecaElettronicadb.InformazioneAnagrafica
-			SET CAP=cap, IndirizzoDiFatturazione=indirizzoDiFatturazione
-			WHERE CF=cf;
+			UPDATE BachecaElettronicadb.InformazioneAnagrafica SET CAP=cap, IndirizzoDiFatturazione=indirizzoDiFatturazione WHERE CF=cf;
 		END IF;
 		IF tipoRecapitoPreferito IS NOT NULL THEN
-			UPDATE BachecaElettronicadb.InformazioneAnagrafica
-			SET TipoRecapitoPreferito=tipoRecapitoPreferito
-			WHERE CF=cf;
+			UPDATE BachecaElettronicadb.InformazioneAnagrafica SET TipoRecapitoPreferito=tipoRecapitoPreferito WHERE CF=cf;
 		END IF;
 		IF recapitoPreferito IS NOT NULL THEN
-			UPDATE BachecaElettronicadb.InformazioneAnagrafica
-			SET RecapitoPreferito=recapitoPreferito
-			WHERE CF=cf;
+			UPDATE BachecaElettronicadb.InformazioneAnagrafica SET RecapitoPreferito=recapitoPreferito WHERE CF=cf;
 		END IF;	
 	end if;
 END//
@@ -678,7 +662,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Visualizza annuncio -----------------------------------------------
+-- Visualizza annuncio -----------------------------------------------  Impostare un livello di isolamento
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaAnnuncio ;
 CREATE PROCEDURE BachecaElettronicadb.visualizzaAnnuncio ()
@@ -701,14 +685,15 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Invio messaggio da parte USCC -------------------------------------	Impostare un livello di isolamento per evitare errori con last_insert_id()
+-- Invio messaggio da parte USCC -------------------------------------	
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.invioMessaggioUSCC ;
 CREATE PROCEDURE BachecaElettronicadb.invioMessaggioUSCC (IN conversazione_codice INT, IN uscc_username VARCHAR(45), IN ucc_username VARCHAR(45), IN testo VARCHAR(100))
 BEGIN
 	declare conversazioni_table, last_id_conversazione, storico_id_ucc, storico_id_uscc INT;
 	
-	if uscc_username IS NOT NULL then
+	if ((SELECT count(Username) FROM BachecaElettronicadb.USCC WHERE Username=uscc_username)=1 AND testo IS NOT NULL) then
+
 		if conversazione_codice IS NOT NULL then   -- controllo se esiste già una conversazione	
 			SELECT Conversazione_Codice INTO conversazioni_table
 			FROM BachecaElettronicadb.`Partecipa-USCC`
@@ -717,14 +702,17 @@ BEGIN
 			IF conversazioni_table IS NOT NULL THEN  -- controllo se la ricerca ha avuto esito positivo
 				INSERT INTO BachecaElettronicadb.Messaggio (Data, Conversazione_Codice, Testo)
 				VALUES (now(), conversazione_codice, testo);
+			-- ELSE
+				-- errore codice inserito è errato
 			END IF;										
 		end if;
 		
-		if conversazione_codice IS NULL AND ucc_username IS NOT NULL then	-- la conversazione non esiste, quindi viene creata una nuova
-			INSERT INTO BachecaElettronicadb.Conversazione (Codice, UCC_Username) VALUES(NULL, ucc_username);
-			SET last_id_conversazione = LAST_INSERT_ID();
+		if (conversazione_codice IS NULL AND (SELECT count(Username) FROM BachecaElettronicadb.UCC WHERE Username=ucc_username)=1) then -- la conversazione non esiste, quindi viene creata una nuova
+					
+			call BachecaElettronicadb.inserimentoConversazione(last_id_conversazione);
 			
-			INSERT INTO BachecaElettronicadb.`Partecipa-USCC` (Conversazione_Codice, USCC_Username) VALUES(last_id_conversazione, uscc_username);
+			INSERT INTO BachecaElettronicadb.`Partecipa-USCC` (Conversazione_Codice, USCC_Username) VALUES(last_id_conversazione, uscc_username);	-- inserisco la partecipazione per USCC
+			INSERT INTO BachecaElettronicadb.`Partecipa-UCC` (Conversazione_Codice, UCC_Username) VALUES(last_id_conversazione, ucc_username);		-- inserisco la partecipazione per UCC
 			INSERT INTO BachecaElettronicadb.Messaggio (ID, Data, Conversazione_Codice, Testo) VALUES(NULL, now(), last_id_conversazione, testo);
 			
 			SELECT StoricoConversazione_ID INTO storico_id_ucc
@@ -740,9 +728,293 @@ BEGIN
 			INSERT INTO BachecaElettronicadb.ConversazioneCodice (CodiceConv, StoricoConversazione_ID) VALUES(last_id_conversazione, storico_id_ucc); 	-- inserisco il nuovo codice della conversazione nello storico di UCC
 			INSERT INTO BachecaElettronicadb.ConversazioneCodice (CodiceConv, StoricoConversazione_ID) VALUES(last_id_conversazione, storico_id_uscc); 	-- inserisco il nuovo codice della conversazione nello storico di USCC
 		end if;
+			
+	end if;
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
+
+
+-- Inserimento Conversazione UCC ------------------------------------- Impostare un livello di isolamento
+DELIMITER //
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.inserimentoConversazione ;
+CREATE PROCEDURE BachecaElettronicadb.inserimentoConversazione (OUT id_conversazione INT)
+BEGIN
+	INSERT INTO BachecaElettronicadb.Conversazione (Codice, UCC_Username) VALUES(NULL, ucc_username);
+	SET id_conversazione = LAST_INSERT_ID();
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
+
+
+-- Invio messaggio da parte UCC AD UN USCC -------------------------------------	
+DELIMITER //
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.invioMessaggio_UCC_USCC ;
+CREATE PROCEDURE BachecaElettronicadb.invioMessaggio_UCC_USCC (IN conversazione_codice INT, IN ucc_username VARCHAR(45), IN uscc_username VARCHAR(45), IN testo VARCHAR(100))
+BEGIN
+	declare conversazioni_table, last_id_conversazione, storico_id_ucc, storico_id_uscc INT;
+	
+	if ((SELECT count(Username) FROM BachecaElettronicadb.UCC WHERE Username=ucc_username)=1 AND testo IS NOT NULL) then
+
+		if conversazione_codice IS NOT NULL then   -- controllo se esiste già una conversazione	
+			SELECT Conversazione_Codice INTO conversazioni_table
+			FROM BachecaElettronicadb.`Partecipa-UCC`
+			WHERE UCC_Username=ucc_username and Conversazione_Codice=conversazione_codice;
+			
+			IF conversazioni_table IS NOT NULL THEN  -- controllo se la ricerca ha avuto esito positivo
+				INSERT INTO BachecaElettronicadb.Messaggio (Data, Conversazione_Codice, Testo)
+				VALUES (now(), conversazione_codice, testo);
+			-- ELSE
+				-- errore codice inserito è errato
+			END IF;
+
+		end if;
+		
+		if (conversazione_codice IS NULL AND (SELECT count(Username) FROM BachecaElettronicadb.USCC WHERE Username=uscc_username)=1) then -- la conversazione non esiste, quindi viene creata una nuova
+						
+			call BachecaElettronicadb.inserimentoConversazione(last_id_conversazione);
+			
+			INSERT INTO BachecaElettronicadb.`Partecipa-UCC` (Conversazione_Codice, UCC_Username) VALUES(last_id_conversazione, ucc_username);		-- inserisco la partecipazione per UCC
+			INSERT INTO BachecaElettronicadb.`Partecipa-USCC` (Conversazione_Codice, UCC_Username) VALUES(last_id_conversazione, uscc_username);	-- inserisco la partecipazione per USCC
+			INSERT INTO BachecaElettronicadb.Messaggio (ID, Data, Conversazione_Codice, Testo) VALUES(NULL, now(), last_id_conversazione, testo);
+			
+			SELECT StoricoConversazione_ID INTO storico_id_ucc
+			FROM BachecaElettronicadb.UCC
+			WHERE Username=ucc_username;
+			
+			SELECT StoricoConversazione_ID INTO storico_id_uscc
+			FROM BachecaElettronicadb.USCC
+			WHERE Username=uscc_username;
+			
+			INSERT INTO BachecaElettronicadb.Tracciato (Conversazione_Codice, StoricoConversazione_ID) VALUES(last_id_conversazione, storico_id_ucc);	-- traccio lo storico di UCC
+			INSERT INTO BachecaElettronicadb.Tracciato (Conversazione_Codice, StoricoConversazione_ID) VALUES(last_id_conversazione, storico_id_uscc);	-- traccio lo storico di USCC
+			INSERT INTO BachecaElettronicadb.ConversazioneCodice (CodiceConv, StoricoConversazione_ID) VALUES(last_id_conversazione, storico_id_ucc); 	-- inserisco il nuovo codice della conversazione nello storico di UCC
+			INSERT INTO BachecaElettronicadb.ConversazioneCodice (CodiceConv, StoricoConversazione_ID) VALUES(last_id_conversazione, storico_id_uscc); 	-- inserisco il nuovo codice della conversazione nello storico di USCC
+		end if;
+			
+	end if;
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
+
+
+-- Invio messaggio da parte UCC AD UN UCC ----------------------------	
+DELIMITER //
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.invioMessaggio_UCC_UCC ;
+CREATE PROCEDURE BachecaElettronicadb.invioMessaggio_UCC_UCC (IN conversazione_codice INT, IN ucc_username_1 VARCHAR(45), IN ucc_username_2 VARCHAR(45), IN testo VARCHAR(100))
+BEGIN
+	declare conversazioni_table, last_id_conversazione, storico_id_ucc_1, storico_id_ucc_2 INT;
+	
+	if ((SELECT count(Username) FROM BachecaElettronicadb.UCC WHERE Username=ucc_username_1)=1 AND testo IS NOT NULL) then
+
+		if conversazione_codice IS NOT NULL then   					-- controllo se esiste già una conversazione	
+			SELECT Conversazione_Codice INTO conversazioni_table
+			FROM BachecaElettronicadb.`Partecipa-UCC`
+			WHERE UCC_Username=ucc_username_1 and Conversazione_Codice=conversazione_codice;
+			
+			IF conversazioni_table IS NOT NULL THEN  				-- controllo se la ricerca ha avuto esito positivo
+				INSERT INTO BachecaElettronicadb.Messaggio (Data, Conversazione_Codice, Testo)
+				VALUES (now(), conversazione_codice, testo);
+			-- ELSE
+				-- errore codice inserito è errato
+			END IF;
+
+		end if;
+		
+		if (conversazione_codice IS NULL AND (SELECT count(Username) FROM BachecaElettronicadb.UCC WHERE Username=ucc_username_2)=1) then -- la conversazione non esiste, quindi viene creata una nuova
+						
+			call BachecaElettronicadb.inserimentoConversazione(last_id_conversazione);
+			
+			INSERT INTO BachecaElettronicadb.`Partecipa-UCC` (Conversazione_Codice, UCC_Username) VALUES(last_id_conversazione, ucc_username_1);	-- inserisco la partecipazione per il primo UCC
+			INSERT INTO BachecaElettronicadb.`Partecipa-UCC` (Conversazione_Codice, UCC_Username) VALUES(last_id_conversazione, ucc_username_2);	-- inserisco la partecipazione per il secondo UCC
+			INSERT INTO BachecaElettronicadb.Messaggio (ID, Data, Conversazione_Codice, Testo) VALUES(NULL, now(), last_id_conversazione, testo);
+			
+			SELECT StoricoConversazione_ID INTO storico_id_ucc_1
+			FROM BachecaElettronicadb.UCC
+			WHERE Username=ucc_username_1;
+			
+			SELECT StoricoConversazione_ID INTO storico_id_ucc_2
+			FROM BachecaElettronicadb.UCC
+			WHERE Username=ucc_username_2;
+			
+			INSERT INTO BachecaElettronicadb.Tracciato (Conversazione_Codice, StoricoConversazione_ID) VALUES(last_id_conversazione, storico_id_ucc_1);		-- traccio lo storico del primo UCC
+			INSERT INTO BachecaElettronicadb.Tracciato (Conversazione_Codice, StoricoConversazione_ID) VALUES(last_id_conversazione, storico_id_ucc_2);		-- traccio lo storico del secondo UCC
+			INSERT INTO BachecaElettronicadb.ConversazioneCodice (CodiceConv, StoricoConversazione_ID) VALUES(last_id_conversazione, storico_id_ucc_1); 	-- inserisco il nuovo codice della conversazione nello storico del primo UCC
+			INSERT INTO BachecaElettronicadb.ConversazioneCodice (CodiceConv, StoricoConversazione_ID) VALUES(last_id_conversazione, storico_id_ucc_2); 	-- inserisco il nuovo codice della conversazione nello storico del secondo UCC
+		end if;
+			
+	end if;
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
+
+-- Visualizza messaggio ---------------------------------------------- Impostare un livello di isolamento
+DELIMITER //
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaMessaggio ;
+CREATE PROCEDURE BachecaElettronicadb.visualizzaMessaggio (IN conversazione_codice INT)
+BEGIN
+	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Conversazione WHERE Codice=conversazione_codice) = 1) then
+	
+		/*CREATE TEMPORARY TABLE `BachecaElettronicadb`.`ViewMessaggio` (
+		`testo` VARCHAR(100) NOT NULL, 
+		`data` DATETIME NOT NULL);*/	
+	
+		SELECT Testo, Data
+		FROM BachecaElettronicadb.Messaggio
+		WHERE Conversazione_Codice = conversazione_codice;
 		
 	end if;
 END//
 DELIMITER ;
 -- -------------------------------------------------------------------
+
+-- Seguire un annuncio UCC -------------------------------------------
+DELIMITER //
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.seguiAnnuncioUCC ;
+CREATE PROCEDURE BachecaElettronicadb.seguiAnnuncioUCC (IN codice_annuncio INT, IN ucc_username VARCHAR(45))
+BEGIN
+	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE Codice=codice_annuncio and Stato='Attivo') = 1) then
+		INSERT INTO BachecaElettronicadb.`Seguito-UCC`(UCC_Username, Annuncio_Codice) VALUES(ucc_username, codice_annuncio);
+	end if;
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
+
+-- Seguire un annuncio USCC ------------------------------------------
+DELIMITER //
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.seguiAnnuncioUSCC ;
+CREATE PROCEDURE BachecaElettronicadb.seguiAnnuncioUSCC (IN codice_annuncio INT, IN uscc_username VARCHAR(45))
+BEGIN
+	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE Codice=codice_annuncio and Stato='Attivo') = 1) then
+		INSERT INTO BachecaElettronicadb.`Seguito-USCC`(USCC_Username, Annuncio_Codice) VALUES(uscc_username, codice_annuncio);
+	end if;
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
+
+-- Inserimento nota in un Annuncio -----------------------------------	Attivare evento avverti utente che seguono l'annuncio
+DELIMITER //
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.inserisciNota ;
+CREATE PROCEDURE BachecaElettronicadb.inserisciNota (IN codice_annuncio INT, IN testo VARCHAR(45))
+BEGIN
+	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE Codice=codice_annuncio and Stato='Attivo') = 1) then
+		INSERT INTO BachecaElettronicadb.Nota (ID, Testo, Annuncio_Codice) VALUES(NULL, testo, codice_annuncio);
+	end if;
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
+
+-- Rimozione di un Annuncio ------------------------------------------	Attivare evento avverti utente che seguono l'annuncio - Attivare evento genera report
+DELIMITER //
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.rimuoviAnnuncio ;
+CREATE PROCEDURE BachecaElettronicadb.rimuoviAnnuncio (IN codice_annuncio INT)
+BEGIN
+	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE Codice=codice_annuncio and Stato='Attivo') = 1) then
+		UPDATE BachecaElettronica.Annuncio
+		SET Stato = 'Rimosso'
+		WHERE Codice = codice_annuncio;
+	end if;
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
+
+-- Visualizzazione degli Annunci seguiti ---------------------- Impostare un livello di isolamento
+DELIMITER //
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaAnnunciSeguiti_UCC ;
+CREATE PROCEDURE BachecaElettronicadb.visualizzaAnnunciSeguiti_UCC (IN ucc_username VARCHAR(45))
+BEGIN
+	if ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE Username=ucc_username) = 1) then
+		SELECT Annuncio_Codice, Stato
+		FROM BachecaElettronicadb.`Seguito-UCC` AS seguiti JOIN BachecaElettronicadb.Annuncio AS annuncio ON seguiti.Annuncio_Codice=annuncio.Codice
+		WHERE seguiti.UCC_Username = ucc_username;
+	end if;
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
+
+-- Visualizzazione degli Annunci seguiti ----------------------------- Impostare un livello di isolamento
+DELIMITER //
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaAnnunciSeguiti_USCC ;
+CREATE PROCEDURE BachecaElettronicadb.visualizzaAnnunciSeguiti_USCC (IN uscc_username VARCHAR(45))
+BEGIN
+	if ((SELECT(count(Username)) FROM BachecaElettronicadb.USCC WHERE Username=uscc_username) = 1) then
+		SELECT Annuncio_Codice, Stato
+		FROM BachecaElettronicadb.`Seguito-USCC` AS seguiti JOIN BachecaElettronicadb.Annuncio AS annuncio ON seguiti.Annuncio_Codice=annuncio.Codice
+		WHERE seguiti.USCC_Username = uscc_username;
+	end if;
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
+
+-- Visualizzazione Storico USCC --------------------------------------- Impostare un livello di isolamento
+DELIMITER //
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaStorico_USCC ;
+CREATE PROCEDURE BachecaElettronicadb.visualizzaStorico_USCC (IN uscc_username VARCHAR(45))
+BEGIN
+	declare idStorico INT;
+	if ((SELECT(count(Username)) FROM BachecaElettronicadb.USCC WHERE Username=uscc_username) = 1) then
+		SELECT StoricoConversazione_ID INTO idStorico FROM BachecaElettronicadb.USCC WHERE Username=uscc_username;
+		
+		SELECT CodiceConv AS `Codice Conversazione`
+		FROM BachecaElettronicadb.ConversazioneCodice
+		WHERE StoricoConversazione_ID = idStorico;
+	end if;
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
+
+-- Visualizzazione Storico UCC --------------------------------------- Impostare un livello di isolamento
+DELIMITER //
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaStorico_UCC ;
+CREATE PROCEDURE BachecaElettronicadb.visualizzaStorico_UCC (IN ucc_username VARCHAR(45))
+BEGIN
+	declare idStorico INT;
+	if ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE Username=ucc_username) = 1) then
+		SELECT StoricoConversazione_ID INTO idStorico FROM BachecaElettronicadb.UCC WHERE Username=ucc_username;
+		
+		SELECT CodiceConv AS `Codice Conversazione`
+		FROM BachecaElettronicadb.ConversazioneCodice
+		WHERE StoricoConversazione_ID = idStorico;
+	end if;
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
+
+-- Generazione di un nuovo report ------------------------------------ Controllare se bisogna attivare un evento per non calcolare ogni volta annunci già calcolati
+DELIMITER //
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.generaReport ;
+CREATE PROCEDURE BachecaElettronicadb.generaReport (IN ucc_username VARCHAR(45))
+BEGIN
+	declare numeroCarta, codice_annuncio INT;
+	declare importo INT DEFAULT 0;
+	declare cognome, nome VARCHAR(20);
+	declare loop_import INT DEFAULT 0;
+	declare sum_import CURSOR FOR SELECT Codice FROM BachecaElettronica.Annuncio WHERE UCC_Username=ucc_username and Stato='Venduto';
+	declare continue handler for not found set loop_import=1;
 	
+	if ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE Username=ucc_username) = 1) then
+		SELECT NumeroCarta INTO numeroCarta FROM BachecaElettronicadb.UCC WHERE Username=ucc_username;
+		SELECT CognomeIntestatario INTO cognome FROM BachecaElettronicadb.UCC WHERE Username=ucc_username;
+		SELECT NomeIntestatario INTO nome FROM BachecaElettronicadb.UCC WHERE Username=ucc_username;
+		
+		if sum_import is not null then
+			OPEN sum_import;
+			calculate_import: WHILE(loop_import=0) DO
+				FETCH sum_import INTO codice_annuncio;
+				IF loop_import = 1 THEN
+					LEAVE calculate_import;
+				END IF;
+				SET importo = importo + (SELECT Importo FROM BachecaElettronicadb.Annuncio WHERE Codice=codice_annuncio);
+			end  WHILE;
+			CLOSE sum_import;
+		end if;
+	
+		INSERT INTO BachecaElettronicadb.Report (UCC_Username, ImportoTotale, NumeroCarta, CognomeIntestatarioCC, NomeIntestatarioCC, Data)
+		VALUES(ucc_username, importo, numeroCarta, cognome, nome, now());
+	end if;
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
+
+
+
