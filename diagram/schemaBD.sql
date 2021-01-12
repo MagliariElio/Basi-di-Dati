@@ -518,15 +518,16 @@ SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
 
 
 -- Registrazione di un utente UCC-------------------------------------
-DELIMITER //   -- controllare CF e le sue relazioni
+DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.registra_utente_UCC ;
-CREATE PROCEDURE BachecaElettronicadb.registra_utente_UCC (IN username VARCHAR(45), IN password VARCHAR(45), IN numeroCarta INT, IN cognomeIntestatario VARCHAR(20), IN nomeIntestatario VARCHAR(20), IN dataScadenza DATE, IN cvc INT, IN cf_anagrafico VARCHAR(16), IN cognome VARCHAR(20), IN nome VARCHAR(20), IN indirizzoDiResidenza VARCHAR(20), IN cap INT, IN indirizzoDiFatturazione VARCHAR(20), IN tipoRecapitoPreferito VARCHAR(20), IN recapitoPreferito VARCHAR(40))
+CREATE PROCEDURE BachecaElettronicadb.registra_utente_UCC (IN username VARCHAR(45), IN password VARCHAR(45), IN numeroCarta INT, IN cognomeIntestatario VARCHAR(20), IN nomeIntestatario VARCHAR(20), IN dataScadenza DATE, IN cvc INT, IN cf_anagrafico VARCHAR(16), IN cognome VARCHAR(20), IN nome VARCHAR(20), IN indirizzoDiResidenza VARCHAR(20), IN cap INT, IN indirizzoDiFatturazione VARCHAR(20), IN tipoRecapitoPreferito VARCHAR(20), IN recapitoPreferito VARCHAR(40), IN tipoRecapitoNonPreferito VARCHAR(20), IN recapitoNonPreferito VARCHAR(40))
 BEGIN
 	declare idStorico INT;
 	if ((SELECT count(Username) FROM BachecaElettronicadb.UCC WHERE Username=username)=0) then
 		
 		call BachecaElettronicadb.inserisci_Storico(idStorico);
 		call BachecaElettronicadb.inserimentoInfoAnagrafiche(cf_anagrafico, cognome, nome, indirizzoDiResidenza, cap, indirizzoDiFatturazione, tipoRecapitoPreferito, recapitoPreferito);
+		call BachecaElettronicadb.inserisci_RecapitoNonPreferito(tipoRecapitoNonPreferito, recapitoNonPreferito, cf_anagrafico);		
 		
 		INSERT INTO BachecaElettronicadb.UCC (Username, Password, NumeroCarta, CognomeIntestatario, NomeIntestatario, DataScadenza, CVC, StoricoConversazione_ID, CF_Anagrafico)
 		VALUES(username, password, numeroCarta, cognomeIntestatario, nomeIntestatario, dataScadenza, cvc, idStorico, cf_anagrafico);
@@ -546,16 +547,30 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
+-- Inserimento Recapito non preferito -------------------------------- 
+DELIMITER //
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.inserisci_RecapitoNonPreferito ;
+CREATE PROCEDURE BachecaElettronicadb.inserisci_RecapitoNonPreferito (IN tipo VARCHAR(40), IN recapito VARCHAR(20), IN cf_anagrafico VARCHAR(16))
+BEGIN
+		if tipo is not null AND recapito is not null AND cf_anagrafico is not null then
+			INSERT INTO BachecaElettronicadb.RecapitoNonPreferito (Recapito, Tipo, InformazioneAnagrafica_CF) VALUES(recapito, tipo, cf_anagrafico);
+		end if;
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
+
 -- Registrazione di un utente USCC -----------------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.registra_utente_USCC ;
-CREATE PROCEDURE BachecaElettronicadb.registra_utente_USCC (IN username VARCHAR(45), IN password VARCHAR(45), IN cf_anagrafico VARCHAR(16))
+CREATE PROCEDURE BachecaElettronicadb.registra_utente_USCC (IN username VARCHAR(45), IN password VARCHAR(45), IN cf_anagrafico VARCHAR(16), IN cognome VARCHAR(20), IN nome VARCHAR(20), IN indirizzoDiResidenza VARCHAR(20), IN cap INT, IN indirizzoDiFatturazione VARCHAR(20), IN tipoRecapitoPreferito VARCHAR(20), IN recapitoPreferito VARCHAR(40), IN tipoRecapitoNonPreferito VARCHAR(20), IN recapitoNonPreferito VARCHAR(40))
 BEGIN
 	declare idStorico INT;
 
 	if ((SELECT count(Username) FROM BachecaElettronicadb.USCC WHERE BachecaElettronicadb.USCC.Username=username)=0) then
 		call BachecaElettronicadb.inserisci_Storico(idStorico);
 		call BachecaElettronicadb.inserimentoInfoAnagrafiche(cf_anagrafico, cognome, nome, indirizzoDiResidenza, cap, indirizzoDiFatturazione, tipoRecapitoPreferito, recapitoPreferito);
+		call BachecaElettronicadb.inserisci_RecapitoNonPreferito(tipoRecapitoNonPreferito, recapitoNonPreferito, cf_anagrafico);		
+
 		
 		INSERT INTO BachecaElettronicadb.USCC (Username, Password, StoricoConversazione_ID, CF_Anagrafico) 
 		VALUES(username, password, idStorico, cf_anagrafico);
@@ -627,6 +642,17 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
+-- Visualizzazione categoria ----------------------------------------- Impostare un livello di isolamento
+DELIMITER //
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaCategoria ;
+CREATE PROCEDURE BachecaElettronicadb.visualizzaCategoria ()
+	BEGIN
+		SELECT Nome
+		FROM BachecaElettronicadb.Categoria;
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
+
 -- Inserimento di un nuovo annuncio ---------------------------------- Impostare una livello di isolamento - Le categorie potrebbere essere preimpostate
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.inserimentoNuovoAnnuncio ;
@@ -648,7 +674,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Inserimento di una foto in annuncio ------------------------------- Impostare un livello di isolamento per evitare repeatible read - Attivare evento avverti utente che seguono l'annuncio
+-- Inserimento di una foto in annuncio ------------------------------- Impostare un livello di isolamento per evitare repeatible read - Evento: avverti utenti che seguono l'annuncio
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.inserimentoFotoAnnuncio ;
 CREATE PROCEDURE BachecaElettronicadb.inserimentoFotoAnnuncio (IN codice INT, IN foto BINARY)
@@ -673,7 +699,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Inserimento commento ---------------------------------------------- Attivare evento avverti utente che seguono l'annuncio
+-- Inserimento commento ---------------------------------------------- Evento: avverti utenti che seguono l'annuncio
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.inserimentoCommento ;
 CREATE PROCEDURE BachecaElettronicadb.inserimentoCommento (IN testo VARCHAR(45), IN annuncio_codice INT)
@@ -874,7 +900,8 @@ BEGIN
 	
 		SELECT Testo, Data
 		FROM BachecaElettronicadb.Messaggio
-		WHERE Conversazione_Codice = conversazione_codice;
+		WHERE Conversazione_Codice = conversazione_codice
+		ORDER BY Data ASC;
 		
 	end if;
 END//
@@ -973,7 +1000,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Visualizzazione Storico USCC --------------------------------------- Impostare un livello di isolamento
+-- Visualizzazione Storico USCC -------------------------------------- Impostare un livello di isolamento
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaStorico_USCC ;
 CREATE PROCEDURE BachecaElettronicadb.visualizzaStorico_USCC (IN uscc_username VARCHAR(45))
