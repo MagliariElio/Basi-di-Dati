@@ -20,9 +20,9 @@ USE `BachecaElettronicadb` ;
 DROP TABLE IF EXISTS `BachecaElettronicadb`.`StoricoConversazione` ;
 
 CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`StoricoConversazione` (
-  `ID` INT AUTO_INCREMENT NOT NULL,
+  `ID` INT NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`ID`))
-ENGINE = InnoDB AUTO_INCREMENT=1;
+ENGINE = InnoDB;
 
 CREATE UNIQUE INDEX `ID_UNIQUE` ON `BachecaElettronicadb`.`StoricoConversazione` (`ID` ASC) VISIBLE;
 
@@ -39,8 +39,8 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`InformazioneAnagrafica` (
   `IndirizzoDiResidenza` VARCHAR(20) NOT NULL,
   `CAP` INT NOT NULL,
   `IndirizzoDiFatturazione` VARCHAR(20) NULL,
-  `TipoRecapitoPreferito` VARCHAR(20) NOT NULL,
-  `RecapitoPreferito` VARCHAR(40) NOT NULL,
+  `TipoRecapitoPreferito` ENUM('email', 'cellulare', 'id_social', 'sms') NOT NULL,
+  `RecapitoPreferito` VARCHAR(20) NOT NULL,
   PRIMARY KEY (`CF`))
 ENGINE = InnoDB;
 
@@ -101,8 +101,8 @@ CREATE UNIQUE INDEX `Nome_UNIQUE` ON `BachecaElettronicadb`.`Categoria` (`Nome` 
 DROP TABLE IF EXISTS `BachecaElettronicadb`.`Annuncio` ;
 
 CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Annuncio` (
-  `Codice` INT AUTO_INCREMENT NOT NULL,
-  `Stato` VARCHAR(7) NOT NULL,
+  `Codice` INT NOT NULL AUTO_INCREMENT,
+  `Stato` ENUM('Attivo', 'Venduto', 'RImosso') NOT NULL,
   `Descrizione` VARCHAR(100) NOT NULL,
   `Importo` INT NULL,
   `Foto` VARCHAR(45) BINARY NULL,
@@ -119,7 +119,7 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Annuncio` (
     REFERENCES `BachecaElettronicadb`.`Categoria` (`Nome`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
-ENGINE = InnoDB AUTO_INCREMENT=1;
+ENGINE = InnoDB;
 
 CREATE UNIQUE INDEX `Codice_UNIQUE` ON `BachecaElettronicadb`.`Annuncio` (`Codice` ASC) VISIBLE;
 
@@ -134,7 +134,7 @@ CREATE INDEX `fk_Annuncio_Categoria1_idx` ON `BachecaElettronicadb`.`Annuncio` (
 DROP TABLE IF EXISTS `BachecaElettronicadb`.`Nota` ;
 
 CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Nota` (
-  `ID` INT AUTO_INCREMENT NOT NULL,
+  `ID` INT NOT NULL AUTO_INCREMENT,
   `Testo` VARCHAR(45) NOT NULL,
   `Annuncio_Codice` INT NOT NULL,
   PRIMARY KEY (`ID`, `Annuncio_Codice`),
@@ -143,7 +143,7 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Nota` (
     REFERENCES `BachecaElettronicadb`.`Annuncio` (`Codice`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
-ENGINE = InnoDB AUTO_INCREMENT=1;
+ENGINE = InnoDB;
 
 CREATE INDEX `fk_Nota_Annuncio1_idx` ON `BachecaElettronicadb`.`Nota` (`Annuncio_Codice` ASC) VISIBLE;
 
@@ -156,7 +156,7 @@ CREATE UNIQUE INDEX `Annuncio_Codice_UNIQUE` ON `BachecaElettronicadb`.`Nota` (`
 DROP TABLE IF EXISTS `BachecaElettronicadb`.`Commento` ;
 
 CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Commento` (
-  `ID` INT AUTO_INCREMENT NOT NULL,
+  `ID` INT NOT NULL AUTO_INCREMENT,
   `Testo` VARCHAR(45) NOT NULL,
   `Annuncio_Codice` INT NOT NULL,
   PRIMARY KEY (`ID`, `Annuncio_Codice`),
@@ -165,7 +165,7 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Commento` (
     REFERENCES `BachecaElettronicadb`.`Annuncio` (`Codice`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
-ENGINE = InnoDB AUTO_INCREMENT=1;
+ENGINE = InnoDB;
 
 CREATE INDEX `fk_Commento_Annuncio1_idx` ON `BachecaElettronicadb`.`Commento` (`Annuncio_Codice` ASC) VISIBLE;
 
@@ -184,6 +184,8 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Report` (
   `CognomeIntestatarioCC` VARCHAR(20) NOT NULL,
   `NomeIntestatarioCC` VARCHAR(20) NOT NULL,
   `Data` DATETIME NOT NULL,
+  `Riscosso` INT NOT NULL,
+  `SommaAmministratore` INT NOT NULL,
   PRIMARY KEY (`UCC_Username`),
   CONSTRAINT `fk_Report_UCC1`
     FOREIGN KEY (`UCC_Username`)
@@ -233,7 +235,7 @@ CREATE INDEX `fk_USCC_InformazioneAnagrafica1_idx` ON `BachecaElettronicadb`.`US
 DROP TABLE IF EXISTS `BachecaElettronicadb`.`Conversazione` ;
 
 CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Conversazione` (
-  `Codice` INT AUTO_INCREMENT NOT NULL,
+  `Codice` INT NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`Codice`))
 ENGINE = InnoDB;
 
@@ -246,7 +248,7 @@ CREATE UNIQUE INDEX `Codice_UNIQUE` ON `BachecaElettronicadb`.`Conversazione` (`
 DROP TABLE IF EXISTS `BachecaElettronicadb`.`Messaggio` ;
 
 CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Messaggio` (
-  `ID` INT AUTO_INCREMENT NOT NULL,
+  `ID` INT NOT NULL AUTO_INCREMENT,
   `Data` DATETIME NOT NULL,
   `Conversazione_Codice` INT NOT NULL,
   `Testo` VARCHAR(100) NOT NULL,
@@ -269,8 +271,8 @@ CREATE UNIQUE INDEX `Conversazione_Codice_UNIQUE` ON `BachecaElettronicadb`.`Mes
 DROP TABLE IF EXISTS `BachecaElettronicadb`.`RecapitoNonPreferito` ;
 
 CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`RecapitoNonPreferito` (
-  `Recapito` VARCHAR(40) NOT NULL,
-  `Tipo` VARCHAR(20) NOT NULL,
+  `Recapito` VARCHAR(20) NOT NULL,
+  `Tipo` ENUM('email', 'cellulare', 'id_social', 'sms') NOT NULL,
   `InformazioneAnagrafica_CF` VARCHAR(16) NOT NULL,
   PRIMARY KEY (`InformazioneAnagrafica_CF`, `Recapito`),
   CONSTRAINT `fk_RecapitoNonPreferito_InformazioneAnagrafica1`
@@ -511,16 +513,10 @@ CREATE INDEX `fk_Partecipa-UCC_UCC1_idx` ON `BachecaElettronicadb`.`Partecipa-UC
 
 CREATE UNIQUE INDEX `UCC_Username_UNIQUE` ON `BachecaElettronicadb`.`Partecipa-UCC` (`UCC_Username` ASC) VISIBLE;
 
-
-SET SQL_MODE=@OLD_SQL_MODE;
-SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
-SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
-
-
 -- Registrazione di un utente UCC-------------------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.registra_utente_UCC ;
-CREATE PROCEDURE BachecaElettronicadb.registra_utente_UCC (IN username VARCHAR(45), IN password VARCHAR(45), IN numeroCarta INT, IN cognomeIntestatario VARCHAR(20), IN nomeIntestatario VARCHAR(20), IN dataScadenza DATE, IN cvc INT, IN cf_anagrafico VARCHAR(16), IN cognome VARCHAR(20), IN nome VARCHAR(20), IN indirizzoDiResidenza VARCHAR(20), IN cap INT, IN indirizzoDiFatturazione VARCHAR(20), IN tipoRecapitoPreferito VARCHAR(20), IN recapitoPreferito VARCHAR(40), IN tipoRecapitoNonPreferito VARCHAR(20), IN recapitoNonPreferito VARCHAR(40))
+CREATE PROCEDURE BachecaElettronicadb.registra_utente_UCC (IN username VARCHAR(45), IN password VARCHAR(45), IN numeroCarta INT, IN cognomeIntestatario VARCHAR(20), IN nomeIntestatario VARCHAR(20), IN dataScadenza DATE, IN cvc INT, IN cf_anagrafico VARCHAR(16), IN cognome VARCHAR(20), IN nome VARCHAR(20), IN indirizzoDiResidenza VARCHAR(20), IN cap INT, IN indirizzoDiFatturazione VARCHAR(20), IN tipoRecapitoPreferito VARCHAR(20), IN recapitoPreferito VARCHAR(20), IN tipoRecapitoNonPreferito VARCHAR(20), IN recapitoNonPreferito VARCHAR(20))
 BEGIN
 	declare idStorico INT;
 	if ((SELECT count(Username) FROM BachecaElettronicadb.UCC WHERE Username=username)=0) then
@@ -552,9 +548,7 @@ DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.inserisci_RecapitoNonPreferito ;
 CREATE PROCEDURE BachecaElettronicadb.inserisci_RecapitoNonPreferito (IN tipo VARCHAR(40), IN recapito VARCHAR(20), IN cf_anagrafico VARCHAR(16))
 BEGIN
-		if tipo is not null AND recapito is not null AND cf_anagrafico is not null then
-			INSERT INTO BachecaElettronicadb.RecapitoNonPreferito (Recapito, Tipo, InformazioneAnagrafica_CF) VALUES(recapito, tipo, cf_anagrafico);
-		end if;
+	INSERT INTO BachecaElettronicadb.RecapitoNonPreferito (Recapito, Tipo, InformazioneAnagrafica_CF) VALUES(recapito, tipo, cf_anagrafico);
 END//
 DELIMITER ;
 -- -------------------------------------------------------------------
@@ -562,7 +556,7 @@ DELIMITER ;
 -- Registrazione di un utente USCC -----------------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.registra_utente_USCC ;
-CREATE PROCEDURE BachecaElettronicadb.registra_utente_USCC (IN username VARCHAR(45), IN password VARCHAR(45), IN cf_anagrafico VARCHAR(16), IN cognome VARCHAR(20), IN nome VARCHAR(20), IN indirizzoDiResidenza VARCHAR(20), IN cap INT, IN indirizzoDiFatturazione VARCHAR(20), IN tipoRecapitoPreferito VARCHAR(20), IN recapitoPreferito VARCHAR(40), IN tipoRecapitoNonPreferito VARCHAR(20), IN recapitoNonPreferito VARCHAR(40))
+CREATE PROCEDURE BachecaElettronicadb.registra_utente_USCC (IN username VARCHAR(45), IN password VARCHAR(45), IN cf_anagrafico VARCHAR(16), IN cognome VARCHAR(20), IN nome VARCHAR(20), IN indirizzoDiResidenza VARCHAR(20), IN cap INT, IN indirizzoDiFatturazione VARCHAR(20), IN tipoRecapitoPreferito VARCHAR(20), IN recapitoPreferito VARCHAR(20), IN tipoRecapitoNonPreferito VARCHAR(20), IN recapitoNonPreferito VARCHAR(20))
 BEGIN
 	declare idStorico INT;
 
@@ -582,22 +576,17 @@ DELIMITER ;
 -- Inserimento delle Informazioni Anagrafiche ------------------------ 
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.inserimentoInfoAnagrafiche ;
-CREATE PROCEDURE BachecaElettronicadb.inserimentoInfoAnagrafiche (IN cf VARCHAR(16), IN cognome VARCHAR(20), IN nome VARCHAR(20), IN indirizzoDiResidenza VARCHAR(20), IN cap INT, IN indirizzoDiFatturazione VARCHAR(20), IN tipoRecapitoPreferito VARCHAR(20), IN recapitoPreferito VARCHAR(40))
+CREATE PROCEDURE BachecaElettronicadb.inserimentoInfoAnagrafiche (IN cf VARCHAR(16), IN cognome VARCHAR(20), IN nome VARCHAR(20), IN indirizzoDiResidenza VARCHAR(20), IN cap INT, IN indirizzoDiFatturazione VARCHAR(20), IN tipoRecapitoPreferito VARCHAR(20), IN recapitoPreferito VARCHAR(20))
 BEGIN
 	if ((SELECT count(CF) FROM BachecaElettronicadb.InformazioneAnagrafica WHERE CF=cf)=0) then
-		IF indirizzoDiFatturazione IS NOT NULL THEN
-			INSERT INTO InformazioneAnagrafica (CF, Cognome, Nome, IndirizzoDiResidenza, CAP, IndirizzoDiFatturazione, tipoRecapitoPreferito, RecapitoPreferito) 
-			VALUES(cf, cognome, nome, indirizzoDiResidenza, cap, indirizzoDiFatturazione, tipoRecapitoPreferito, recapitoPreferito);
-		ELSE
-			INSERT INTO InformazioneAnagrafica (CF, Cognome, Nome, IndirizzoDiResidenza, CAP, tipoRecapitoPreferito, RecapitoPreferito) 
-			VALUES(cf, cognome, nome, indirizzoDiResidenza, cap, tipoRecapitoPreferito, recapitoPreferito);
-		END IF;
+		INSERT INTO InformazioneAnagrafica (CF, Cognome, Nome, IndirizzoDiResidenza, CAP, IndirizzoDiFatturazione, tipoRecapitoPreferito, RecapitoPreferito) 
+		VALUES(cf, cognome, nome, indirizzoDiResidenza, cap, indirizzoDiFatturazione, tipoRecapitoPreferito, recapitoPreferito);
 	end if;
 END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Modifica delle Informazioni Anagrafiche ---------------------------
+-- Modifica delle Informazioni Anagrafiche --------------------------- Modifico le informazioni a seconda delle cose che voglio modificare
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.modificaInfoAnagrafiche ;
 CREATE PROCEDURE BachecaElettronicadb.modificaInfoAnagrafiche (IN cf VARCHAR(16), IN cognome VARCHAR(20), IN nome VARCHAR(20), IN indirizzoDiResidenza VARCHAR(20), IN cap INT, IN indirizzoDiFatturazione VARCHAR(20), IN tipoRecapitoPreferito VARCHAR(20), IN recapitoPreferito VARCHAR(40))
@@ -661,7 +650,7 @@ BEGIN
 	if ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username=ucc_username) = 1) then
 		if ((SELECT(count(Nome)) FROM BachecaElettronicadb.Categoria WHERE BachecaElettronicadb.Categoria.Nome=categoria_nome) = 1) then
 			
-			IF foto IS NULL THEN
+			IF foto IS NULL THEN	-- evito di sovrascrivere una foto già esistente
 				INSERT INTO BachecaElettronicadb.Annuncio (Codice, Stato, Descrizione, Importo, UCC_Username, Categoria_Nome) VALUES(NULL, 'Attivo', descrizione, importo, ucc_username, categoria_nome);
 			ELSE
 				INSERT INTO BachecaElettronicadb.Annuncio (Codice, Stato, Descrizione, Importo, Foto, UCC_Username, Categoria_Nome) VALUES(NULL, 'Attivo', descrizione, importo, foto, ucc_username, categoria_nome);
@@ -674,14 +663,14 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Inserimento di una foto in annuncio ------------------------------- Impostare un livello di isolamento per evitare repeatible read - Evento: avverti utenti che seguono l'annuncio
+-- Inserimento o Rimozione di una foto in annuncio ------------------- Impostare un livello di isolamento per evitare repeatible read - Evento: avverti utenti che seguono l'annuncio - Inserisci o rimuovi foto a seconda del parametro
 DELIMITER //
-DROP PROCEDURE IF EXISTS BachecaElettronicadb.inserimentoFotoAnnuncio ;
-CREATE PROCEDURE BachecaElettronicadb.inserimentoFotoAnnuncio (IN codice INT, IN foto BINARY)
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.modificaFotoAnnuncio ;
+CREATE PROCEDURE BachecaElettronicadb.modificaFotoAnnuncio (IN codice INT, IN foto BINARY)
 BEGIN
-	if ((SELECT(count(codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=codice AND BachecaElettronicadb.Annuncio.Stato='Attivo')=1 AND foto IS NOT NULL) then
+	if ((SELECT(count(codice)) FROM BachecaElettronicadb.Annuncio WHERE Codice=codice AND Stato='Attivo') = 1) then
 		UPDATE BachecaElettronicadb.Annuncio
-		SET Foto=foto
+		SET Foto = foto
 		WHERE Codice=codice;
 	end if;
 END//
@@ -699,13 +688,18 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Inserimento commento ---------------------------------------------- Evento: avverti utenti che seguono l'annuncio
+-- Inserimento o Rimozione commento ---------------------------------- Evento: avverti utenti che seguono l'annuncio - Inserimento o Rimozione del commento a seconda del parametro
 DELIMITER //
-DROP PROCEDURE IF EXISTS BachecaElettronicadb.inserimentoCommento ;
-CREATE PROCEDURE BachecaElettronicadb.inserimentoCommento (IN testo VARCHAR(45), IN annuncio_codice INT)
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.modificaCommento ;
+CREATE PROCEDURE BachecaElettronicadb.modificaCommento (IN testo VARCHAR(45), IN annuncio_codice INT, IN ID_rimozione_commento INT)
 BEGIN
-	if ((SELECT(count(Annuncio_Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=annuncio_codice AND BachecaElettronicadb.Annuncio.Stato='Attivo') = 1 AND testo IS NOT NULL) then
-		INSERT INTO BachecaElettronicadb.Commento (Testo, Annuncio_Codice) VALUES(testo, annuncio_codice);
+	if ((SELECT(count(Annuncio_Codice)) FROM BachecaElettronicadb.Annuncio WHERE Codice=annuncio_codice AND Stato='Attivo') = 1) then
+		IF (ID_rimozione_commento = 0) then	
+			INSERT INTO BachecaElettronicadb.Commento (Testo, Annuncio_Codice) VALUES(testo, annuncio_codice);
+		else
+			DELETE FROM BachecaElettronicadb.Commento
+			WHERE ID = ID_rimozione_commento;
+		end IF;
 	end if;
 END//
 DELIMITER ;
@@ -716,11 +710,11 @@ DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaCommento ;
 CREATE PROCEDURE BachecaElettronicadb.visualizzaCommento (IN annuncio_codice INT)
 BEGIN
-	if ((SELECT(count(Annuncio_Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=annuncio_codice AND BachecaElettronicadb.Annuncio.Stato='Attivo') = 1) then
-		SELECT Testo, Annuncio_codice AS "Codice dell'annuncio"
+	if ((SELECT(count(Annuncio_Codice)) FROM BachecaElettronicadb.Annuncio WHERE Codice=annuncio_codice AND Stato='Attivo') = 1) then
+		SELECT Testo, Annuncio_codice  -- AS "Codice dell'annuncio"
 		FROM BachecaElettronicadb.Commento
 		WHERE Annuncio_Codice = annuncio_codice;
-		end if;
+	end if;
 END//
 DELIMITER ;
 -- -------------------------------------------------------------------
@@ -732,7 +726,7 @@ CREATE PROCEDURE BachecaElettronicadb.invioMessaggioUSCC (IN conversazione_codic
 BEGIN
 	declare conversazioni_table, last_id_conversazione, storico_id_ucc, storico_id_uscc INT;
 	
-	if ((SELECT count(Username) FROM BachecaElettronicadb.USCC WHERE Username=uscc_username)=1 AND testo IS NOT NULL) then
+	if ((SELECT count(Username) FROM BachecaElettronicadb.USCC WHERE Username=uscc_username) = 1) then
 
 		if conversazione_codice IS NOT NULL then   -- controllo se esiste già una conversazione	
 			SELECT Conversazione_Codice INTO conversazioni_table
@@ -794,7 +788,7 @@ CREATE PROCEDURE BachecaElettronicadb.invioMessaggio_UCC_USCC (IN conversazione_
 BEGIN
 	declare conversazioni_table, last_id_conversazione, storico_id_ucc, storico_id_uscc INT;
 	
-	if ((SELECT count(Username) FROM BachecaElettronicadb.UCC WHERE Username=ucc_username)=1 AND testo IS NOT NULL) then
+	if ((SELECT count(Username) FROM BachecaElettronicadb.UCC WHERE Username=ucc_username) = 1) then
 
 		if conversazione_codice IS NOT NULL then   -- controllo se esiste già una conversazione	
 			SELECT Conversazione_Codice INTO conversazioni_table
@@ -844,7 +838,7 @@ CREATE PROCEDURE BachecaElettronicadb.invioMessaggio_UCC_UCC (IN conversazione_c
 BEGIN
 	declare conversazioni_table, last_id_conversazione, storico_id_ucc_1, storico_id_ucc_2 INT;
 	
-	if ((SELECT count(Username) FROM BachecaElettronicadb.UCC WHERE Username=ucc_username_1)=1 AND testo IS NOT NULL) then
+	if ((SELECT count(Username) FROM BachecaElettronicadb.UCC WHERE Username=ucc_username_1) = 1) then
 
 		if conversazione_codice IS NOT NULL then   					-- controllo se esiste già una conversazione	
 			SELECT Conversazione_Codice INTO conversazioni_table
@@ -893,16 +887,10 @@ DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaMessaggio ;
 CREATE PROCEDURE BachecaElettronicadb.visualizzaMessaggio (IN conversazione_codice INT)
 BEGIN
 	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Conversazione WHERE Codice=conversazione_codice) = 1) then
-	
-		/*CREATE TEMPORARY TABLE `BachecaElettronicadb`.`ViewMessaggio` (
-		`testo` VARCHAR(100) NOT NULL, 
-		`data` DATETIME NOT NULL);*/	
-	
 		SELECT Testo, Data
 		FROM BachecaElettronicadb.Messaggio
 		WHERE Conversazione_Codice = conversazione_codice
 		ORDER BY Data ASC;
-		
 	end if;
 END//
 DELIMITER ;
@@ -972,7 +960,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Visualizzazione degli Annunci seguiti ---------------------- Impostare un livello di isolamento
+-- Visualizzazione degli Annunci seguiti ----------------------------- Impostare un livello di isolamento
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaAnnunciSeguiti_UCC ;
 CREATE PROCEDURE BachecaElettronicadb.visualizzaAnnunciSeguiti_UCC (IN ucc_username VARCHAR(45))
@@ -1063,9 +1051,25 @@ BEGIN
 			CLOSE sum_import;
 		end if;
 	
-		INSERT INTO BachecaElettronicadb.Report (UCC_Username, ImportoTotale, NumeroCarta, CognomeIntestatarioCC, NomeIntestatarioCC, Data)
-		VALUES(ucc_username, importo, numeroCarta, cognome, nome, now());
+		INSERT INTO BachecaElettronicadb.Report (UCC_Username, ImportoTotale, NumeroCarta, CognomeIntestatarioCC, NomeIntestatarioCC, Data, Riscosso, SommaAmministratore)
+		VALUES(ucc_username, importo, numeroCarta, cognome, nome, now(), 0, 0);
 	end if;
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
+
+-- Riscossione di un report ------------------------------------------
+DELIMITER //
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.riscossioneReport ;
+CREATE PROCEDURE BachecaElettronicadb.riscossioneReport (IN ucc_username VARCHAR(45), IN data DATETIME)
+BEGIN
+		declare importo INT;
+		SELECT ImportoTotale FROM BachecaElettronicadb.Report WHERE UCC_Username=ucc_username and Data=data INTO importo;
+		
+		UPDATE BachecaElettronicadb.Report
+		SET Riscosso = 1, SommaAmministratore = importo*0.3
+		WHERE UCC_Username = ucc_username and Data = data and Riscosso = 0;
+		
 END//
 DELIMITER ;
 -- -------------------------------------------------------------------
@@ -1105,3 +1109,47 @@ DELIMITER ;
 -- -------------------------------------------------------------------
 
 
+SET SQL_MODE = '';
+DROP USER IF EXISTS UCC;
+SET SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+CREATE USER 'UCC' IDENTIFIED BY 'uccpassword';
+
+GRANT ALL ON `BachecaElettronicadb`.* TO 'UCC';
+GRANT SELECT ON TABLE `BachecaElettronicadb`.* TO 'UCC';
+GRANT SELECT, INSERT, TRIGGER ON TABLE `BachecaElettronicadb`.* TO 'UCC';
+GRANT SELECT, INSERT, TRIGGER, UPDATE, DELETE ON TABLE `BachecaElettronicadb`.* TO 'UCC';
+GRANT EXECUTE ON ROUTINE `BachecaElettronicadb`.* TO 'UCC';
+SET SQL_MODE = '';
+DROP USER IF EXISTS USCC;
+SET SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+CREATE USER 'USCC' IDENTIFIED BY 'usccpassword';
+
+GRANT ALL ON `BachecaElettronicadb`.* TO 'USCC';
+GRANT SELECT ON TABLE `BachecaElettronicadb`.* TO 'USCC';
+GRANT SELECT, INSERT, TRIGGER ON TABLE `BachecaElettronicadb`.* TO 'USCC';
+GRANT SELECT, INSERT, TRIGGER, UPDATE, DELETE ON TABLE `BachecaElettronicadb`.* TO 'USCC';
+GRANT EXECUTE ON ROUTINE `BachecaElettronicadb`.* TO 'USCC';
+SET SQL_MODE = '';
+DROP USER IF EXISTS Amministratore;
+SET SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+CREATE USER 'Amministratore' IDENTIFIED BY 'amministratorepassword';
+
+GRANT ALL ON `BachecaElettronicadb`.* TO 'Amministratore';
+GRANT SELECT ON TABLE `BachecaElettronicadb`.* TO 'Amministratore';
+GRANT SELECT, INSERT, TRIGGER ON TABLE `BachecaElettronicadb`.* TO 'Amministratore';
+GRANT SELECT, INSERT, TRIGGER, UPDATE, DELETE ON TABLE `BachecaElettronicadb`.* TO 'Amministratore';
+GRANT EXECUTE ON ROUTINE `BachecaElettronicadb`.* TO 'Amministratore';
+SET SQL_MODE = '';
+DROP USER IF EXISTS login;
+SET SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+CREATE USER 'login' IDENTIFIED BY 'loginpassword';
+
+GRANT ALL ON `BachecaElettronicadb`.* TO 'login';
+GRANT SELECT ON TABLE `BachecaElettronicadb`.* TO 'login';
+GRANT SELECT, INSERT, TRIGGER ON TABLE `BachecaElettronicadb`.* TO 'login';
+GRANT SELECT, INSERT, TRIGGER, UPDATE, DELETE ON TABLE `BachecaElettronicadb`.* TO 'login';
+GRANT EXECUTE ON ROUTINE `BachecaElettronicadb`.* TO 'login';
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
