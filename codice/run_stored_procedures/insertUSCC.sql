@@ -1,0 +1,54 @@
+-- ------------------------------------
+USE `BachecaElettronicadb`
+-- ------------------------------------
+
+call BachecaElettronicadb.registra_utente_USCC ('omarssi', 'cde3d4f2', 'GRSMRO80A01D612S', 'Grassi', 'Omar', 'Via Demis', 52004, 'Via Demis', 'email', 'omarssi@gmail.com', 'cellulare', '393315934');
+call BachecaElettronicadb.registra_utente_USCC ('sersebti', 'f6c40a35', 'BNDSRS80A01D612E', 'Benedetti', 'Serse', 'Rotonda Ferrara', 30389, 'Rotonda Ferrara', 'email', 'sersebti@gmail.com', 'cellulare', '3930054873');
+call BachecaElettronicadb.registra_utente_USCC ('ingscci', '91311afc', 'RCCSDR80A01L219L', 'Ricci', 'Sandro', 'Via De', 26245, 'Via De', 'email', 'ingscci@gmail.com', 'cellulare', '393350114');
+call BachecaElettronicadb.registra_utente_USCC ('diamllo', '4dffd86f', 'GLLDNT80A01L219A', 'Gallo', 'Diamante', 'Via Rizzi', 28610, 'Via Rizzi', 'email', 'diamllo@gmail.com', 'cellulare', '39368957886');
+call BachecaElettronicadb.registra_utente_USCC ('fabianti', 'de813072', 'BNDFBN80A01H501A', 'Benedetti', 'Fabiano', 'Contrada Neri', 84772, 'Contrada Neri', 'email', 'fabianti@gmail.com', 'cellulare', '3930648895');
+call BachecaElettronicadb.registra_utente_USCC ('drpriaale', '492df93f', 'VTLPRM80A01F205H', 'Vitale', 'Priamo', 'Strada Silvestri', 19108, 'Strada Silvestri', 'email', 'drpriaale@gmail.com', 'cellulare', '3933755983');
+call BachecaElettronicadb.registra_utente_USCC ('vinicara', 'af4a630f', 'FRRVNC80A01F205U', 'Ferrara', 'Vinicio', 'Incrocio Isira', 15733, 'Incrocio Isira', 'email', 'vinicara@gmail.com', 'cellulare', '39334344357');
+call BachecaElettronicadb.registra_utente_USCC ('vinicito', '247196bf', 'SPSVNC80A01F205V', 'Esposito', 'Vinicio', 'Borgo Lombardi', 42233, 'Borgo Lombardi', 'email', 'vinicito@gmail.com', 'cellulare', '39393767546');
+call BachecaElettronicadb.registra_utente_USCC ('donatela', '5a43275c', 'VLLDTL80A01F205S', 'Villa', 'Donatella', 'Borgo Damiana', 05189, 'Borgo Damiana', 'email', 'donatela@gmail.com', 'cellulare', '3930623412');
+call BachecaElettronicadb.registra_utente_USCC ('inglucssi', 'da8a0e5a', 'RSSLCU80A01F205N', 'Rossi', 'Luce', 'Incrocio Rosalba', 94852, 'Incrocio Rosalba', 'email', 'inglucssi@gmail.com', 'cellulare', '39300455491');
+call BachecaElettronicadb.registra_utente_USCC ('neriero', '564a724d', 'RGGNRE80A01D612U', 'Ruggiero', 'Neri', 'Piazza Lamberto', 44347, 'Piazza Lamberto', 'email', 'neriero@gmail.com', 'cellulare', '39353728663');
+call BachecaElettronicadb.registra_utente_USCC ('ilarso', 'dadd41c1', 'GRSLRI80A01L219Z', 'Grasso', 'Ilario', 'Borgo Carmelo', 87568, 'Borgo Carmelo', 'email', 'ilarso@gmail.com', 'cellulare', '393329848');
+call BachecaElettronicadb.registra_utente_USCC ('dottmeva', '83e02679', 'RVIMCD80A01H501E', 'Riva', 'Mercedes', 'Rotonda Greco', 92634, 'Rotonda Greco', 'email', 'dottmeva@gmail.com', 'cellulare', '393691960964');
+call BachecaElettronicadb.registra_utente_USCC ('isabetti', '6a91ea6a', 'GTTSBL80A01H501N', 'Gatti', 'Isabel', 'Piazza Gatti', 33572, 'Piazza Gatti', 'email', 'isabetti@gmail.com', 'cellulare', '393101515');
+call BachecaElettronicadb.registra_utente_USCC ('sigeeo', '1ac9d2f5', 'CTTTHN80A01D612B', 'Cattaneo', 'Ethan', 'Incrocio Cassiopea', 20847, 'Incrocio Cassiopea', 'email', 'sigeeo@gmail.com', 'cellulare', '393245286');
+call BachecaElettronicadb.registra_utente_USCC ('baldaslli', 'add77af3', 'MRLBDS80A01F205E', 'Morelli', 'Baldassarre', 'Contrada Gatti', 55802, 'Contrada Gatti', 'email', 'baldaslli@gmail.com', 'cellulare', '3932187320');
+call BachecaElettronicadb.registra_utente_USCC ('manuera', '823bfc82', 'FRRMNL80A01D612V', 'Ferrara', 'Manuele', 'Piazza Deborah', 39682, 'Piazza Deborah', 'email', 'manuera@gmail.com', 'cellulare', '393575678873');
+call BachecaElettronicadb.registra_utente_USCC ('ingsatti', '642e7071', 'FRRSDR80A01H501Q', 'Ferretti', 'Sandro', 'Piazza Damico', 39208, 'Piazza Damico', 'email', 'ingsatti@gmail.com', 'cellulare', '39323230535');
+call BachecaElettronicadb.registra_utente_USCC ('drradila', 'f08a0236', 'SLARDA80A01L219C', 'Sala', 'Radio', 'Rotonda Nick', 69223, 'Rotonda Nick', 'email', 'drradila@gmail.com', 'cellulare', '393008154');
+call BachecaElettronicadb.registra_utente_USCC ('quartana', 'dcff1e06', 'FNTQRT80A01L219L', 'Fontana', 'Quarto', 'Contrada Monia', 56866, 'Contrada Monia', 'email', 'quartana@gmail.com', 'cellulare', '393085008');
+call BachecaElettronicadb.registra_utente_USCC ('toscina', 'df1671d7', 'MSSTSC80A01F205U', 'Messina', 'Tosca', 'Rotonda Mirco', 95909, 'Rotonda Mirco', 'email', 'toscina@gmail.com', 'cellulare', '393356292');
+call BachecaElettronicadb.registra_utente_USCC ('noemilo', 'd235171d', 'GLLNMO80A01L219D', 'Gallo', 'Noemi', 'Via Kris', 56039, 'Via Kris', 'email', 'noemilo@gmail.com', 'cellulare', '393380305');
+call BachecaElettronicadb.registra_utente_USCC ('umbertri', '07567399', 'FRRMRT80A01F205Q', 'Ferrari', 'Umberto', 'Rotonda Rosaria', 20249, 'Rotonda Rosaria', 'email', 'umbertri@gmail.com', 'cellulare', '3939980453');
+call BachecaElettronicadb.registra_utente_USCC ('matilini', '674e78ec', 'MRNMLD80A01F205N', 'Marini', 'Matilde', 'Via Cosetta', 43793, 'Via Cosetta', 'email', 'matilini@gmail.com', 'cellulare', '393067653');
+call BachecaElettronicadb.registra_utente_USCC ('sarira', 'a910aaf8', 'GRRSRT80A01H501V', 'Guerra', 'Sarita', 'Via Cleopatra', 34736, 'Via Cleopatra', 'email', 'sarira@gmail.com', 'cellulare', '3934851189');
+call BachecaElettronicadb.registra_utente_USCC ('pacifiari', '64125b37', 'FRRPFC80A01D612I', 'Ferrari', 'Pacifico', 'Rotonda Filomena', 06883, 'Rotonda Filomena', 'email', 'pacifiari@gmail.com', 'cellulare', '39364264177');
+call BachecaElettronicadb.registra_utente_USCC ('drmonni', '18387f8e', 'GLNMNO80A01H501C', 'Giuliani', 'Monia', 'Contrada Amato', 80379, 'Contrada Amato', 'email', 'drmonni@gmail.com', 'cellulare', '393371390');
+call BachecaElettronicadb.registra_utente_USCC ('dottezzo', '7a629923', 'RZZDVG80A01F205O', 'Rizzo', 'Edvige', 'Via Villa', 59022, 'Via Villa', 'email', 'dottezzo@gmail.com', 'cellulare', '393069231');
+call BachecaElettronicadb.registra_utente_USCC ('ingsile', 'b444b8bf', 'GNTSRI80A01L219E', 'Gentile', 'Siro', 'Incrocio Folco', 23431, 'Incrocio Folco', 'email', 'ingsile@gmail.com', 'cellulare', '393487928');
+call BachecaElettronicadb.registra_utente_USCC ('lunavni', '08758763', 'VLNLNU80A01D612G', 'Valentini', 'Luna', 'Piazza Marchetti', 31815, 'Piazza Marchetti', 'email', 'lunavni@gmail.com', 'cellulare', '39306942489');
+call BachecaElettronicadb.registra_utente_USCC ('drnicoile', 'c201acb2', 'BSLNLT80A01D612Y', 'Basile', 'Nicoletta', 'Rotonda Gatti', 06366, 'Rotonda Gatti', 'email', 'drnicoile@gmail.com', 'cellulare', '3936462706');
+call BachecaElettronicadb.registra_utente_USCC ('sigrari', '28b8f29a', 'FRRCPT80A01L219Q', 'Ferrari', 'Cleopatra', 'Rotonda Marina', 39773, 'Rotonda Marina', 'email', 'sigrari@gmail.com', 'cellulare', '39332186275');
+call BachecaElettronicadb.registra_utente_USCC ('eusebdi', '9a4db7c2', 'BRNSBE80A01F205Y', 'Bernardi', 'Eusebio', 'Borgo Battaglia', 87306, 'Borgo Battaglia', 'email', 'eusebdi@gmail.com', 'cellulare', '393915815931');
+call BachecaElettronicadb.registra_utente_USCC ('lucrezico', 'fac85bb1', 'DMCLRZ80A01H501E', 'Damico', 'Lucrezia', 'Via Furio', 98841, 'Via Furio', 'email', 'lucrezico@gmail.com', 'cellulare', '3937938153');
+call BachecaElettronicadb.registra_utente_USCC ('sigodolla', '010ce736', 'VLLDNO80A01H501Y', 'Villa', 'Odone', 'Via Ricci', 54382, 'Via Ricci', 'email', 'sigodolla@gmail.com', 'cellulare', '39348912042');
+call BachecaElettronicadb.registra_utente_USCC ('eldageco', '427e45b7', 'GRCLDE80A01D612Z', 'Greco', 'Elda', 'Contrada Vitale', 83414, 'Contrada Vitale', 'email', 'eldageco@gmail.com', 'cellulare', '393355170');
+call BachecaElettronicadb.registra_utente_USCC ('criststa', '486d49b8', 'CSTCST80A01F205J', 'Costa', 'Cristyn', 'Contrada Ferraro', 42651, 'Contrada Ferraro', 'email', 'criststa@gmail.com', 'cellulare', '3930574581');
+call BachecaElettronicadb.registra_utente_USCC ('emanudi', '5e0ebd5a', 'BRNMNL80A01L219I', 'Bernardi', 'Emanuel', 'Strada Giovanna', 80856, 'Strada Giovanna', 'email', 'emanudi@gmail.com', 'cellulare', '3934646498');
+call BachecaElettronicadb.registra_utente_USCC ('inglinte', 'cfd5246c', 'CNTLNI80A01F205K', 'Conte', 'Lino', 'Strada Ricci', 14533, 'Strada Ricci', 'email', 'inglinte@gmail.com', 'cellulare', '393385037');
+call BachecaElettronicadb.registra_utente_USCC ('artemiini', 'ccd7cd04', 'MNCRMD80A01D612O', 'Mancini', 'Artemide', 'Strada Bernardi', 19221, 'Strada Bernardi', 'email', 'artemiini@gmail.com', 'cellulare', '39318317746');
+call BachecaElettronicadb.registra_utente_USCC ('giacsi', 'd48b0cf3', 'RSSGNT80A01D612X', 'Rossi', 'Giacinta', 'Contrada Testa', 95079, 'Contrada Testa', 'email', 'giacsi@gmail.com', 'cellulare', '3932278000');
+call BachecaElettronicadb.registra_utente_USCC ('drardussi', 'bfaa8328', 'RSSRDN80A01F205O', 'Rossi', 'Arduino', 'Via Gentile', 43538, 'Via Gentile', 'email', 'drardussi@gmail.com', 'cellulare', '3937285038');
+call BachecaElettronicadb.registra_utente_USCC ('ritasi', '069d7100', 'RSSRTI80A01L219F', 'Rossi', 'Rita', 'Rotonda Moreno', 52263, 'Rotonda Moreno', 'email', 'ritasi@gmail.com', 'cellulare', '393201022665');
+call BachecaElettronicadb.registra_utente_USCC ('selvssi', '5a9ca47f', 'RSSSVG80A01F205L', 'Rossi', 'Selvaggia', 'Contrada Miriana', 29931, 'Contrada Miriana', 'email', 'selvssi@gmail.com', 'cellulare', '3932937325');
+call BachecaElettronicadb.registra_utente_USCC ('emilino', '60886c3d', 'PGNMLE80A01L219D', 'Pagano', 'Emilia', 'Incrocio Rizzi', 10145, 'Incrocio Rizzi', 'email', 'emilino@gmail.com', 'cellulare', '393083090');
+call BachecaElettronicadb.registra_utente_USCC ('dottci', '9168e39b', 'RCCSND80A01D612W', 'Ricci', 'Secondo', 'Rotonda Marini', 39246, 'Rotonda Marini', 'email', 'dottci@gmail.com', 'cellulare', '3930150667');
+call BachecaElettronicadb.registra_utente_USCC ('domingbo', 'a4ff4b9a', 'PLMDNG80A01L219P', 'Palumbo', 'Domingo', 'Borgo Donatella', 04178, 'Borgo Donatella', 'email', 'domingbo@gmail.com', 'cellulare', '393367285');
+call BachecaElettronicadb.registra_utente_USCC ('fulviino', 'c27cf327', 'MRNFLV80A01D612Z', 'Marino', 'Fulvio', 'Strada Mirco', 55161, 'Strada Mirco', 'email', 'fulviino@gmail.com', 'cellulare', '393070443');
+call BachecaElettronicadb.registra_utente_USCC ('karimmti', '43e3312f', 'MNTKRM80A01L219D', 'Monti', 'Karim', 'Borgo Ferretti', 03120, 'Borgo Ferretti', 'email', 'karimmti@gmail.com', 'cellulare', '3932975600');
+call BachecaElettronicadb.registra_utente_USCC ('danutno', 'e8c0a63f', 'GRDDNT80A01F205U', 'Giordano', 'Danuta', 'Incrocio Damico', 43733, 'Incrocio Damico', 'email', 'danutno@gmail.com', 'cellulare', '3936023775');

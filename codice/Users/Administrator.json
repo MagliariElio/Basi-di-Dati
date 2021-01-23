@@ -1,0 +1,7 @@
+{
+	"host": "localhost",
+	"username" : "Amministratore",
+	"password" : "amministratorepassword",
+	"port" : 3306,
+	"database" : "BachecaElettronicadb"
+}

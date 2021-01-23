@@ -1,95 +1,170 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <mysql/mysql.h>
-#include <stdbool.h>
-#include <termios.h>
+
+#include "defines.h"
+
+struct configuration conf;
+static MYSQL *conn;
 
 
-/*dichiaro le varicabili di connessione*/
-static char *opt_host_name = "localhost";				/*host(default=localhost)*/
-static char *opt_user_name = "root";					/*username(default=loginname)*/
-static char *opt_password = NULL;						/*password(default=none)*/
-static unsigned intopt_port_num = 3306;					/*portnumber(usebuilt-in)*/
-static char *opt_socket_name = NULL;					/*socketname(usebuilt-in)*/
-static char *opt_db_name = "BachecaElettronicadb";		/*databasename(default=none)*/
-static unsigned intopt_flags = 0;						/*connecti	onflags(none)*/
-static MYSQL *conn;										/*pointertoconnectionhandler*/
+typedef enum {
+	ADMINISTRATOR = 1,
+	UCC,
+	USCC,
+	FAILED_LOGIN
+} role_t;
 
-void login(){
-	MYSQL_RES *res;		//il puntatore alla risorsa mysql
-	MYSQL_ROW row;		//il vettore in cui verranno messi i risultati delle query
+static role_t attempt_login(MYSQL *conn, char *username, char *password){
+	MYSQL_STMT *login_stored_procedure;
+	MYSQL_BIND param[3];
+	int role = 0;
 	
-	/*inizializzo la connessione*/
-	conn = mysql_init(NULL);
-	
-	if (!mysql_real_connect(conn, opt_host_name, opt_user_name, opt_password, opt_db_name, intopt_port_num, opt_socket_name, intopt_flags)){
-		fprintf(stderr, "%s\n", mysql_error(conn));
-		exit(1);
+	if(!setup_prepared_stmt(&login_stored_procedure, "call login(?, ?, ?)", conn)) {
+		print_stmt_error(login_stored_procedure, "Unable to initialize login statement");
+		goto err2;
 	}
 	
-	char *query = "show tables";
-	if (mysql_query(conn, query)){
-		fprintf(stderr, "%s\n", mysql_error(conn));
-		exit(1);
+	// Prepare parameters
+	memset(param, 0, sizeof(param));
+	
+	param[0].buffer_type = MYSQL_TYPE_STRING; 	//IN
+	param[0].buffer = username; 				//IN
+	param[0].buffer_length = strlen(username); 	//IN
+
+	param[1].buffer_type = MYSQL_TYPE_STRING; 	//IN
+	param[1].buffer = password; 				//IN
+	param[1].buffer_length = strlen(password); 	//IN
+
+	param[2].buffer_type = MYSQL_TYPE_LONG; 	//OUT
+	param[2].buffer = &role; 					//OUT
+	param[2].buffer_length = sizeof(role); 		//OUT
+
+	if (mysql_stmt_bind_param(login_stored_procedure, param) != 0) {
+		print_stmt_error(login_stored_procedure, "Could not bind parameters for login");
+		goto err;
 	}
 	
-	res = mysql_use_result(conn);
-	
-	/*Stampo a video i risultati della query*/
-	while((row = mysql_fetch_row(res)) != NULL){
-		printf("%s \n", row[0]);
+	if (mysql_stmt_execute(login_stored_procedure) != 0) {
+		print_stmt_error(login_stored_procedure, "Could not bind parameters for login");
+		goto err;
 	}
 	
-	mysql_free_result(res);
-	mysql_close(conn);
+	memset(param, 0, sizeof(param));
+	param[0].buffer_type = MYSQL_TYPE_LONG; 	//OUT
+	param[0].buffer = &role;					//OUT
+	param[0].buffer_length = sizeof(role);		//OUT
+	
+	if (mysql_stmt_bind_result(login_stored_procedure, param)) {
+		print_stmt_error(login_stored_procedure, "Could not bind parameters for login");
+		goto err;
+	}
+
+	
+	if (mysql_stmt_fetch(login_stored_procedure)) {
+		print_stmt_error(login_stored_procedure, "Could not bind parameters for login");
+		goto err;
+	}
+	
+	
+	mysql_stmt_close(login_stored_procedure);
+	return role;
+	
+	err:
+		mysql_stmt_close(login_stored_procedure);
+		
+	err2:
+		return FAILED_LOGIN;	
 }
 
 
 
 int main(void){
-	MYSQL_RES *res;		//il puntatore alla risorsa mysql
-	MYSQL_ROW row;		//il vettore in cui verranno messi i risultati delle query
-	char *username, *password;
+	role_t role;
 	
-	printf("Database: %s\n", opt_db_name);
-	printf("Username: ");
-	if (scanf("%ms", &username) == EOF) {
-		printf("Error to insert username\n");
-		free(username);
-		exit(1);
+	if(!parse_config("Users/login.json", &conf)) {
+		fprintf(stderr, "Unable to load login configuration\n");
+		exit(EXIT_FAILURE);
 	}
-	printf("Passoword: ");
-	getpasswd(&password, 200, '*', stdin);
-	/*if (scanf("%ms", &password) == EOF){
-		printf("Error to insert password\n");
-		free(password);
-		exit(1);
-	}*/
 	
-	/*inizializzo la connessione*/
-	conn = mysql_init(NULL);
-	
-	if (!mysql_real_connect(conn, opt_host_name, opt_user_name, opt_password, opt_db_name, intopt_port_num, opt_socket_name, intopt_flags)){
+	conn = mysql_init(NULL);		//connection initialized
+
+	if (conn == NULL) {
 		fprintf(stderr, "%s\n", mysql_error(conn));
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	
-	char *query = "show tables";
-	if (mysql_query(conn, query)){
+	if (!mysql_real_connect(conn, conf.host, conf.db_username, conf.db_password, conf.database, conf.port, NULL, 0)){ //probably MULTI_STATEMENTS
 		fprintf(stderr, "%s\n", mysql_error(conn));
-		exit(1);
+		mysql_close(conn);
+		exit(EXIT_FAILURE);
+	}
+	printf("Bacheca Elettronica\n");
+	//printf("Username: ");
+	strcat(conf.username, "amministratore_1");
+	strcat(conf.password, "password");
+	//getInput(45, conf.username, false);
+	//printf("Password: ");
+	//getInput(45, conf.password, true);
+		
+	role = attempt_login(conn, conf.username, conf.password);
+	
+	switch(role){
+		case ADMINISTRATOR:
+			run_as_administrator(conn, conf);
+			break;
+		case UCC:
+			printf("UCC\n");
+			break;
+		case USCC:
+			printf("USCC\n");
+			break;
+		case FAILED_LOGIN:
+			printf("### Incorrect Username or Password ###\n");
+			break;
+		default:
+			printf("Error to login\n");
+			abort();	//it may not delete temporary files and may not flush stream buffer
 	}
 	
-	res = mysql_use_result(conn);
-	
-	/*Stampo a video i risultati della query*/
-	while((row = mysql_fetch_row(res)) != NULL){
-		printf("%s \n", row[0]);
-	}
-	
-	mysql_free_result(res);
+	printf("Bye!\n");
 	mysql_close(conn);
-	
+		
 	return 0;	
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

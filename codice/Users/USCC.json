@@ -1,0 +1,7 @@
+{
+	"host": "localhost",
+	"username" : "USCC",
+	"password" : "usccpassword",
+	"port" : 3306,
+	"database" : "BachecaElettronicadb"
+}

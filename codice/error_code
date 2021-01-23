@@ -1,0 +1,11 @@
+List of error codes
+
+45000 = 'User not found';
+
+45001 = 'Category not found';
+
+45002 = 'User exists as UCC';
+
+45003 = 'User exists as USCC';
+
+45004 = 'Fiscal not found';
