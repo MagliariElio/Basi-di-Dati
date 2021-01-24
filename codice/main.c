@@ -97,12 +97,13 @@ int main(void){
 		exit(EXIT_FAILURE);
 	}
 	printf("Bacheca Elettronica\n");
-	//printf("Username: ");
-	strcat(conf.username, "amministratore_1");
-	strcat(conf.password, "password");
-	//getInput(45, conf.username, false);
-	//printf("Password: ");
-	//getInput(45, conf.password, true);
+	restart:
+		strcat(conf.username, "ingediero");
+		strcat(conf.password, "a46e76a9");
+		//printf("Username: ");
+		//getInput(45, conf.username, false);
+		//printf("Password: ");
+		//getInput(45, conf.password, true);
 		
 	role = attempt_login(conn, conf.username, conf.password);
 	
@@ -111,13 +112,14 @@ int main(void){
 			run_as_administrator(conn, conf);
 			break;
 		case UCC:
-			printf("UCC\n");
+			run_as_ucc(conn, conf);
 			break;
 		case USCC:
 			printf("USCC\n");
 			break;
 		case FAILED_LOGIN:
-			printf("### Incorrect Username or Password ###\n");
+			printf("\e[1m\e[5m\033[40m\033[31mIncorrect Username or Password\033[0m\e[25m\e[22m\n");
+			goto restart;
 			break;
 		default:
 			printf("Error to login\n");

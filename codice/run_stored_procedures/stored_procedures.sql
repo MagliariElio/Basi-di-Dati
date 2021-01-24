@@ -9,21 +9,18 @@ CREATE PROCEDURE BachecaElettronicadb.registra_utente_UCC (IN username VARCHAR(4
 BEGIN
 	declare idStorico INT;
 	
-	
-	
-	/*if exists (SELECT Username FROM BachecaElettronicadb.UCC WHERE Username=username) then
+	if (SELECT count(Username) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username=username) > 0 then
 		signal sqlstate '45002' set message_text = "User was inserted as UCC";
-	end if;
-	if exists (SELECT Username FROM BachecaElettronicadb.USCC WHERE Username=username) then
+	elseif (SELECT count(Username) FROM BachecaElettronicadb.USCC WHERE BachecaElettronicadb.USCC.Username=username) > 0 then
 		signal sqlstate '45003' set message_text = "User was inserted as USCC";
-	end if;*/
+	end if;
 		
 	call BachecaElettronicadb.inserisci_Storico(idStorico);
 	call BachecaElettronicadb.inserimentoInfoAnagrafiche(cf_anagrafico, cognome, nome, indirizzoDiResidenza, cap, indirizzoDiFatturazione, tipoRecapitoPreferito, recapitoPreferito);
 	call BachecaElettronicadb.inserisci_RecapitoNonPreferito(tipoRecapitoNonPreferito, recapitoNonPreferito, cf_anagrafico);		
 	
 	INSERT INTO BachecaElettronicadb.UCC (Username, Password, NumeroCarta, DataScadenza, CVC, StoricoConversazione_ID, CF_Anagrafico)
-	VALUES(username, password, numeroCarta, dataScadenza, cvc, idStorico, cf_anagrafico);
+	VALUES(username, md5(password), numeroCarta, dataScadenza, cvc, idStorico, cf_anagrafico);
 	
 END//
 DELIMITER ;
@@ -46,7 +43,7 @@ DROP PROCEDURE IF EXISTS BachecaElettronicadb.inserisci_RecapitoNonPreferito ;
 CREATE PROCEDURE BachecaElettronicadb.inserisci_RecapitoNonPreferito (IN tipo VARCHAR(40), IN recapito VARCHAR(20), IN cf_anagrafico VARCHAR(16))
 BEGIN
 	
-	if not exists (SELECT CF FROM BachecaElettronicadb.InformazioneAnagrafica WHERE CF=cf_anagrafico) then
+	if not exists (SELECT CF FROM BachecaElettronicadb.InformazioneAnagrafica WHERE BachecaElettronicadb.InformazioneAnagrafica.CF=cf_anagrafico) then
 		signal sqlstate '45004' set message_text = "Fiscal Code not found";
 	end if;
 	
@@ -63,19 +60,11 @@ CREATE PROCEDURE BachecaElettronicadb.registra_utente_USCC (IN username VARCHAR(
 BEGIN
 	declare idStorico INT;
 	
-	begin 
-		rollback;
-		resignal;
-	end;
-	
-	start transaction;
-	
-	/*if exists (SELECT Username FROM BachecaElettronicadb.UCC WHERE Username=username) then
+	if (SELECT count(Username) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username=username) > 0 then
 		signal sqlstate '45002' set message_text = "User was inserted as UCC";
-	end if;
-	if exists (SELECT Username FROM BachecaElettronicadb.USCC WHERE Username=username) then
+	elseif (SELECT count(Username) FROM BachecaElettronicadb.USCC WHERE BachecaElettronicadb.USCC.Username=username) > 0 then
 		signal sqlstate '45003' set message_text = "User was inserted as USCC";
-	end if;*/
+	end if;
 	
 	call BachecaElettronicadb.inserisci_Storico(idStorico);
 	call BachecaElettronicadb.inserimentoInfoAnagrafiche(cf_anagrafico, cognome, nome, indirizzoDiResidenza, cap, indirizzoDiFatturazione, tipoRecapitoPreferito, recapitoPreferito);
@@ -83,10 +72,7 @@ BEGIN
 
 	
 	INSERT INTO BachecaElettronicadb.USCC (Username, Password, StoricoConversazione_ID, CF_Anagrafico) 
-	VALUES(username, password, idStorico, cf_anagrafico);
-	
-	commit;
-
+	VALUES(username, md5(password), idStorico, cf_anagrafico);
 	
 END//
 DELIMITER ;
@@ -142,10 +128,13 @@ DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.inserimentoNuovaCategoria ;
 CREATE PROCEDURE BachecaElettronicadb.inserimentoNuovaCategoria (IN nome VARCHAR(20))
 	BEGIN
-	if ((SELECT count(Nome) FROM BachecaElettronicadb.Categoria WHERE BachecaElettronicadb.Categoria.Nome=nome)=0) then
-		INSERT INTO BachecaElettronicadb.Categoria (Nome) 
-		VALUES(nome);
+	
+	if (SELECT count(Nome) FROM BachecaElettronicadb.Categoria WHERE BachecaElettronicadb.Categoria.Nome=nome) > 0 then
+		signal sqlstate '45005' set message_text = "Category already exists";
 	end if;
+	
+	INSERT INTO BachecaElettronicadb.Categoria (Nome) VALUES(nome);
+
 END//
 DELIMITER ;
 -- -------------------------------------------------------------------
@@ -173,7 +162,7 @@ BEGIN
 		signal sqlstate '45001' set message_text = 'Category not found';
 	end if;
 			
-	IF foto IS NULL THEN	-- evito di sovrascrivere una foto già esistente
+	IF foto IS NULL THEN
 		INSERT INTO BachecaElettronicadb.Annuncio (Codice, Stato, Descrizione, Importo, UCC_Username, Categoria_Nome) VALUES(NULL, 'Attivo', descrizione, importo, ucc_username, categoria_nome);
 	ELSE
 		INSERT INTO BachecaElettronicadb.Annuncio (Codice, Stato, Descrizione, Importo, Foto, UCC_Username, Categoria_Nome) VALUES(NULL, 'Attivo', descrizione, importo, foto, ucc_username, categoria_nome);
@@ -200,10 +189,28 @@ DELIMITER ;
 -- Visualizza annuncio -----------------------------------------------  Impostare un livello di isolamento
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaAnnuncio ;
-CREATE PROCEDURE BachecaElettronicadb.visualizzaAnnuncio ()
+CREATE PROCEDURE BachecaElettronicadb.visualizzaAnnuncio (IN annuncio_codice INT, IN username VARCHAR(45))
 BEGIN
-	SELECT *
-	FROM BachecaElettronicadb.Annuncio;
+	if ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username=username) != 1) then
+		signal sqlstate '45000' set message_text = 'User not found';
+	end if;	
+	
+	IF (annuncio_codice IS NOT NULL AND username IS NOT NULL) THEN
+		SELECT *
+		FROM BachecaElettronicadb.Annuncio
+		WHERE BachecaElettronicadb.Annuncio.UCC_Username=username AND BachecaElettronicadb.Annuncio.Codice=annuncio_codice;
+	ELSEIF (annuncio_codice IS NULL AND username IS NOT NULL) THEN
+		SELECT *
+		FROM BachecaElettronicadb.Annuncio
+		WHERE BachecaElettronicadb.Annuncio.UCC_Username=username;
+	ELSEIF (annuncio_codice IS NOT NULL AND username IS NULL) THEN
+		SELECT *
+		FROM BachecaElettronicadb.Annuncio
+		WHERE BachecaElettronicadb.Annuncio.Codice=annuncio_codice;
+	ELSE
+		SELECT *
+		FROM BachecaElettronicadb.Annuncio;
+	end IF;
 END//
 DELIMITER ;
 -- -------------------------------------------------------------------
@@ -421,9 +428,12 @@ DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.seguiAnnuncioUCC ;
 CREATE PROCEDURE BachecaElettronicadb.seguiAnnuncioUCC (IN codice_annuncio INT, IN ucc_username VARCHAR(45))
 BEGIN
-	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE Codice=codice_annuncio and Stato='Attivo') = 1) then
-		INSERT INTO BachecaElettronicadb.`Seguito-UCC`(UCC_Username, Annuncio_Codice) VALUES(ucc_username, codice_annuncio);
+	if (SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=codice_annuncio and Stato='Attivo') = 0 then
+		signal sqlstate '45006' set message_text = "Ad not found";
 	end if;
+	
+	INSERT INTO BachecaElettronicadb.`Seguito-UCC`(UCC_Username, Annuncio_Codice) VALUES(ucc_username, codice_annuncio);
+
 END//
 DELIMITER ;
 -- -------------------------------------------------------------------
@@ -433,9 +443,12 @@ DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.seguiAnnuncioUSCC ;
 CREATE PROCEDURE BachecaElettronicadb.seguiAnnuncioUSCC (IN codice_annuncio INT, IN uscc_username VARCHAR(45))
 BEGIN
-	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE Codice=codice_annuncio and Stato='Attivo') = 1) then
-		INSERT INTO BachecaElettronicadb.`Seguito-USCC`(USCC_Username, Annuncio_Codice) VALUES(uscc_username, codice_annuncio);
-	end if;
+	if (SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=codice_annuncio and Stato='Attivo') = 0 then
+		signal sqlstate '45006' set message_text = "Ad not found";
+	end if;		
+	
+	INSERT INTO BachecaElettronicadb.`Seguito-USCC`(USCC_Username, Annuncio_Codice) VALUES(uscc_username, codice_annuncio);
+
 END//
 DELIMITER ;
 -- -------------------------------------------------------------------
@@ -643,15 +656,15 @@ BEGIN
 	
 	SET role = -1;
 	
-	if exists (SELECT Username FROM BachecaElettronicadb.Amministratore WHERE Username = username and Password = password) then
+	if exists (SELECT Username FROM BachecaElettronicadb.Amministratore WHERE BachecaElettronicadb.Amministratore.Username = username and BachecaElettronicadb.Amministratore.Password = md5(password)) then
 		SET role = 1;
 	end if;
 
-	if exists (SELECT Username FROM BachecaElettronicadb.UCC WHERE Username = username and Password = password) and role = -1 then
+	if exists (SELECT Username FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username = username and BachecaElettronicadb.UCC.Password = md5(password)) and role = -1 then
 		SET role = 2;
 	end if;
 	
-	if exists (SELECT Username FROM BachecaElettronicadb.USCC WHERE Username = username and Password = password) and role = -1 then
+	if exists (SELECT Username FROM BachecaElettronicadb.USCC WHERE BachecaElettronicadb.USCC.Username = username and BachecaElettronicadb.USCC.Password = md5(password)) and role = -1 then
 		SET role = 3;
 	end if;
 	

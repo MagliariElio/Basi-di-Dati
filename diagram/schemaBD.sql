@@ -7,6 +7,7 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,N
 -- -----------------------------------------------------
 -- Schema BachecaElettronicadb
 -- -----------------------------------------------------
+DROP SCHEMA IF EXISTS `BachecaElettronicadb` ;
 
 -- -----------------------------------------------------
 -- Schema BachecaElettronicadb
@@ -38,7 +39,7 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`InformazioneAnagrafica` (
   `Nome` VARCHAR(20) NOT NULL,
   `IndirizzoDiResidenza` VARCHAR(20) NOT NULL,
   `CAP` INT NOT NULL,
-  `IndirizzoDiFatturazione` VARCHAR(20) NULL,
+  `IndirizzoDiFatturazione` VARCHAR(20) NULL DEFAULT NULL,
   `TipoRecapitoPreferito` ENUM('email', 'cellulare', 'id_social', 'sms') NOT NULL,
   `RecapitoPreferito` VARCHAR(20) NOT NULL,
   PRIMARY KEY (`CF`))
@@ -102,8 +103,8 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Annuncio` (
   `Codice` INT NOT NULL AUTO_INCREMENT,
   `Stato` ENUM('Attivo', 'Venduto', 'RImosso') NOT NULL,
   `Descrizione` VARCHAR(100) NOT NULL,
-  `Importo` INT NULL,
-  `Foto` VARCHAR(45) BINARY NULL,
+  `Importo` INT NOT NULL,
+  `Foto` VARCHAR(45) BINARY NULL DEFAULT NULL,
   `UCC_Username` VARCHAR(45) NOT NULL,
   `Categoria_Nome` VARCHAR(20) NOT NULL,
   PRIMARY KEY (`Codice`),
@@ -268,7 +269,7 @@ DROP TABLE IF EXISTS `BachecaElettronicadb`.`RecapitoNonPreferito` ;
 
 CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`RecapitoNonPreferito` (
   `Recapito` VARCHAR(20) NOT NULL,
-  `Tipo` ENUM('email', 'cellulare', 'id_social', 'sms') NOT NULL,
+  `Tipo` ENUM('email', 'cellulare', 'social_username', 'sms') NOT NULL,
   `InformazioneAnagrafica_CF` VARCHAR(16) NOT NULL,
   PRIMARY KEY (`InformazioneAnagrafica_CF`, `Recapito`),
   CONSTRAINT `fk_RecapitoNonPreferito_InformazioneAnagrafica1`
@@ -308,10 +309,6 @@ CREATE INDEX `fk_Seguito-UCC_UCC1_idx` ON `BachecaElettronicadb`.`Seguito-UCC` (
 
 CREATE INDEX `fk_Seguito-UCC_Annuncio1_idx` ON `BachecaElettronicadb`.`Seguito-UCC` (`Annuncio_Codice` ASC) VISIBLE;
 
-CREATE UNIQUE INDEX `UCC_Username_UNIQUE` ON `BachecaElettronicadb`.`Seguito-UCC` (`UCC_Username` ASC) VISIBLE;
-
-CREATE UNIQUE INDEX `Annuncio_Codice_UNIQUE` ON `BachecaElettronicadb`.`Seguito-UCC` (`Annuncio_Codice` ASC) VISIBLE;
-
 
 -- -----------------------------------------------------
 -- Table `BachecaElettronicadb`.`Seguito-USCC`
@@ -337,10 +334,6 @@ ENGINE = InnoDB;
 CREATE INDEX `fk_Seguito-USCC_Annuncio1_idx` ON `BachecaElettronicadb`.`Seguito-USCC` (`Annuncio_Codice` ASC) VISIBLE;
 
 CREATE INDEX `fk_Seguito-USCC_USCC1_idx` ON `BachecaElettronicadb`.`Seguito-USCC` (`USCC_Username` ASC) VISIBLE;
-
-CREATE UNIQUE INDEX `Annuncio_Codice_UNIQUE` ON `BachecaElettronicadb`.`Seguito-USCC` (`Annuncio_Codice` ASC) VISIBLE;
-
-CREATE UNIQUE INDEX `USCC_Username_UNIQUE` ON `BachecaElettronicadb`.`Seguito-USCC` (`USCC_Username` ASC) VISIBLE;
 
 
 -- -----------------------------------------------------
@@ -523,47 +516,46 @@ ENGINE = InnoDB;
 
 CREATE UNIQUE INDEX `Username_UNIQUE` ON `BachecaElettronicadb`.`Amministratore` (`Username` ASC) VISIBLE;
 
-
 SET SQL_MODE = '';
 DROP USER IF EXISTS UCC;
 SET SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
-CREATE USER 'UCC'@'localhost' IDENTIFIED BY 'uccpassword';
+CREATE USER 'UCC' IDENTIFIED BY 'uccpassword';
 
-GRANT ALL ON `BachecaElettronicadb`.* TO 'UCC'@'localhost';
-GRANT SELECT ON TABLE `BachecaElettronicadb`.* TO 'UCC'@'localhost';
-GRANT SELECT, INSERT, TRIGGER ON TABLE `BachecaElettronicadb`.* TO 'UCC'@'localhost';
-GRANT SELECT, INSERT, TRIGGER, UPDATE, DELETE ON TABLE `BachecaElettronicadb`.* TO 'UCC'@'localhost';
-GRANT EXECUTE ON ROUTINE `BachecaElettronicadb`.* TO 'UCC'@'localhost';
+GRANT ALL ON `BachecaElettronicadb`.* TO 'UCC';
+GRANT SELECT ON TABLE `BachecaElettronicadb`.* TO 'UCC';
+GRANT SELECT, INSERT, TRIGGER ON TABLE `BachecaElettronicadb`.* TO 'UCC';
+GRANT SELECT, INSERT, TRIGGER, UPDATE, DELETE ON TABLE `BachecaElettronicadb`.* TO 'UCC';
+GRANT EXECUTE ON ROUTINE `BachecaElettronicadb`.* TO 'UCC';
 SET SQL_MODE = '';
 DROP USER IF EXISTS USCC;
 SET SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
-CREATE USER 'USCC'@'localhost' IDENTIFIED BY 'usccpassword';
+CREATE USER 'USCC' IDENTIFIED BY 'usccpassword';
 
-GRANT ALL ON `BachecaElettronicadb`.* TO 'USCC'@'localhost';
-GRANT SELECT ON TABLE `BachecaElettronicadb`.* TO 'USCC'@'localhost';
-GRANT SELECT, INSERT, TRIGGER ON TABLE `BachecaElettronicadb`.* TO 'USCC'@'localhost';
-GRANT SELECT, INSERT, TRIGGER, UPDATE, DELETE ON TABLE `BachecaElettronicadb`.* TO 'USCC'@'localhost';
-GRANT EXECUTE ON ROUTINE `BachecaElettronicadb`.* TO 'USCC'@'localhost';
+GRANT ALL ON `BachecaElettronicadb`.* TO 'USCC';
+GRANT SELECT ON TABLE `BachecaElettronicadb`.* TO 'USCC';
+GRANT SELECT, INSERT, TRIGGER ON TABLE `BachecaElettronicadb`.* TO 'USCC';
+GRANT SELECT, INSERT, TRIGGER, UPDATE, DELETE ON TABLE `BachecaElettronicadb`.* TO 'USCC';
+GRANT EXECUTE ON ROUTINE `BachecaElettronicadb`.* TO 'USCC';
 SET SQL_MODE = '';
 DROP USER IF EXISTS Amministratore;
 SET SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
-CREATE USER 'Amministratore'@'localhost' IDENTIFIED BY 'amministratorepassword';
+CREATE USER 'Amministratore' IDENTIFIED BY 'amministratorepassword';
 
-GRANT ALL ON `BachecaElettronicadb`.* TO 'Amministratore'@'localhost';
-GRANT SELECT ON TABLE `BachecaElettronicadb`.* TO 'Amministratore'@'localhost';
-GRANT SELECT, INSERT, TRIGGER ON TABLE `BachecaElettronicadb`.* TO 'Amministratore'@'localhost';
-GRANT SELECT, INSERT, TRIGGER, UPDATE, DELETE ON TABLE `BachecaElettronicadb`.* TO 'Amministratore'@'localhost';
-GRANT EXECUTE ON ROUTINE `BachecaElettronicadb`.* TO 'Amministratore'@'localhost';
+GRANT ALL ON `BachecaElettronicadb`.* TO 'Amministratore';
+GRANT SELECT ON TABLE `BachecaElettronicadb`.* TO 'Amministratore';
+GRANT SELECT, INSERT, TRIGGER ON TABLE `BachecaElettronicadb`.* TO 'Amministratore';
+GRANT SELECT, INSERT, TRIGGER, UPDATE, DELETE ON TABLE `BachecaElettronicadb`.* TO 'Amministratore';
+GRANT EXECUTE ON ROUTINE `BachecaElettronicadb`.* TO 'Amministratore';
 SET SQL_MODE = '';
 DROP USER IF EXISTS login;
 SET SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
-CREATE USER 'login'@'localhost' IDENTIFIED BY 'loginpassword';
+CREATE USER 'login' IDENTIFIED BY 'loginpassword';
 
-GRANT ALL ON `BachecaElettronicadb`.* TO 'login'@'localhost';
-GRANT SELECT ON TABLE `BachecaElettronicadb`.* TO 'login'@'localhost';
-GRANT SELECT, INSERT, TRIGGER ON TABLE `BachecaElettronicadb`.* TO 'login'@'localhost';
-GRANT SELECT, INSERT, TRIGGER, UPDATE, DELETE ON TABLE `BachecaElettronicadb`.* TO 'login'@'localhost';
-GRANT EXECUTE ON ROUTINE `BachecaElettronicadb`.* TO 'login'@'localhost';
+GRANT ALL ON `BachecaElettronicadb`.* TO 'login';
+GRANT SELECT ON TABLE `BachecaElettronicadb`.* TO 'login';
+GRANT SELECT, INSERT, TRIGGER ON TABLE `BachecaElettronicadb`.* TO 'login';
+GRANT SELECT, INSERT, TRIGGER, UPDATE, DELETE ON TABLE `BachecaElettronicadb`.* TO 'login';
+GRANT EXECUTE ON ROUTINE `BachecaElettronicadb`.* TO 'login';
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

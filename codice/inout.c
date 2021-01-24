@@ -118,43 +118,27 @@ static void handler(int s) {
 }
 
 
-bool yesOrNo(char *domanda, char yes, char no, bool predef, bool insensitive)
-{
+bool yesOrNo(char *domanda, char yes, char no) {
 	
 	// I caratteri 'yes' e 'no' devono essere minuscoli
 	yes = tolower(yes);
 	no = tolower(no);
-	
-	// Decide quale delle due lettere mostrare come predefinite
-	char s, n;
-	if(predef) {
-		s = toupper(yes);
-		n = no;
-	} else {
-		s = yes;
-		n = toupper(no);
-	}
 
 	// Richiesta della risposta
 	while(true) {
-		// Mostra la domanda
-		printf("%s [%c/%c]: ", domanda, s, n); 
+		
+		printf("%s [%c/%c]: ", domanda, yes, no);	// Mostra la domanda
 
-		char c;
-		getInput(1, &c, false);
-			
+		char c[1];
+		getInput(1, c, false);
+					
 		// Controlla quale risposta è stata data
-		if(c == '\0') { // getInput() non può restituire '\n'!
-			return predef;
-		} else if(c == yes) {
+		if(c[0] == '\0') 		 	// getInput() non può restituire '\n'!
+			continue;
+		else if(c[0] == yes || c[0] == toupper(yes)) 
 			return true;
-		} else if(c == no) {
+		else if(c[0] == no || c[0] == toupper(no)) 
 			return false;
-		} else if(c == toupper(yes)) {
-			if(predef || insensitive) return true;
-		} else if(c == toupper(yes)) {
-			if(!predef || insensitive) return false;
-		}
 	}
 }
 

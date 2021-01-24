@@ -49,6 +49,5 @@ call BachecaElettronicadb.registra_utente_USCC ('selvssi', '5a9ca47f', 'RSSSVG80
 call BachecaElettronicadb.registra_utente_USCC ('emilino', '60886c3d', 'PGNMLE80A01L219D', 'Pagano', 'Emilia', 'Incrocio Rizzi', 10145, 'Incrocio Rizzi', 'email', 'emilino@gmail.com', 'cellulare', '393083090');
 call BachecaElettronicadb.registra_utente_USCC ('dottci', '9168e39b', 'RCCSND80A01D612W', 'Ricci', 'Secondo', 'Rotonda Marini', 39246, 'Rotonda Marini', 'email', 'dottci@gmail.com', 'cellulare', '3930150667');
 call BachecaElettronicadb.registra_utente_USCC ('domingbo', 'a4ff4b9a', 'PLMDNG80A01L219P', 'Palumbo', 'Domingo', 'Borgo Donatella', 04178, 'Borgo Donatella', 'email', 'domingbo@gmail.com', 'cellulare', '393367285');
-call BachecaElettronicadb.registra_utente_USCC ('fulviino', 'c27cf327', 'MRNFLV80A01D612Z', 'Marino', 'Fulvio', 'Strada Mirco', 55161, 'Strada Mirco', 'email', 'fulviino@gmail.com', 'cellulare', '393070443');
 call BachecaElettronicadb.registra_utente_USCC ('karimmti', '43e3312f', 'MNTKRM80A01L219D', 'Monti', 'Karim', 'Borgo Ferretti', 03120, 'Borgo Ferretti', 'email', 'karimmti@gmail.com', 'cellulare', '3932975600');
 call BachecaElettronicadb.registra_utente_USCC ('danutno', 'e8c0a63f', 'GRDDNT80A01F205U', 'Giordano', 'Danuta', 'Incrocio Damico', 43733, 'Incrocio Damico', 'email', 'danutno@gmail.com', 'cellulare', '3936023775');

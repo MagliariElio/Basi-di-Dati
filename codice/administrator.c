@@ -42,11 +42,11 @@ void view_category() {
 		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize view category statement\n", false);
 	}
 	
-	if (mysql_stmt_execute(prepared_stmt) != 0) {
+	if (mysql_stmt_execute(prepared_stmt) != 0)
 		finish_with_stmt_error(conn, prepared_stmt, "Unable to execute the query\n", true);
-	}
+	else	
+		dump_result_set(conn, prepared_stmt, "Online Category list\n");		// dump the result set
 	
-	dump_result_set(conn, prepared_stmt, "List of online category\n");		// dump the result set
 	mysql_stmt_close(prepared_stmt);
 }
 

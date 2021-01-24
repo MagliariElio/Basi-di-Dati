@@ -9,3 +9,7 @@ List of error codes
 45003 = 'User exists as USCC';
 
 45004 = 'Fiscal not found';
+
+45005 = 'Category already exists';
+
+45006 = 'Ad not found';

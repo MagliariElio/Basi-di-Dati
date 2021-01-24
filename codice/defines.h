@@ -22,7 +22,7 @@ extern struct configuration conf;
 
 extern int parse_config(char *path, struct configuration *conf);
 extern char *getInput(unsigned int lung, char *stringa, bool hide);
-extern bool yesOrNo(char *domanda, char yes, char no, bool predef, bool insensitive);
+extern bool yesOrNo(char *domanda, char yes, char no);
 extern void multiChoice(char *domanda, char choices[], int num, char *option);
 extern void print_error (MYSQL *conn, char *message);
 extern void print_stmt_error (MYSQL_STMT *stmt, char *message);
