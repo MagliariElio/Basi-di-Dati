@@ -29,10 +29,11 @@ void new_category() {
 	
 	if (mysql_stmt_execute(prepared_stmt) != 0) {
 		finish_with_stmt_error(conn, prepared_stmt, "Unable to execute the query\n", true);
+	} else {
+		printf("\033[40m\033[1;32m   Successful insertion!\033[0m\n");
 	}
 	
 	mysql_stmt_close(prepared_stmt);
-	printf("\033[40m\033[1;32m   Successful insertion!\033[0m\n");
 }
 
 void view_category() {
@@ -43,9 +44,10 @@ void view_category() {
 	}
 	
 	if (mysql_stmt_execute(prepared_stmt) != 0)
-		finish_with_stmt_error(conn, prepared_stmt, "Unable to execute the query\n", true);
-	else	
-		dump_result_set(conn, prepared_stmt, "Online Category list\n");		// dump the result set
+		print_stmt_error (prepared_stmt, "An error occurred while viewing categories.");
+	
+	dump_result_set(conn, prepared_stmt, "Online Category list\n");		// dump the result set
+	mysql_stmt_next_result(prepared_stmt);
 	
 	mysql_stmt_close(prepared_stmt);
 }

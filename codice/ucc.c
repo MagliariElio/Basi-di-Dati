@@ -1,26 +1,39 @@
 #include "defines.h"
 
+
+#define MAX_LENGHT_AD_CODE 10
+
+#define fflush(stdin) while(getchar()!='\n')
+
 struct configuration conf;
 MYSQL *conn;
+int ad_code;
+
+
+
+
 
 void new_ad() {
 	MYSQL_STMT *prepared_stmt;
-	MYSQL_BIND param[3];
+	MYSQL_BIND param[5];
 	
-	char description[100], photo[100];
+	char description[100], photo[9], category[20];
 	int amount;
 	bool request, is_null;
 	
-	printf("Ad description: ");		getInput(100, description, false);
+	is_null = 1;
 	
 	memset(param, 0, sizeof(param));
 	
+	printf("Ad description: ");
+	strcpy(description, getInputScanf(100));
+	//getInput(100, description, false);
+	
 	while(1){
 		request = yesOrNo("Do you want to add a photo?", 'y', 'n');
-		
+			
 		if (request == true){
-			printf("Photo: ");		
-			getInput(100, photo, false);
+			strcpy(photo, "Presente");
 			break;
 		}
 		
@@ -30,12 +43,15 @@ void new_ad() {
 		}
 	}
 	
-	printf("Amount: "); 	
-	scanf("%d", &amount);
+	printf("Category: ");
+	//getInput(20, category, false);
+	strcpy(category, getInputScanf(20));
 	
-	if (!setup_prepared_stmt(&prepared_stmt, "call inserimentoNuovoAnnuncio(?,?,?,?)", conn))
-		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
-
+	printf("Amount: ");
+	//getInput(6, amount_string, false);
+	//amount = atoi(amount_string);
+	amount = atoi(getInputScanf(6));
+	
 	
 	param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
 	param[0].buffer = description;
@@ -53,36 +69,77 @@ void new_ad() {
 	param[3].buffer = conf.username;
 	param[3].buffer_length = strlen(conf.username);
 	
-	if (mysql_stmt_bind_param(prepared_stmt, param) != 0)
-		finish_with_stmt_error(conn, prepared_stmt, "Unable to bind parameters for a new category\n", true);
+	param[4].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[4].buffer = category;
+	param[4].buffer_length = strlen(category);
+	
+		
+	if (!setup_prepared_stmt(&prepared_stmt, "call inserimentoNuovoAnnuncio(?, ?, ?, ?, ?)", conn))
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", false);
+	
+	if (mysql_stmt_bind_param(prepared_stmt, param) != 0) {
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to bind parameters for a new ad\n", true);
+	}
 	
 	if (mysql_stmt_execute(prepared_stmt) != 0)
 		print_stmt_error(prepared_stmt, NULL);
 	else
-		printf("\033[40m\033[1;32m   Generation successfully!\033[0m\n");
+		printf("\033[40m\033[1;32m   Successfully generated!\033[0m\n");
 	
 	mysql_stmt_close(prepared_stmt);
 }
 
-void view_own_ad() {
+bool view_ad(char *username, bool check_owner_value) {
 	MYSQL_STMT *prepared_stmt;
-	MYSQL_BIND param[2];
+	MYSQL_BIND param[3];
 	
-	int ad_code;
+	int check_owner;
+	char ad_code_string[MAX_LENGHT_AD_CODE];
+	
+	
+	if(check_owner_value) {
+		
+		check_owner = 1;
+		
+		printf("Ad code: ");	
+		getInput(MAX_LENGHT_AD_CODE, ad_code_string, false);
+		ad_code = atoi(ad_code_string);
+		
+		memset(param, 0, sizeof(param));
+		
+		
+		param[0].buffer_type = MYSQL_TYPE_LONG;
+		param[0].buffer = &ad_code;
+		param[0].buffer_length = sizeof(ad_code);
+
+		param[1].buffer_type = MYSQL_TYPE_VAR_STRING;
+		param[1].buffer = username;
+		param[1].buffer_length = strlen(username);
+		
+		param[2].buffer_type = MYSQL_TYPE_LONG;
+		param[2].buffer = &check_owner;
+		param[2].buffer_length = sizeof(check_owner);
+		goto execution;
+	}
+	
+	
+	check_owner = 0;
+	
 	char ucc_username[45];
 	bool request, is_null;
 	
-	//is_null = true;
+	is_null = 1;
+	check_owner = 0;
 	
-	if (!setup_prepared_stmt(&prepared_stmt, "call visualizzaAnnuncio (?, ?)", conn))
-		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
+	memset(param, 0, sizeof(param));
 	
 	while(1) {
 		request = yesOrNo("Do you have any preference on ad?", 'y', 'n');
 	
 		if(request == true) {
-			printf("Ad code: ");
-			scanf("%d", &ad_code);
+			printf("Ad code: ");		
+			getInput(MAX_LENGHT_AD_CODE, ad_code_string, false);
+			ad_code = atoi(ad_code_string);
 			break;
 		}
 		if(request == false){
@@ -104,8 +161,7 @@ void view_own_ad() {
 			break;
 		}
 	}
-		
-	memset(param, 0, sizeof(param));
+	
 	
 	param[0].buffer_type = MYSQL_TYPE_LONG;
 	param[0].buffer = &ad_code;
@@ -115,26 +171,98 @@ void view_own_ad() {
 	param[1].buffer = ucc_username;
 	param[1].buffer_length = strlen(ucc_username);
 	
+	param[2].buffer_type = MYSQL_TYPE_LONG;
+	param[2].buffer = &check_owner;
+	param[2].buffer_length = sizeof(check_owner);
+	
+	
+	execution:
+	
+	if (!setup_prepared_stmt(&prepared_stmt, "call visualizzaAnnuncio (?, ?, ?)", conn))
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
+	
 	if (mysql_stmt_bind_param(prepared_stmt, param) != 0)
-		finish_with_stmt_error(conn, prepared_stmt, "Unable to bind parameters for a new category\n", true);
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to bind parameters to view ads\n", true);
+	
+	if (mysql_stmt_execute(prepared_stmt) != 0) {
+		print_stmt_error(prepared_stmt, NULL);
+		mysql_stmt_close(prepared_stmt);
+		return false;
+	}
+	
+	if (!check_owner_value)
+		dump_result_set(conn, prepared_stmt, "Ad list\n");		// dump the result set
+	
+	mysql_stmt_close(prepared_stmt);
+	return true;
+}
+
+
+void remove_ad() {
+	if(view_ad(conf.username, true) == false)
+		return;
+	
+	MYSQL_STMT *prepared_stmt;
+	MYSQL_BIND param[1];
+	
+	memset(param, 0, sizeof(param));
+	
+	param[0].buffer_type = MYSQL_TYPE_LONG;
+	param[0].buffer = &ad_code;
+	param[0].buffer_length = sizeof(ad_code);
+	
+	if (!setup_prepared_stmt(&prepared_stmt, "call rimuoviAnnuncio (?)", conn))
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
+	
+	if (mysql_stmt_bind_param(prepared_stmt, param) != 0)
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to bind parameters to view ads\n", true);
 	
 	if (mysql_stmt_execute(prepared_stmt) != 0)
 		print_stmt_error(prepared_stmt, NULL);
 	else
-		dump_result_set(conn, prepared_stmt, "Ad list\n");		// dump the result set
+		printf("\033[40m\033[1;32m   Successfully removed!\033[0m\n");	
 	
 	mysql_stmt_close(prepared_stmt);
+	
+	ad_code = -1;
 }
 
-
-
-
+void ad_sold() {
+	
+	if(view_ad(conf.username, true) == false)
+		return;
+	
+	MYSQL_STMT *prepared_stmt;
+	MYSQL_BIND param[1];	
+	
+	memset(param, 0, sizeof(param));
+	
+	param[0].buffer_type = MYSQL_TYPE_LONG;
+	param[0].buffer = &ad_code;
+	param[0].buffer_length = sizeof(ad_code);
+	
+	if (!setup_prepared_stmt(&prepared_stmt, "call vendutoAnnuncio (?)", conn))
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
+	
+	if (mysql_stmt_bind_param(prepared_stmt, param) != 0)
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to bind parameters to view ads\n", true);
+	
+	if (mysql_stmt_execute(prepared_stmt) != 0)
+		print_stmt_error(prepared_stmt, NULL);
+	else
+		printf("\033[40m\033[1;32m   Successfully sold!\033[0m\n");	
+	
+	mysql_stmt_close(prepared_stmt);
+	
+	ad_code = -1;
+}
 
 int run_as_ucc(MYSQL *main_conn, struct configuration main_conf){
 	conn = main_conn;
 	conf = main_conf;
-	int num_list = 4;					// length of list
-	char list[4] = {'1','2','3','4'};	// list of choice
+	ad_code = -1;
+	int num_list = 8;					// length of list
+	char list[8] = {'1','2','3','4', '5', '6', '7', '8'};	// list of choice
 	char option;
 	
 	printf("Welcome %s\n", conf.username);
@@ -152,8 +280,12 @@ int run_as_ucc(MYSQL *main_conn, struct configuration main_conf){
 		printf("\n\e[1m  What would do you want to do? \e[22m\n");
 		printf("\033[40m\033[1;34m%c\033[0m) \033[40m\033[1;32mInsert a new ad\033[0m\n", list[0]);
 		printf("\033[40m\033[1;34m%c\033[0m) \033[40m\033[1;32mView ads\033[0m\n", list[1]);
-		printf("\033[40m\033[1;34m%c\033[0m) \033[40m\033[1;32m........\033[0m\n", list[2]);
-		printf("\033[40m\033[1;34m%c\033[0m) \033[40m\033[1;32mquit\033[0m\n", list[3]);
+		printf("\033[40m\033[1;34m%c\033[0m) \033[40m\033[1;32mRemove Ad\033[0m\n", list[2]);
+		printf("\033[40m\033[1;34m%c\033[0m) \033[40m\033[1;32mSell ad\033[0m\n", list[3]);
+		printf("\033[40m\033[1;34m%c\033[0m) \033[40m\033[1;32m............\033[0m\n", list[4]);
+		printf("\033[40m\033[1;34m%c\033[0m) \033[40m\033[1;32m............\033[0m\n", list[5]);
+		printf("\033[40m\033[1;34m%c\033[0m) \033[40m\033[1;32m............\033[0m\n", list[6]);		
+		printf("\033[40m\033[1;34m%c\033[0m) \033[40m\033[1;32mquit\033[0m\n", list[7]);
 				
 		multiChoice("\n\033[40m\033[1;32mWhich do you choose?\033[0m", list, num_list, &option);
 		
@@ -172,12 +304,24 @@ int run_as_ucc(MYSQL *main_conn, struct configuration main_conf){
 				new_ad();
 				break;
 			case '2':	
-				view_own_ad();
+				view_ad("NULL", false);
 				break;
 			case '3':	
-				//view_category();		
+				remove_ad();
 				break;
 			case '4':	
+				ad_sold();
+				break;
+			case '5':	
+				//generate_report();
+				break;
+			case '6':	
+				//generate_report();
+				break;
+			case '7':	
+				//generate_report();
+				break;
+			case '8':	
 				//generate_report();
 				break;
 			default:

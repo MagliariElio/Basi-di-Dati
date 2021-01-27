@@ -82,11 +82,7 @@ char *getInput(unsigned int lung, char *stringa, bool hide)
 				(void) write(fileno(stdout), "*", sizeof(char));
 		}
 	}
-	
-	// Controlla che il terminatore di stringa sia stato inserito
-	if(i == lung - 1)
-		stringa[i] = '\0';
-
+		
 	// Se sono stati digitati più caratteri, svuota il buffer della tastiera
 	if(strlen(stringa) >= lung) {	
 		// Svuota il buffer della tastiera
@@ -94,9 +90,13 @@ char *getInput(unsigned int lung, char *stringa, bool hide)
 			c = getchar();
 		} while (c != '\n');
 	}
-
+	
+	// Controlla che il terminatore di stringa sia stato inserito
+	if(i == lung - 1)
+		stringa[i] = '\0';
+	
 	if(hide) {
-		//L'a capo dopo l'input
+		//Va a capo dopo l'input
 		(void) write(fileno(stdout), "\n", 1);
 
 		// Ripristina le impostazioni precedenti dello schermo
@@ -108,6 +108,38 @@ char *getInput(unsigned int lung, char *stringa, bool hide)
 		if(signo)
 			(void) raise(signo);
 	}
+	
+	return stringa;
+}
+
+// Scanf alternativo
+char *getInputScanf(int length_max) {
+	int length, i=0;
+	char *stringa;
+	char c;
+	
+	handler_ign();		// Ignora eventuali segnali
+	
+	length = 0;
+	stringa = (char *) malloc(length_max * sizeof(char *));
+	
+	while(1) {
+		c = getchar();
+		stringa[i] = c;
+		if(c == '\n') break;
+		length++;
+		i++;
+	}
+	
+	stringa[length] = '\0';
+	
+	if(length > length_max)
+		stringa[length_max-1] = '\0';
+	
+	handler_dfl();		// Reset di default dei segnali
+	
+	if(signo)
+		(void) raise(signo);
 	
 	return stringa;
 }
@@ -127,20 +159,19 @@ bool yesOrNo(char *domanda, char yes, char no) {
 	// Richiesta della risposta
 	while(true) {
 		
-		printf("%s [%c/%c]: ", domanda, yes, no);	// Mostra la domanda
+		printf("\e[1m%s\e[22m [\033[40m\033[1;34m%c\033[0m/\033[40m\033[1;31m%c\033[0m]: ", domanda, yes, no);	// Mostra la domanda
 
-		char c[1];
-		getInput(1, c, false);
+		char c[2];
+		getInput(2, c, false);
 					
 		// Controlla quale risposta è stata data
-		if(c[0] == '\0') 		 	// getInput() non può restituire '\n'!
-			continue;
-		else if(c[0] == yes || c[0] == toupper(yes)) 
+		if(c[0] == yes || c[0] == toupper(yes)) 
 			return true;
 		else if(c[0] == no || c[0] == toupper(no)) 
 			return false;
 	}
 }
+
 
 void multiChoice(char *domanda, char choices[], int num, char *option)
 {
@@ -155,13 +186,13 @@ void multiChoice(char *domanda, char choices[], int num, char *option)
 	// Chiede la risposta
 	printf("%s [\033[40m\033[1;34m%s\033[0m]: ", domanda, possib); 	// Mostra la domanda
 	
-	char c;
-	getInput(1, &c, false);
+	char c[2];
+	getInput(2, c, false);
 
 	// Controlla se è un carattere valido
 	for(i = 0; i < num; i++) {
-		if(c == choices[i]) {
-			*option = c;
+		if(c[0] == choices[i]) {
+			*option = c[0];
 			return;
 		}
 	}

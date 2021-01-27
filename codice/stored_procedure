@@ -22,11 +22,11 @@
 
 -- -------------------------------------------------------------------
 
--- Inserimento di una nuova categoria --------------------------------
+-- Inserimento di una nuova categoria --------------------------
 
 -- -------------------------------------------------------------------
 
--- Visualizzazione categoria ----------------------------------------- Impostare un livello di isolamento
+-- Visualizzazione categoria ------------------------------- Impostare un livello di isolamento
 
 -- -------------------------------------------------------------------
 
@@ -38,7 +38,7 @@
 
 -- -------------------------------------------------------------------
 
--- Visualizza annuncio -----------------------------------------------  Impostare un livello di isolamento
+-- Visualizza annuncio ------------------------------------  Impostare un livello di isolamento
 
 -- -------------------------------------------------------------------
 
@@ -88,9 +88,13 @@
 
 -- -------------------------------------------------------------------
 
--- Rimozione di un Annuncio ------------------------------------------	Attivare evento avverti utente che seguono l'annuncio - Attivare evento genera report
+-- Rimozione di un Annuncio -------------------------	Attivare evento avverti utente che seguono l'annuncio - Attivare evento genera report
 
 -- -------------------------------------------------------------------
+
+-- Annuncio Venduto ------------------------------------------	Attivare evento avverti utente che seguono l'annuncio - Attivare evento genera report
+
+----------------------------------------------------------------------
 
 -- Visualizzazione degli Annunci seguiti UCC ------------------------- Impostare un livello di isolamento
 

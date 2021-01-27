@@ -143,7 +143,7 @@ DELIMITER ;
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaCategoria ;
 CREATE PROCEDURE BachecaElettronicadb.visualizzaCategoria ()
-	BEGIN
+BEGIN
 		SELECT Nome
 		FROM BachecaElettronicadb.Categoria;
 END//
@@ -153,19 +153,19 @@ DELIMITER ;
 -- Inserimento di un nuovo annuncio ---------------------------------- Impostare una livello di isolamento - Le categorie potrebbere essere preimpostate
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.inserimentoNuovoAnnuncio ;
-CREATE PROCEDURE BachecaElettronicadb.inserimentoNuovoAnnuncio (IN descrizione VARCHAR(100), IN importo INT, IN foto BINARY, IN ucc_username VARCHAR(45), IN categoria_nome VARCHAR(20))
+CREATE PROCEDURE BachecaElettronicadb.inserimentoNuovoAnnuncio (IN descrizione VARCHAR(100), IN importo INT, IN foto VARCHAR(9), IN ucc_username VARCHAR(45), IN categoria_nome VARCHAR(20))
 BEGIN
-	if ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username=ucc_username) != 1) then
+	if ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username=ucc_username) <> 1) then
 		signal sqlstate '45000' set message_text = 'User not found';
 	end if;
-	if ((SELECT(count(Nome)) FROM BachecaElettronicadb.Categoria WHERE BachecaElettronicadb.Categoria.Nome=categoria_nome) != 1) then
+	if ((SELECT(count(Nome)) FROM BachecaElettronicadb.Categoria WHERE BachecaElettronicadb.Categoria.Nome=categoria_nome) <> 1) then
 		signal sqlstate '45001' set message_text = 'Category not found';
 	end if;
-			
-	IF foto IS NULL THEN
+	
+	IF (foto IS NULL) THEN
 		INSERT INTO BachecaElettronicadb.Annuncio (Codice, Stato, Descrizione, Importo, UCC_Username, Categoria_Nome) VALUES(NULL, 'Attivo', descrizione, importo, ucc_username, categoria_nome);
 	ELSE
-		INSERT INTO BachecaElettronicadb.Annuncio (Codice, Stato, Descrizione, Importo, Foto, UCC_Username, Categoria_Nome) VALUES(NULL, 'Attivo', descrizione, importo, foto, ucc_username, categoria_nome);
+		INSERT INTO BachecaElettronicadb.Annuncio (Codice, Stato, Descrizione, Importo, Foto, UCC_Username, Categoria_Nome) VALUES(NULL, 'Attivo', descrizione, importo, 'Presente', ucc_username, categoria_nome);
 	END IF;
 			
 END//
@@ -175,13 +175,19 @@ DELIMITER ;
 -- Inserimento o Rimozione di una foto in annuncio ------------------- Impostare un livello di isolamento per evitare repeatible read - Evento: avverti utenti che seguono l'annuncio - Inserisci o rimuovi foto a seconda del parametro
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.modificaFotoAnnuncio ;
-CREATE PROCEDURE BachecaElettronicadb.modificaFotoAnnuncio (IN codice INT, IN foto BINARY)
+CREATE PROCEDURE BachecaElettronicadb.modificaFotoAnnuncio (IN codice INT, IN foto VARCHAR(9))
 BEGIN
-	if ((SELECT(count(codice)) FROM BachecaElettronicadb.Annuncio WHERE Codice=codice AND Stato='Attivo') = 1) then
-		UPDATE BachecaElettronicadb.Annuncio
-		SET Foto = foto
-		WHERE Codice=codice;
+	if ((SELECT(count(codice)) FROM BachecaElettronicadb.Annuncio WHERE Codice=codice AND Stato<>'Attivo') <> 1) then
+		signal sqlstate '45006' set  message_text = 'Ad not found';
+	end if;	
+	if ((SELECT(count(codice)) FROM BachecaElettronicadb.Annuncio WHERE Codice=codice AND Stato<>'Attivo') = 1) then
+		signal sqlstate '45007' set  message_text = 'Ad not active now';
 	end if;
+	
+	UPDATE BachecaElettronicadb.Annuncio
+	SET Foto = foto
+	WHERE Codice=codice;
+	
 END//
 DELIMITER ;
 -- -------------------------------------------------------------------
@@ -189,27 +195,39 @@ DELIMITER ;
 -- Visualizza annuncio -----------------------------------------------  Impostare un livello di isolamento
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaAnnuncio ;
-CREATE PROCEDURE BachecaElettronicadb.visualizzaAnnuncio (IN annuncio_codice INT, IN username VARCHAR(45))
+CREATE PROCEDURE BachecaElettronicadb.visualizzaAnnuncio (IN annuncio_codice INT, IN username VARCHAR(45), IN check_owner INT)
 BEGIN
-	if ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username=username) != 1) then
+	if ((username IS NOT NULL) AND (SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username=username) <> 1) then
 		signal sqlstate '45000' set message_text = 'User not found';
-	end if;	
+	end if;
+
+	if ((annuncio_codice IS NOT NULL) AND (SELECT(count(annuncio_codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=annuncio_codice) <> 1) then
+		signal sqlstate '45006' set message_text = 'Ad not found';
+	end if;
 	
-	IF (annuncio_codice IS NOT NULL AND username IS NOT NULL) THEN
+	if ((check_owner = 1) AND (username IS NOT NULL) AND (annuncio_codice IS NOT NULL)) then
+		IF ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=annuncio_codice AND BachecaElettronicadb.Annuncio.UCC_Username=username) <> 1) then
+			signal sqlstate '45008' set message_text = "You aren't the ad owner";
+		end IF;
+	end if;
+	
+	
+	IF ((annuncio_codice IS NOT NULL) AND (username IS NOT NULL)) THEN
 		SELECT *
 		FROM BachecaElettronicadb.Annuncio
-		WHERE BachecaElettronicadb.Annuncio.UCC_Username=username AND BachecaElettronicadb.Annuncio.Codice=annuncio_codice;
-	ELSEIF (annuncio_codice IS NULL AND username IS NOT NULL) THEN
+		WHERE BachecaElettronicadb.Annuncio.UCC_Username=username AND BachecaElettronicadb.Annuncio.Codice=annuncio_codice AND BachecaElettronicadb.Annuncio.Stato='Attivo';
+	ELSEIF ((annuncio_codice IS NULL) AND (username IS NOT NULL)) THEN
 		SELECT *
 		FROM BachecaElettronicadb.Annuncio
-		WHERE BachecaElettronicadb.Annuncio.UCC_Username=username;
-	ELSEIF (annuncio_codice IS NOT NULL AND username IS NULL) THEN
+		WHERE BachecaElettronicadb.Annuncio.UCC_Username=username AND BachecaElettronicadb.Annuncio.Stato='Attivo';
+	ELSEIF ((annuncio_codice IS NOT NULL) AND (username IS NULL)) THEN
 		SELECT *
 		FROM BachecaElettronicadb.Annuncio
-		WHERE BachecaElettronicadb.Annuncio.Codice=annuncio_codice;
+		WHERE BachecaElettronicadb.Annuncio.Codice=annuncio_codice AND BachecaElettronicadb.Annuncio.Stato='Attivo';
 	ELSE
 		SELECT *
-		FROM BachecaElettronicadb.Annuncio;
+		FROM BachecaElettronicadb.Annuncio 
+		WHERE BachecaElettronicadb.Annuncio.Stato='Attivo';
 	end IF;
 END//
 DELIMITER ;
@@ -484,11 +502,31 @@ DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.rimuoviAnnuncio ;
 CREATE PROCEDURE BachecaElettronicadb.rimuoviAnnuncio (IN codice_annuncio INT)
 BEGIN
-	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE Codice=codice_annuncio and Stato='Attivo') = 1) then
-		UPDATE BachecaElettronica.Annuncio
-		SET Stato = 'Rimosso'
-		WHERE Codice = codice_annuncio;
+	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=codice_annuncio and BachecaElettronicadb.Annuncio.Stato='Attivo') <> 1) then
+		signal sqlstate '45006' set message_text = 'Ad not found';
 	end if;
+	
+	UPDATE BachecaElettronicadb.Annuncio
+	SET Stato = 'Rimosso'
+	WHERE BachecaElettronicadb.Annuncio.Codice=codice_annuncio AND BachecaElettronicadb.Annuncio.Stato='Attivo';
+
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
+
+-- Annuncio Venduto ------------------------------------------	Attivare evento avverti utente che seguono l'annuncio - Attivare evento genera report
+DELIMITER //
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.vendutoAnnuncio ;
+CREATE PROCEDURE BachecaElettronicadb.vendutoAnnuncio (IN codice_annuncio INT)
+BEGIN
+	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=codice_annuncio and BachecaElettronicadb.Annuncio.Stato='Attivo') <> 1) then
+		signal sqlstate '45006' set message_text = 'Ad not found';
+	end if;
+	
+	UPDATE BachecaElettronicadb.Annuncio
+	SET Stato = 'Venduto'
+	WHERE BachecaElettronicadb.Annuncio.Codice=codice_annuncio AND BachecaElettronicadb.Annuncio.Stato='Attivo';
+
 END//
 DELIMITER ;
 -- -------------------------------------------------------------------
@@ -574,6 +612,7 @@ BEGIN
 	
 	-- start transaction;
 		if ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE Username=ucc_username) = 1) then
+			
 			SELECT NumeroCarta INTO numeroCarta FROM BachecaElettronicadb.UCC WHERE Username=ucc_username;
 			
 			if sum_import is not null then

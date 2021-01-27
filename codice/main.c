@@ -43,7 +43,7 @@ static role_t attempt_login(MYSQL *conn, char *username, char *password){
 	}
 	
 	if (mysql_stmt_execute(login_stored_procedure) != 0) {
-		print_stmt_error(login_stored_procedure, "Could not bind parameters for login");
+		print_stmt_error(login_stored_procedure, "Could not execute the login query");
 		goto err;
 	}
 	
@@ -53,16 +53,17 @@ static role_t attempt_login(MYSQL *conn, char *username, char *password){
 	param[0].buffer_length = sizeof(role);		//OUT
 	
 	if (mysql_stmt_bind_result(login_stored_procedure, param)) {
-		print_stmt_error(login_stored_procedure, "Could not bind parameters for login");
+		print_stmt_error(login_stored_procedure, "Could not bind result");
 		goto err;
 	}
 
 	
 	if (mysql_stmt_fetch(login_stored_procedure)) {
-		print_stmt_error(login_stored_procedure, "Could not bind parameters for login");
+		print_stmt_error(login_stored_procedure, "Could not fetch result");
 		goto err;
 	}
 	
+	//mysql_free_result();
 	
 	mysql_stmt_close(login_stored_procedure);
 	return role;
@@ -91,20 +92,27 @@ int main(void){
 		exit(EXIT_FAILURE);
 	}
 	
-	if (!mysql_real_connect(conn, conf.host, conf.db_username, conf.db_password, conf.database, conf.port, NULL, 0)){ //probably MULTI_STATEMENTS
+	if (mysql_real_connect(conn, conf.host, conf.db_username, conf.db_password, conf.database, conf.port, NULL, CLIENT_MULTI_STATEMENTS | CLIENT_MULTI_RESULTS) == NULL){ 
 		fprintf(stderr, "%s\n", mysql_error(conn));
 		mysql_close(conn);
 		exit(EXIT_FAILURE);
 	}
 	printf("Bacheca Elettronica\n");
-	restart:
+	
+	goto start;
+	
+	restart:	if (yesOrNo("Do you want continue?", 'y', 'n') == false) goto exit;
+	
+	start:
 		strcat(conf.username, "ingediero");
 		strcat(conf.password, "a46e76a9");
+		//strcat(conf.username, "amm1");
+		//strcat(conf.password, "password");
 		//printf("Username: ");
 		//getInput(45, conf.username, false);
 		//printf("Password: ");
 		//getInput(45, conf.password, true);
-		
+	
 	role = attempt_login(conn, conf.username, conf.password);
 	
 	switch(role){
@@ -125,9 +133,12 @@ int main(void){
 			printf("Error to login\n");
 			abort();	//it may not delete temporary files and may not flush stream buffer
 	}
+	goto restart;
 	
-	printf("Bye!\n");
-	mysql_close(conn);
+	exit:
+	
+		printf("Bye!\n");
+		mysql_close(conn);
 		
 	return 0;	
 }

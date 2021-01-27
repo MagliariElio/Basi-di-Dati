@@ -144,6 +144,8 @@ void dump_result_set(MYSQL *conn, MYSQL_STMT *stmt, char *title)
 	/* the column count is > 0 if there is a result set */
 	/* 0 if the result is only the final status packet */
 	num_fields = mysql_stmt_field_count(stmt);
+	
+	bool is_null[num_fields];
 
 	if (num_fields > 0) {
 		/* there is a result set to fetch */
@@ -203,6 +205,7 @@ void dump_result_set(MYSQL *conn, MYSQL_STMT *stmt, char *title)
 			rs_bind[i].buffer_type = fields[i].type;
 			rs_bind[i].buffer = malloc(attr_size + 1);
 			rs_bind[i].buffer_length = attr_size + 1;
+			rs_bind[i].is_null = &is_null[i];
 
 			if(rs_bind[i].buffer == NULL) {
 				finish_with_stmt_error(conn, stmt, "Cannot allocate output buffers\n", true);
@@ -226,6 +229,11 @@ void dump_result_set(MYSQL *conn, MYSQL_STMT *stmt, char *title)
 
 				if (rs_bind[i].is_null_value) {
 					printf (" %-*s |", (int)fields[i].max_length, "NULL");
+					continue;
+				}
+				
+				if(*rs_bind[i].is_null){
+					printf(" %-*s |", (int)fields[i].max_length, "NULL");
 					continue;
 				}
 
@@ -270,6 +278,8 @@ void dump_result_set(MYSQL *conn, MYSQL_STMT *stmt, char *title)
 			print_dashes(rs_metadata);
 		}
 
+		mysql_stmt_next_result(stmt);
+		
 		mysql_free_result(rs_metadata); /* free metadata */
 
 		/* free output buffers */

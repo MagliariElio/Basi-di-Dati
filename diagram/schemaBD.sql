@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Annuncio` (
   `Stato` ENUM('Attivo', 'Venduto', 'RImosso') NOT NULL,
   `Descrizione` VARCHAR(100) NOT NULL,
   `Importo` INT NOT NULL,
-  `Foto` VARCHAR(45) BINARY NULL DEFAULT NULL,
+  `Foto` VARCHAR(9) NULL DEFAULT NULL,
   `UCC_Username` VARCHAR(45) NOT NULL,
   `Categoria_Nome` VARCHAR(20) NOT NULL,
   PRIMARY KEY (`Codice`),
@@ -513,8 +513,6 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Amministratore` (
   `Password` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`Username`))
 ENGINE = InnoDB;
-
-CREATE UNIQUE INDEX `Username_UNIQUE` ON `BachecaElettronicadb`.`Amministratore` (`Username` ASC) VISIBLE;
 
 SET SQL_MODE = '';
 DROP USER IF EXISTS UCC;
