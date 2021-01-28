@@ -250,19 +250,214 @@ void ad_sold() {
 	if (mysql_stmt_execute(prepared_stmt) != 0)
 		print_stmt_error(prepared_stmt, NULL);
 	else
-		printf("\033[40m\033[1;32m   Successfully sold!\033[0m\n");	
+		print_color("   Successfully sold!", "orange", ' ', false, false, false);
 	
 	mysql_stmt_close(prepared_stmt);
 	
 	ad_code = -1;
 }
 
+void view_personal_information() {
+	MYSQL_STMT *prepared_stmt;
+	MYSQL_BIND param[1];
+	
+	bool request;
+	
+	memset(param, 0, sizeof(param));
+	
+	request = yesOrNo("Do you want to see your account information?", 'y', 'n');
+	if(request) {
+		
+		param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
+		param[0].buffer = conf.username;
+		param[0].buffer_length = strlen(conf.username);
+		
+		if (!setup_prepared_stmt(&prepared_stmt, "call visualizzaUtenteUCC (?)", conn)) {
+			finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
+		}
+	} else {
+		char cf[16];
+		
+		printf("Fiscal Code: ");
+		getInput(16, cf, false);
+		
+		param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
+		param[0].buffer = cf;
+		param[0].buffer_length = strlen(cf);	
+			
+		if (!setup_prepared_stmt(&prepared_stmt, "call visualizzaInfoAnagrafiche (?)", conn)) {
+			finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
+		}
+	}
+		
+	if (mysql_stmt_bind_param(prepared_stmt, param) != 0)
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to bind parameters to view information\n", true);
+	
+	if (mysql_stmt_execute(prepared_stmt) != 0)
+		print_stmt_error(prepared_stmt, NULL);
+	else		
+		dump_result_set(conn, prepared_stmt, "Personal Information\n");		// dump the result set
+	
+	mysql_stmt_close(prepared_stmt);
+}
+
+
+void edit_personal_information() {
+	MYSQL_STMT *prepared_stmt;
+	MYSQL_BIND param[8];
+	
+	char cf[16], surname[20], name[20], residential_address[20], cap_string[5], billing_address[20], type_favourite_contact[20], favourite_contact[40];
+	int cap;
+	bool request, is_null;
+	
+	is_null = 1;
+	
+	memset(param, 0, sizeof(param));
+	
+	printf("Your Fiscal Code: ");		
+	getInput(16, cf, false);
+	
+	while(1) {
+		request = yesOrNo("Do you want to edit your surname?", 'y', 'n');
+	
+		if(request == true) {
+			printf("Surname: ");		
+			getInput(20, surname, false);
+			break;
+		}
+		if(request == false){
+			param[1].is_null = &is_null;
+			break;
+		}
+	}
+	
+	while(1) {
+		request = yesOrNo("Do you want to edit your name?", 'y', 'n');
+	
+		if(request == true) {
+			printf("Name: ");
+			getInput(20, name, false);
+			break;
+		}
+		if(request == false){
+			param[2].is_null = &is_null;
+			break;
+		}
+	}
+	
+	while(1) {
+		request = yesOrNo("Do you want to edit your residential address?", 'y', 'n');
+	
+		if(request == true) {
+			printf("Residential address: ");
+			getInput(20, residential_address, false);
+			break;
+		}
+		if(request == false){
+			param[3].is_null = &is_null;
+			break;
+		}
+	}
+	
+	while(1) {
+		request = yesOrNo("Do you want to edit your CAP?", 'y', 'n');
+	
+		if(request == true) {
+			printf("CAP: ");
+			getInput(5, cap_string, false);
+			cap = atoi(cap_string);
+			break;
+		}
+		if(request == false){
+			param[4].is_null = &is_null;
+			break;
+		}
+	}
+	
+	while(1) {
+		request = yesOrNo("Do you want to edit your billing address?", 'y', 'n');
+	
+		if(request == true) {
+			printf("Billing address: ");
+			getInput(20, billing_address, false);
+			break;
+		}
+		if(request == false){
+			param[5].is_null = &is_null;
+			break;
+		}
+	}
+	
+	while(1) {
+		request = yesOrNo("Do you want to edit your favourite contact?", 'y', 'n');
+	
+		if(request == true) {
+			printf("Type of favourite contact: ");
+			getInput(20, type_favourite_contact, false);
+			printf("Favourite contact: ");
+			getInput(40, favourite_contact, false);
+			break;
+		}
+		if(request == false){
+			param[6].is_null = &is_null;
+			param[7].is_null = &is_null;
+			break;
+		}
+	}
+	
+	param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[0].buffer = cf;
+	param[0].buffer_length = strlen(cf);
+
+	param[1].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[1].buffer = surname;
+	param[1].buffer_length = strlen(surname);
+	
+	param[2].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[2].buffer = name;
+	param[2].buffer_length = strlen(name);
+	
+	param[3].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[3].buffer = residential_address;
+	param[3].buffer_length = strlen(residential_address);
+
+	param[4].buffer_type = MYSQL_TYPE_LONG;
+	param[4].buffer = &cap;
+	param[4].buffer_length = sizeof(cap);
+	
+	param[5].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[5].buffer = billing_address;
+	param[5].buffer_length = strlen(billing_address);
+	
+	param[6].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[6].buffer = type_favourite_contact;
+	param[6].buffer_length = strlen(type_favourite_contact);
+
+	param[7].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[7].buffer = favourite_contact;
+	param[7].buffer_length = strlen(favourite_contact);
+	
+	
+	if (!setup_prepared_stmt(&prepared_stmt, "call modificaInfoAnagrafiche (?, ?, ?, ?, ?, ?, ?, ?)", conn))
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
+	
+	if (mysql_stmt_bind_param(prepared_stmt, param) != 0)
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to bind parameters to edit information\n", true);
+	
+	if (mysql_stmt_execute(prepared_stmt) != 0)
+		print_stmt_error(prepared_stmt, NULL);
+	else
+		print_color("   Successfully edited!", "orange", ' ', false, false, false);
+	
+	mysql_stmt_close(prepared_stmt);	
+}
+
 int run_as_ucc(MYSQL *main_conn, struct configuration main_conf){
 	conn = main_conn;
 	conf = main_conf;
 	ad_code = -1;
-	int num_list = 8;					// length of list
-	char list[8] = {'1','2','3','4', '5', '6', '7', '8'};	// list of choice
+	int num_list = 8;									// length of list
+	char list[] = {'1','2','3','4','5','6','7','8'};	// list of choice
 	char option;
 	
 	printf("Welcome %s\n", conf.username);
@@ -276,21 +471,22 @@ int run_as_ucc(MYSQL *main_conn, struct configuration main_conf){
 		fprintf(stderr, "mysql_change_user() failed\n");
 		exit(EXIT_FAILURE);
 	}
+
 	while(1){		
-		printf("\n\e[1m  What would do you want to do? \e[22m\n");
-		printf("\033[40m\033[1;34m%c\033[0m) \033[40m\033[1;32mInsert a new ad\033[0m\n", list[0]);
-		printf("\033[40m\033[1;34m%c\033[0m) \033[40m\033[1;32mView ads\033[0m\n", list[1]);
-		printf("\033[40m\033[1;34m%c\033[0m) \033[40m\033[1;32mRemove Ad\033[0m\n", list[2]);
-		printf("\033[40m\033[1;34m%c\033[0m) \033[40m\033[1;32mSell ad\033[0m\n", list[3]);
-		printf("\033[40m\033[1;34m%c\033[0m) \033[40m\033[1;32m............\033[0m\n", list[4]);
-		printf("\033[40m\033[1;34m%c\033[0m) \033[40m\033[1;32m............\033[0m\n", list[5]);
-		printf("\033[40m\033[1;34m%c\033[0m) \033[40m\033[1;32m............\033[0m\n", list[6]);		
-		printf("\033[40m\033[1;34m%c\033[0m) \033[40m\033[1;32mquit\033[0m\n", list[7]);
-				
-		multiChoice("\n\033[40m\033[1;32mWhich do you choose?\033[0m", list, num_list, &option);
+		print_color("  What would do you want to do? ", "white", ' ', true, true, false);
+		print_color("", "light blue", list[0], true, false, false); print_color(") Insert a new ad", "orange", ' ', false, false, false);
+		print_color("", "light blue", list[1], true, false, false); print_color(") View ads", "orange", ' ', false, false, false);
+		print_color("", "light blue", list[2], true, false, false); print_color(") Remove Ad", "orange", ' ', false, false, false);
+		print_color("", "light blue", list[3], true, false, false); print_color(") Sell ad", "orange", ' ', false, false, false);
+		print_color("", "light blue", list[4], true, false, false); print_color(") View Personal Information", "orange", ' ', false, false, false);
+		print_color("", "light blue", list[5], true, false, false); print_color(") Edit Personal Information", "orange", ' ', false, false, false);
+		print_color("", "light blue", list[6], true, false, false); print_color(") ............", "orange", ' ', false, false, false);
+		print_color("", "light blue", list[7], true, false, false); print_color(") quit", "orange", ' ', false, false, false);
+		
+		multiChoice("\nWhich do you choose?", list, num_list, &option);
 		
 		if(option == '#') {
-			fprintf (stderr, "\e[1m\e[5m\033[40m\033[31mNumber doesn't exists\033[0m\e[25m\e[22m\n");
+			fprintf (stderr, print_color("\e[1m\e[5mNumber doesn't exists\e[25m\e[22m\n", "red", ' ', false, false, true));
 			continue;
 		}
 		
@@ -313,10 +509,10 @@ int run_as_ucc(MYSQL *main_conn, struct configuration main_conf){
 				ad_sold();
 				break;
 			case '5':	
-				//generate_report();
+				view_personal_information();
 				break;
 			case '6':	
-				//generate_report();
+				edit_personal_information();
 				break;
 			case '7':	
 				//generate_report();

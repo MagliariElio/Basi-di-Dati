@@ -173,6 +173,147 @@ bool yesOrNo(char *domanda, char yes, char no) {
 }
 
 
+char *string_union(char *a, char *stringa, char *b, bool first_space, bool bold) {
+	int j, lenght;
+	char *text;
+	char *bold_a = "\e[1m";
+	char *bold_b = "\e[22m";	
+			
+	lenght = strlen(a) + strlen(stringa) + strlen(b);
+	
+	// Controllo i parametri booleani in modo da regolare la dimensione dell'allocazione
+	if(first_space){lenght++;}
+	if(bold){lenght+= strlen(bold_a) + strlen(bold_b);}
+	
+	// Alloco spazio per concatenare le stringhe
+	text = (char *) malloc(lenght*sizeof(char *));
+		
+	j = 0;	// Indice text	
+	
+	if(first_space){
+		text[j] = '\n';
+		j++;
+	}
+		
+	if(bold){
+		for(int i=0; i<(int)strlen(bold_a); i++){
+			text[j] = bold_a[i];
+			j++;
+		}
+	}
+		
+	for(int i=0; i<(int)strlen(a); i++){
+		text[j] = a[i];
+		j++;
+	}
+	
+	for(int i=0; i<(int)strlen(stringa); i++){
+		text[j] = stringa[i];
+		j++;
+	}
+	
+	for(int i=0; i<(int)strlen(b); i++){
+		text[j] = b[i];
+		j++;
+	}
+	
+	if(bold){
+		for(int i=0; i<(int)strlen(bold_b); i++){
+			text[j] = bold_b[i];
+			j++;
+		}
+	}
+	
+	text[j] = '\0';	
+	
+	return text;
+}
+
+
+char *print_color(char *colorless, char *colore_scelto, char c, bool first_space , bool bold, bool error) {
+	char *text, *stringa;
+	char *list_color[] = {"orange", "blue", "light blue", "red", "light red", "white", "purple", "cyan", "light cyan"};
+	int i, length_list_color;
+	
+	if(strlen(colorless) == 0 && c == ' ') {
+		print_error(NULL, "Error Parameters");
+		return "Error";
+	}
+	
+	// Il colore deve essere minuscolo
+	char *colore = (char *) malloc(strlen(colore_scelto) * sizeof(char *));
+	for(i=0; colore[i]; i++){
+		colore[i] = tolower(colore_scelto[i]);
+	}
+	colore[i] = '\0';
+	
+	// Controllo che la variabile passata sia una stringa o un char
+	if(strcmp(colorless, "") == 0) {
+		stringa = (char *) malloc(2);
+		stringa[0] = c;
+		stringa[1] = '\0';
+	} else {
+		stringa = (char *) malloc(strlen(colorless)*sizeof(char *));
+		strcpy(stringa, colorless);
+		stringa[strlen(stringa)] = '\0';
+	}
+	
+	// Cerco il colore
+	length_list_color = 9;
+	i = 0;		
+	while(1) {
+		if (i == length_list_color) {break;}
+		if (strcmp(colore_scelto, list_color[i]) == 0) {break;}
+		i++;
+	}
+	free(colore);
+	
+	// Alloco lo spazio massimo per ottenere la stringa intera da stampare
+	text = (char *) malloc(strlen("\033[40m\033[1;32m\033[0m\e[1m\e[22m")+strlen(stringa));
+	
+	// Concatenazione delle stringhe
+	switch(i) {
+		case 0:
+			strcpy(text, string_union("\033[40m\033[1;32m", stringa, "\033[0m", first_space, bold));
+			break;
+		case 1:
+			strcpy(text, string_union("\033[40m\033[34m", stringa, "\033[0m", first_space, bold));
+			break;
+		case 2:
+			strcpy(text, string_union("\033[40m\033[1;34m", stringa, "\033[0m", first_space, bold));
+			break;
+		case 3:
+			strcpy(text, string_union("\033[40m\033[31m", stringa, "\033[0m", first_space, bold));
+			break;
+		case 4:
+			strcpy(text, string_union("\033[40m\033[1;31m", stringa, "\033[0m", first_space, bold));
+			break;
+		case 5:
+			strcpy(text, string_union("\033[40m\033[1;37m", stringa, "\033[0m", first_space, bold));
+			break;
+		case 6:
+			strcpy(text, string_union("\033[40m\033[35m", stringa, "\033[0m", first_space, bold));
+			break;
+		case 7:
+			strcpy(text, string_union("\033[40m\033[36m", stringa, "\033[0m", first_space, bold));
+			break;
+		case 8:
+			strcpy(text, string_union("\033[40m\033[1;36m", stringa, "\033[0m", first_space, bold));
+			break;
+		default:
+			strcpy(text, string_union("", stringa, "", first_space, bold));
+			break;
+	}
+	text[strlen(text)-1] = '\0';
+	
+	if(!error)
+		printf("%s", text);		// Stampo la stringa concatenata solo se non serve a una print_error
+
+	free(stringa);	// Dealloco lo spazio nell'heap
+	return text;
+}
+
+
 void multiChoice(char *domanda, char choices[], int num, char *option)
 {
 	char *possib = (char *) malloc(2 * num * sizeof(char)); 	// Genera la stringa delle possibilità
@@ -184,7 +325,7 @@ void multiChoice(char *domanda, char choices[], int num, char *option)
 	possib[j-1] = '\0'; 	// Per eliminare l'ultima '/'
 
 	// Chiede la risposta
-	printf("%s [\033[40m\033[1;34m%s\033[0m]: ", domanda, possib); 	// Mostra la domanda
+	printf("\033[40m\033[1;32m%s\033[0m [\033[40m\033[1;34m%s\033[0m]: ", domanda, possib); 	// Mostra la domanda
 	
 	char c[2];
 	getInput(2, c, false);

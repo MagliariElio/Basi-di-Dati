@@ -109,7 +109,7 @@ int run_as_administrator(MYSQL *main_conn, struct configuration main_conf){
 		printf("\033[40m\033[1;34m%c\033[0m) \033[40m\033[1;32mGenerate a report\033[0m\n", list[2]);
 		printf("\033[40m\033[1;34m%c\033[0m) \033[40m\033[1;32mquit\033[0m\n", list[3]);
 				
-		multiChoice("\n\033[40m\033[1;32mWhich do you choose?\033[0m", list, num_list, &option);
+		multiChoice("\nWhich do you choose?", list, num_list, &option);
 		if(option == '#') {
 			printf("*** Number doesn't exists ***\n");
 			continue;

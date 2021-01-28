@@ -8,7 +8,7 @@ List of error codes
 
 45003 = 'User exists as USCC';
 
-45004 = 'Fiscal not found';
+45004 = 'Fiscal Code not found';
 
 45005 = 'Category already exists';
 
@@ -16,4 +16,4 @@ List of error codes
 
 45007 = 'Ad not active now'
 
-45008 = 'You aren't the ad owner'
+45008 = 'You aren't the owner of the ad'
