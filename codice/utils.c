@@ -247,7 +247,7 @@ void dump_result_set(MYSQL *conn, MYSQL_STMT *stmt, char *title)
 					case MYSQL_TYPE_DATE:
 					case MYSQL_TYPE_TIMESTAMP:
 						date = (MYSQL_TIME *)rs_bind[i].buffer;
-						printf(" %d-%02d-%02d |", date->year, date->month, date->day);
+						printf(" %d-%02d-%02d %-*s |", date->year, date->month, date->day, 1, "");
 						break;
 				       
 					case MYSQL_TYPE_STRING:

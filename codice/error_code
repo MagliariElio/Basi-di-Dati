@@ -19,3 +19,5 @@ List of error codes
 45008 = 'You are not the owner of the ad'
 
 45009 = 'The fiscal code is not yours'
+
+45010 = 'Error parameters'

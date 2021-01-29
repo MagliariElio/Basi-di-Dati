@@ -301,7 +301,10 @@ void multiChoice(char *domanda, char choices[], int num, char *option)
 	possib[j-1] = '\0'; 	// Per eliminare l'ultima '/'
 
 	// Chiede la risposta
-	printf("\033[40m\033[1;32m%s\033[0m [\033[40m\033[1;34m%s\033[0m]: ", domanda, possib); 	// Mostra la domanda
+	print_color(domanda, "white", ' ', true, false, true);	// Mostra la domanda
+	printf(" [");
+	print_color(possib, "light blue", ' ', false, false, false);
+	printf("]: ");
 	
 	char c[2];
 	getInput(2, c, false);

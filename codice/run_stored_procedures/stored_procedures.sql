@@ -268,14 +268,17 @@ DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.modificaCommento ;
 CREATE PROCEDURE BachecaElettronicadb.modificaCommento (IN testo VARCHAR(45), IN annuncio_codice INT, IN ID_rimozione_commento INT)
 BEGIN
-	if ((SELECT(count(Annuncio_Codice)) FROM BachecaElettronicadb.Annuncio WHERE Codice=annuncio_codice AND Stato='Attivo') = 1) then
-		IF (ID_rimozione_commento = 0) then	
-			INSERT INTO BachecaElettronicadb.Commento (Testo, Annuncio_Codice) VALUES(testo, annuncio_codice);
-		else
-			DELETE FROM BachecaElettronicadb.Commento
-			WHERE ID = ID_rimozione_commento;
-		end IF;
+	if ((SELECT(count(Annuncio_Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=annuncio_codice AND BachecaElettronicadb.Annuncio.Stato='Attivo') <> 1) then
+		signal sqlstate '45007' set message_text = 'Ad not active now';
 	end if;
+	
+	if (ID_rimozione_commento is null) then	
+		INSERT INTO BachecaElettronicadb.Commento (Testo, Annuncio_Codice) VALUES(testo, annuncio_codice);
+	else
+		DELETE FROM BachecaElettronicadb.Commento
+		WHERE BachecaElettronicadb.Commento.ID = ID_rimozione_commento;
+	end if;
+	
 END//
 DELIMITER ;
 -- -------------------------------------------------------------------
@@ -285,11 +288,14 @@ DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaCommento ;
 CREATE PROCEDURE BachecaElettronicadb.visualizzaCommento (IN annuncio_codice INT)
 BEGIN
-	if ((SELECT(count(Annuncio_Codice)) FROM BachecaElettronicadb.Annuncio WHERE Codice=annuncio_codice AND Stato='Attivo') = 1) then
-		SELECT Testo, Annuncio_codice  -- AS "Codice dell'annuncio"
-		FROM BachecaElettronicadb.Commento
-		WHERE Annuncio_Codice = annuncio_codice;
+	if ((SELECT(count(Annuncio_Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=annuncio_codice AND BachecaElettronicadb.Annuncio.Stato='Attivo') <> 1) then
+		 signal sqlstate '45007' set message_text = 'Ad not active now';
 	end if;
+	
+	SELECT ID, Testo, Annuncio_codice AS "Codice dell'annuncio"
+	FROM BachecaElettronicadb.Commento
+	WHERE BachecaElettronicadb.Commento.Annuncio_Codice = annuncio_codice;
+	
 END//
 DELIMITER ;
 -- -------------------------------------------------------------------

@@ -38,7 +38,7 @@
 
 -- -------------------------------------------------------------------
 
--- Inserimento o Rimozione di una foto in annuncio ------------------- Impostare un livello di isolamento per evitare repeatible read - Evento: avverti utenti che seguono l'annuncio - Inserisci o rimuovi foto a seconda del parametro
+-- Inserimento o Rimozione di una foto in annuncio ------ Impostare un livello di isolamento per evitare repeatible read - Evento: avverti utenti che seguono l'annuncio - Inserisci o rimuovi foto a seconda del parametro
 
 -- -------------------------------------------------------------------
 

@@ -1,9 +1,8 @@
 #include "defines.h"
 
 
-#define MAX_LENGHT_AD_CODE 10
-
-#define fflush(stdin) while(getchar()!='\n')
+#define MAX_AD_CODE_LENGHT 10
+#define MAX_COMMENT_ID_LENGHT 10
 
 struct configuration conf;
 MYSQL *conn;
@@ -25,20 +24,13 @@ void new_ad() {
 	print_color("Ad description: ", "yellow", ' ', false, false, false);
 	strcpy(description, getInput(100, description, false));
 	
-	while(1){
-		request = yesOrNo("Do you want to add a photo?", 'y', 'n');
-			
-		if (request == true){
-			strcpy(photo, "Presente");
-			break;
-		}
+	request = yesOrNo("Do you want to add a photo?", 'y', 'n');
 		
-		if(request == false){
-			param[2].is_null = &is_null;
-			break;
-		}
-	}
-	
+	if (request)
+		strcpy(photo, "Presente");
+	else
+		param[2].is_null = &is_null;
+		
 	print_color("Category: ", "yellow", ' ', false, false, false);
 	strcpy(category, getInput(20, category, false));
 	
@@ -87,6 +79,7 @@ void new_ad() {
 		print_color("   Successfully generated!", "orange", ' ', false, true, false);
 	
 	mysql_stmt_close(prepared_stmt);
+	return;
 }
 
 bool view_ad(char *username, bool check_owner_value) {
@@ -94,7 +87,7 @@ bool view_ad(char *username, bool check_owner_value) {
 	MYSQL_BIND param[3];
 	
 	int check_owner;										// Parameters are used to check 
-	char ad_code_string[MAX_LENGHT_AD_CODE];				// of the owner of the ads for other functions
+	char ad_code_string[MAX_AD_CODE_LENGHT];				// of the owner of the ads for other functions
 	
 	
 	if(check_owner_value) {
@@ -102,7 +95,7 @@ bool view_ad(char *username, bool check_owner_value) {
 		check_owner = 1;
 		
 		printf("Ad code: ");	
-		getInput(MAX_LENGHT_AD_CODE, ad_code_string, false);
+		getInput(MAX_AD_CODE_LENGHT, ad_code_string, false);
 		ad_code = atoi(ad_code_string);
 		
 		memset(param, 0, sizeof(param));
@@ -133,34 +126,28 @@ bool view_ad(char *username, bool check_owner_value) {
 	
 	memset(param, 0, sizeof(param));
 	
-	while(1) {
-		request = yesOrNo("Do you have any preference on ad?", 'y', 'n');
-	
-		if(request == true) {
-			printf("Ad code: ");		
-			getInput(MAX_LENGHT_AD_CODE, ad_code_string, false);
-			ad_code = atoi(ad_code_string);
-			break;
-		}
-		if(request == false){
-			param[0].is_null = &is_null;
-			break;
-		}
+	request = yesOrNo("Do you have any preference on ad?", 'y', 'n');
+
+	if(request == true) {
+		printf("Ad code: ");		
+		getInput(MAX_AD_CODE_LENGHT, ad_code_string, false);
+		ad_code = atoi(ad_code_string);
+	}
+	if(request == false){
+		param[0].is_null = &is_null;
+	}
+
+
+	request = yesOrNo("Do you have any preference on user?", 'y', 'n');
+
+	if(request == true) {
+		printf("Username: ");
+		getInput(45, ucc_username, false);
+	}
+	if(request == false){
+		param[1].is_null = &is_null;
 	}
 	
-	while(1) {
-		request = yesOrNo("Do you have any preference on user?", 'y', 'n');
-	
-		if(request == true) {
-			printf("Username: ");
-			getInput(45, ucc_username, false);
-			break;
-		}
-		if(request == false){
-			param[1].is_null = &is_null;
-			break;
-		}
-	}
 	
 	
 	param[0].buffer_type = MYSQL_TYPE_LONG;
@@ -225,10 +212,12 @@ void remove_ad() {
 	mysql_stmt_close(prepared_stmt);
 	
 	ad_code = -1;
+	return;
 }
 
 void ad_sold() {
 	
+	// Check if the user is the owner
 	if(view_ad(conf.username, true) == false)
 		return;
 	
@@ -255,12 +244,14 @@ void ad_sold() {
 	mysql_stmt_close(prepared_stmt);
 	
 	ad_code = -1;
+	return;
 }
 
 bool view_personal_information(char cf_owner[16], char username_owner[45], int check_owner) {
 	MYSQL_STMT *prepared_stmt;
 	
-	if(check_owner == 1){		// Check information for other functions
+	// Check information for other functions
+	if(check_owner == 1){
 		MYSQL_BIND param[3];
 		
 		memset(param, 0, sizeof(param));
@@ -280,25 +271,27 @@ bool view_personal_information(char cf_owner[16], char username_owner[45], int c
 		if (!setup_prepared_stmt(&prepared_stmt, "call visualizzaInfoAnagrafiche (?, ?, ?)", conn))
 			finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
 		
+		if (mysql_stmt_bind_param(prepared_stmt, param) != 0)
+			finish_with_stmt_error(conn, prepared_stmt, "Unable to bind parameters to view information\n", true);
+		
 		goto execution;
 	}
 	
 	
 	// View UCC information 
 	if(yesOrNo("Do you want to see your account information?", 'y', 'n')) {
-		printf("param");
 		MYSQL_BIND param[1];
-		printf("param");
 		memset(param, 0, sizeof(param));
 		
 		param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
 		param[0].buffer = conf.username;
 		param[0].buffer_length = strlen(conf.username);
-		
-		printf("param");
-		
+			
 		if (!setup_prepared_stmt(&prepared_stmt, "call visualizzaUtenteUCC (?)", conn))
 			finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
+		
+		if (mysql_stmt_bind_param(prepared_stmt, param) != 0)
+			finish_with_stmt_error(conn, prepared_stmt, "Unable to bind parameters to view information\n", true);
 		
 		goto execution;
 	}
@@ -334,11 +327,11 @@ bool view_personal_information(char cf_owner[16], char username_owner[45], int c
 	if (!setup_prepared_stmt(&prepared_stmt, "call visualizzaInfoAnagrafiche (?, ?, ?)", conn))
 		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
 	
-	execution:
-		
-	if (mysql_stmt_bind_param(prepared_stmt, param) != 0)
-		finish_with_stmt_error(conn, prepared_stmt, "Unable to bind parameters to view information\n", true);
 	
+	if (mysql_stmt_bind_param(prepared_stmt, param) != 0)
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to bind parameters to view information\n", true);		
+	
+	execution:
 	if (mysql_stmt_execute(prepared_stmt) != 0) {
 		print_stmt_error(prepared_stmt, NULL);
 		return false;
@@ -371,93 +364,75 @@ void edit_personal_information() {
 	if(!view_personal_information(cf, conf.username, 1))
 		return;
 	
-	while(1) {
-		request = yesOrNo("Do you want to edit your surname?", 'y', 'n');
-	
-		if(request == true) {
-			printf("Surname: ");		
-			getInput(20, surname, false);
-			break;
-		}
-		if(request == false){
-			param[1].is_null = &is_null;
-			break;
-		}
+	request = yesOrNo("Do you want to edit your surname?", 'y', 'n');
+
+	if(request == true) {
+		printf("Surname: ");		
+		getInput(20, surname, false);
+	}
+	if(request == false){
+		param[1].is_null = &is_null;
+	}
+
+
+	request = yesOrNo("Do you want to edit your name?", 'y', 'n');
+
+	if(request == true) {
+		printf("Name: ");
+		getInput(20, name, false);
+	}
+	if(request == false){
+		param[2].is_null = &is_null;
+	}
+
+
+	request = yesOrNo("Do you want to edit your residential address?", 'y', 'n');
+
+	if(request == true) {
+		printf("Residential address: ");
+		getInput(20, residential_address, false);
+	}
+	if(request == false){
+		param[3].is_null = &is_null;
+	}
+
+
+	request = yesOrNo("Do you want to edit your CAP?", 'y', 'n');
+
+	if(request == true) {
+		printf("CAP: ");
+		getInput(5, cap_string, false);
+		cap = atoi(cap_string);
+	}
+	if(request == false){
+		param[4].is_null = &is_null;
+	}
+
+
+	request = yesOrNo("Do you want to edit your billing address?", 'y', 'n');
+
+	if(request == true) {
+		printf("Billing address: ");
+		getInput(20, billing_address, false);
+	}
+	if(request == false){
+		param[5].is_null = &is_null;
+	}
+
+
+	request = yesOrNo("Do you want to edit your favourite contact?", 'y', 'n');
+
+	if(request == true) {
+		printf("Type of favourite contact: ");
+		getInput(20, type_favourite_contact, false);
+		printf("Favourite contact: ");
+		getInput(40, favourite_contact, false);
+	}
+	if(request == false){
+		param[6].is_null = &is_null;
+		param[7].is_null = &is_null;
 	}
 	
-	while(1) {
-		request = yesOrNo("Do you want to edit your name?", 'y', 'n');
-	
-		if(request == true) {
-			printf("Name: ");
-			getInput(20, name, false);
-			break;
-		}
-		if(request == false){
-			param[2].is_null = &is_null;
-			break;
-		}
-	}
-	
-	while(1) {
-		request = yesOrNo("Do you want to edit your residential address?", 'y', 'n');
-	
-		if(request == true) {
-			printf("Residential address: ");
-			getInput(20, residential_address, false);
-			break;
-		}
-		if(request == false){
-			param[3].is_null = &is_null;
-			break;
-		}
-	}
-	
-	while(1) {
-		request = yesOrNo("Do you want to edit your CAP?", 'y', 'n');
-	
-		if(request == true) {
-			printf("CAP: ");
-			getInput(5, cap_string, false);
-			cap = atoi(cap_string);
-			break;
-		}
-		if(request == false){
-			param[4].is_null = &is_null;
-			break;
-		}
-	}
-	
-	while(1) {
-		request = yesOrNo("Do you want to edit your billing address?", 'y', 'n');
-	
-		if(request == true) {
-			printf("Billing address: ");
-			getInput(20, billing_address, false);
-			break;
-		}
-		if(request == false){
-			param[5].is_null = &is_null;
-			break;
-		}
-	}
-	
-	while(1) {
-		request = yesOrNo("Do you want to edit your favourite contact?", 'y', 'n');
-	
-		if(request == true) {
-			printf("Type of favourite contact: ");
-			getInput(20, type_favourite_contact, false);
-			printf("Favourite contact: ");
-			getInput(40, favourite_contact, false);
-			break;
-		}
-		if(request == false){
-			param[6].is_null = &is_null;
-			param[7].is_null = &is_null;
-			break;
-		}
-	}
 	
 	param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
 	param[0].buffer = cf;
@@ -504,14 +479,15 @@ void edit_personal_information() {
 		print_color("   Successfully edited!", "orange", ' ', false, true, false);
 	
 	mysql_stmt_close(prepared_stmt);	
+	return;
 }
 
 void edit_photo_ad() {
 	MYSQL_STMT *prepared_stmt;
 	MYSQL_BIND param[3];
 	
-	char ad_code_string[10], photo[9];
-	int ad_code;
+	char ad_code_string[MAX_AD_CODE_LENGHT], photo[9];
+	int ad_code_edit;
 	
 	bool request, is_null;
 	
@@ -520,14 +496,14 @@ void edit_photo_ad() {
 	memset(param, 0, sizeof(param));
 	
 	printf("Ad Code: ");
-	strcpy(ad_code_string, getInput(10, ad_code_string, false));
-	ad_code = atoi(ad_code_string);
+	strcpy(ad_code_string, getInput(MAX_AD_CODE_LENGHT, ad_code_string, false));
+	ad_code_edit = atoi(ad_code_string);
 	
-	request = yesOrNo("Do you want to add a photo in an ad?", 'y', 'n');
+	request = yesOrNo("Do you want to add a photo to an ad?", 'y', 'n');
 	
 	param[0].buffer_type = MYSQL_TYPE_LONG;
-	param[0].buffer = &ad_code;
-	param[0].buffer_length = sizeof(ad_code);
+	param[0].buffer = &ad_code_edit;
+	param[0].buffer_length = sizeof(ad_code_edit);
 	
 	param[1].buffer_type = MYSQL_TYPE_VAR_STRING;
 	param[1].buffer = conf.username;
@@ -557,6 +533,104 @@ void edit_photo_ad() {
 		print_color("   Successfully edited!", "orange", ' ', false, true, false);
 	
 	mysql_stmt_close(prepared_stmt);
+	return;
+}
+
+void insert_remove_comment() {
+	MYSQL_STMT *prepared_stmt;
+	MYSQL_BIND param[3];
+	
+	char ad_code_string[MAX_AD_CODE_LENGHT], id_comment_string[MAX_COMMENT_ID_LENGHT], text[45];
+	int ad_code_comment, id_comment;
+	
+	bool request, is_null;
+	
+	is_null = 1;
+
+	memset(param, 0, sizeof(param));
+	
+	print_color("Ad Code: ", "yellow", ' ', false, false, false);
+	strcpy(ad_code_string, getInput(MAX_AD_CODE_LENGHT, ad_code_string, false));
+	ad_code_comment = atoi(ad_code_string);
+	
+	request = yesOrNo("Do you want to add a comment to an ad?", 'y', 'n');
+	
+	if(request) {
+		print_color("Text of the comment: ", "yellow", ' ', false, false, false);
+		getInput(45, text, false);
+		param[2].is_null = &is_null;
+	} else {
+		print_color("Comment ID to remove: ", "yellow", ' ', false, false, false);
+		strcpy(id_comment_string, getInput(MAX_COMMENT_ID_LENGHT, id_comment_string, false));
+		id_comment = atoi(id_comment_string);
+		param[0].is_null = &is_null;
+	}		
+	
+	param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[0].buffer = text;
+	param[0].buffer_length = strlen(text);
+	
+	param[1].buffer_type = MYSQL_TYPE_LONG;
+	param[1].buffer = &ad_code_comment;
+	param[1].buffer_length = sizeof(ad_code_comment);
+	
+	param[2].buffer_type = MYSQL_TYPE_LONG;
+	param[2].buffer = &id_comment;
+	param[2].buffer_length = sizeof(id_comment);
+	
+	
+	if (!setup_prepared_stmt(&prepared_stmt, "call modificaCommento (?, ?, ?)", conn))
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
+	
+	if (mysql_stmt_bind_param(prepared_stmt, param) != 0)
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to bind parameters to add or remove comment\n", true);
+	
+	if (mysql_stmt_execute(prepared_stmt) != 0) {
+		print_stmt_error(prepared_stmt, NULL);
+		mysql_stmt_close(prepared_stmt);
+		return;
+	}
+	
+	if(request)
+		print_color("   Successfully added!", "orange", ' ', false, true, false);
+	else
+		print_color("   Successfully removed!", "light red", ' ', false, true, false);
+	
+	mysql_stmt_close(prepared_stmt);
+	return;
+}
+
+
+void view_comment() {
+	MYSQL_STMT *prepared_stmt;
+	MYSQL_BIND param[1];
+	
+	char ad_code_string[MAX_AD_CODE_LENGHT];
+	int ad_code_comment;
+	
+	memset(param, 0, sizeof(param));
+	
+	print_color("Ad Code: ", "yellow", ' ', false, false, false);
+	strcpy(ad_code_string, getInput(MAX_AD_CODE_LENGHT, ad_code_string, false));
+	ad_code_comment = atoi(ad_code_string);
+		
+	param[0].buffer_type = MYSQL_TYPE_LONG;
+	param[0].buffer = &ad_code_comment;
+	param[0].buffer_length = sizeof(ad_code_comment);	
+	
+	if (!setup_prepared_stmt(&prepared_stmt, "call visualizzaCommento (?)", conn))
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
+	
+	if (mysql_stmt_bind_param(prepared_stmt, param) != 0)
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to bind parameters to view comments\n", true);
+	
+	if (mysql_stmt_execute(prepared_stmt) != 0)
+		print_stmt_error(prepared_stmt, NULL);
+	else		
+		dump_result_set(conn, prepared_stmt, "Comments\n");
+	
+	mysql_stmt_close(prepared_stmt);
+	return;
 }
 
 
@@ -564,8 +638,8 @@ int run_as_ucc(MYSQL *main_conn, struct configuration main_conf){
 	conn = main_conn;
 	conf = main_conf;
 	ad_code = -1;
-	int num_list = 8;									// length of list
-	char list[] = {'1','2','3','4','5','6','7','8'};	// list of choice
+	int num_list = 10;													// length of list
+	char list[] = {'1','2','3','4','5','6','7','8', '9', '0'};			// list of choice
 	char option;
 	
 	printf("Welcome %s\n", conf.username);
@@ -589,9 +663,11 @@ int run_as_ucc(MYSQL *main_conn, struct configuration main_conf){
 		print_color("", "light blue", list[4], true, false, false); print_color(") View Personal Information", "orange", ' ', false, false, false);
 		print_color("", "light blue", list[5], true, false, false); print_color(") Edit Personal Information", "orange", ' ', false, false, false);
 		print_color("", "light blue", list[6], true, false, false); print_color(") Add or Remove a picture of yours ad", "orange", ' ', false, false, false);
-		print_color("", "light blue", list[7], true, false, false); print_color(") quit", "orange", ' ', false, false, false);
+		print_color("", "light blue", list[7], true, false, false); print_color(") View comments of an ad", "orange", ' ', false, false, false);
+		print_color("", "light blue", list[8], true, false, false); print_color(") Add or Remove a comment to an ad", "orange", ' ', false, false, false);
+		print_color("", "light blue", list[9], true, false, false); print_color(") quit", "orange", ' ', false, true, false);
 		
-		multiChoice("\nWhich do you choose?", list, num_list, &option);
+		multiChoice("Which do you choose?", list, num_list, &option);
 		
 		if(option == '#') {
 			print_color("\e[1m\e[5mNumber doesn't exists\e[25m\e[22m\n", "red", ' ', false, false, false);
@@ -626,7 +702,10 @@ int run_as_ucc(MYSQL *main_conn, struct configuration main_conf){
 				edit_photo_ad();
 				break;
 			case '8':	
-				//generate_report();
+				view_comment();
+				break;
+			case '9':	
+				insert_remove_comment();
 				break;
 			default:
 				printf("Error to choose a number\n");
