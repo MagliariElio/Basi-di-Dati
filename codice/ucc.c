@@ -10,14 +10,11 @@ MYSQL *conn;
 int ad_code;
 
 
-
-
-
 void new_ad() {
 	MYSQL_STMT *prepared_stmt;
 	MYSQL_BIND param[5];
 	
-	char description[100], photo[9], category[20];
+	char description[100], photo[9], category[20], amount_string[6];
 	int amount;
 	bool request, is_null;
 	
@@ -25,9 +22,8 @@ void new_ad() {
 	
 	memset(param, 0, sizeof(param));
 	
-	printf("Ad description: ");
-	strcpy(description, getInputScanf(100));
-	//getInput(100, description, false);
+	print_color("Ad description: ", "yellow", ' ', false, false, false);
+	strcpy(description, getInput(100, description, false));
 	
 	while(1){
 		request = yesOrNo("Do you want to add a photo?", 'y', 'n');
@@ -43,15 +39,19 @@ void new_ad() {
 		}
 	}
 	
-	printf("Category: ");
-	//getInput(20, category, false);
-	strcpy(category, getInputScanf(20));
+	print_color("Category: ", "yellow", ' ', false, false, false);
+	strcpy(category, getInput(20, category, false));
 	
-	printf("Amount: ");
-	//getInput(6, amount_string, false);
-	//amount = atoi(amount_string);
-	amount = atoi(getInputScanf(6));
-	
+	while(1) {
+		print_color("Amount: ", "light cyan", ' ', false, false, false);
+		getInput(6, amount_string, false);
+		amount = atoi(amount_string);
+		
+		if(amount < 0)
+			print_error(NULL, "The amount must be positive");
+		else
+			break;
+	}
 	
 	param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
 	param[0].buffer = description;
@@ -84,7 +84,7 @@ void new_ad() {
 	if (mysql_stmt_execute(prepared_stmt) != 0)
 		print_stmt_error(prepared_stmt, NULL);
 	else
-		printf("\033[40m\033[1;32m   Successfully generated!\033[0m\n");
+		print_color("   Successfully generated!", "orange", ' ', false, true, false);
 	
 	mysql_stmt_close(prepared_stmt);
 }
@@ -93,8 +93,8 @@ bool view_ad(char *username, bool check_owner_value) {
 	MYSQL_STMT *prepared_stmt;
 	MYSQL_BIND param[3];
 	
-	int check_owner;
-	char ad_code_string[MAX_LENGHT_AD_CODE];
+	int check_owner;										// Parameters are used to check 
+	char ad_code_string[MAX_LENGHT_AD_CODE];				// of the owner of the ads for other functions
 	
 	
 	if(check_owner_value) {
@@ -220,7 +220,7 @@ void remove_ad() {
 	if (mysql_stmt_execute(prepared_stmt) != 0)
 		print_stmt_error(prepared_stmt, NULL);
 	else
-		printf("\033[40m\033[1;32m   Successfully removed!\033[0m\n");	
+		print_color("   Successfully removed!", "orange", ' ', false, true, false);
 	
 	mysql_stmt_close(prepared_stmt);
 	
@@ -250,62 +250,112 @@ void ad_sold() {
 	if (mysql_stmt_execute(prepared_stmt) != 0)
 		print_stmt_error(prepared_stmt, NULL);
 	else
-		print_color("   Successfully sold!", "orange", ' ', false, false, false);
+		print_color("   Successfully sold!", "orange", ' ', false, true, false);
 	
 	mysql_stmt_close(prepared_stmt);
 	
 	ad_code = -1;
 }
 
-void view_personal_information() {
+bool view_personal_information(char cf_owner[16], char username_owner[45], int check_owner) {
 	MYSQL_STMT *prepared_stmt;
-	MYSQL_BIND param[1];
 	
-	bool request;
+	if(check_owner == 1){		// Check information for other functions
+		MYSQL_BIND param[3];
+		
+		memset(param, 0, sizeof(param));
+		
+		param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
+		param[0].buffer = cf_owner;
+		param[0].buffer_length = strlen(cf_owner);
+		
+		param[1].buffer_type = MYSQL_TYPE_LONG;
+		param[1].buffer = &check_owner;
+		param[1].buffer_length = sizeof(check_owner);
+		
+		param[2].buffer_type = MYSQL_TYPE_VAR_STRING;
+		param[2].buffer = username_owner;
+		param[2].buffer_length = strlen(username_owner);
+		
+		if (!setup_prepared_stmt(&prepared_stmt, "call visualizzaInfoAnagrafiche (?, ?, ?)", conn))
+			finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
+		
+		goto execution;
+	}
 	
-	memset(param, 0, sizeof(param));
 	
-	request = yesOrNo("Do you want to see your account information?", 'y', 'n');
-	if(request) {
+	// View UCC information 
+	if(yesOrNo("Do you want to see your account information?", 'y', 'n')) {
+		printf("param");
+		MYSQL_BIND param[1];
+		printf("param");
+		memset(param, 0, sizeof(param));
 		
 		param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
 		param[0].buffer = conf.username;
 		param[0].buffer_length = strlen(conf.username);
 		
-		if (!setup_prepared_stmt(&prepared_stmt, "call visualizzaUtenteUCC (?)", conn)) {
-			finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
-		}
-	} else {
-		char cf[16];
+		printf("param");
 		
-		printf("Fiscal Code: ");
-		getInput(16, cf, false);
-		
-		param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
-		param[0].buffer = cf;
-		param[0].buffer_length = strlen(cf);	
-			
-		if (!setup_prepared_stmt(&prepared_stmt, "call visualizzaInfoAnagrafiche (?)", conn)) {
+		if (!setup_prepared_stmt(&prepared_stmt, "call visualizzaUtenteUCC (?)", conn))
 			finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
-		}
+		
+		goto execution;
 	}
+	
+	
+	// View personal information
+	MYSQL_BIND param[3];
+	
+	memset(param, 0, sizeof(param));
+	
+	char cf[16];
+	bool is_null;
+	
+	is_null = 1;
+	
+	printf("Fiscal Code: ");
+	getInput(16, cf, false);
+	
+	param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[0].buffer = cf;
+	param[0].buffer_length = strlen(cf);
+	
+	param[1].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[1].buffer = cf;
+	param[1].buffer_length = strlen(cf);
+	param[1].is_null = &is_null;
+	
+	param[2].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[2].buffer = cf;
+	param[2].buffer_length = strlen(cf);
+	param[2].is_null = &is_null;
+		
+	if (!setup_prepared_stmt(&prepared_stmt, "call visualizzaInfoAnagrafiche (?, ?, ?)", conn))
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
+	
+	execution:
 		
 	if (mysql_stmt_bind_param(prepared_stmt, param) != 0)
 		finish_with_stmt_error(conn, prepared_stmt, "Unable to bind parameters to view information\n", true);
 	
-	if (mysql_stmt_execute(prepared_stmt) != 0)
+	if (mysql_stmt_execute(prepared_stmt) != 0) {
 		print_stmt_error(prepared_stmt, NULL);
-	else		
+		return false;
+	}
+		
+	if(check_owner != 1)
 		dump_result_set(conn, prepared_stmt, "Personal Information\n");		// dump the result set
 	
 	mysql_stmt_close(prepared_stmt);
+	return true;
 }
 
 
 void edit_personal_information() {
 	MYSQL_STMT *prepared_stmt;
 	MYSQL_BIND param[8];
-	
+			
 	char cf[16], surname[20], name[20], residential_address[20], cap_string[5], billing_address[20], type_favourite_contact[20], favourite_contact[40];
 	int cap;
 	bool request, is_null;
@@ -316,6 +366,10 @@ void edit_personal_information() {
 	
 	printf("Your Fiscal Code: ");		
 	getInput(16, cf, false);
+	
+	// Check if the user has this fiscal code
+	if(!view_personal_information(cf, conf.username, 1))
+		return;
 	
 	while(1) {
 		request = yesOrNo("Do you want to edit your surname?", 'y', 'n');
@@ -447,10 +501,64 @@ void edit_personal_information() {
 	if (mysql_stmt_execute(prepared_stmt) != 0)
 		print_stmt_error(prepared_stmt, NULL);
 	else
-		print_color("   Successfully edited!", "orange", ' ', false, false, false);
+		print_color("   Successfully edited!", "orange", ' ', false, true, false);
 	
 	mysql_stmt_close(prepared_stmt);	
 }
+
+void edit_photo_ad() {
+	MYSQL_STMT *prepared_stmt;
+	MYSQL_BIND param[3];
+	
+	char ad_code_string[10], photo[9];
+	int ad_code;
+	
+	bool request, is_null;
+	
+	is_null = 1;
+
+	memset(param, 0, sizeof(param));
+	
+	printf("Ad Code: ");
+	strcpy(ad_code_string, getInput(10, ad_code_string, false));
+	ad_code = atoi(ad_code_string);
+	
+	request = yesOrNo("Do you want to add a photo in an ad?", 'y', 'n');
+	
+	param[0].buffer_type = MYSQL_TYPE_LONG;
+	param[0].buffer = &ad_code;
+	param[0].buffer_length = sizeof(ad_code);
+	
+	param[1].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[1].buffer = conf.username;
+	param[1].buffer_length = strlen(conf.username);
+	
+	
+	if(request) {
+		strcpy(photo, "Presente");
+	}
+	else
+		param[2].is_null = &is_null;
+	
+	param[2].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[2].buffer = photo;
+	param[2].buffer_length = strlen(photo);
+		
+	
+	if (!setup_prepared_stmt(&prepared_stmt, "call modificaFotoAnnuncio (?, ?, ?)", conn))
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
+	
+	if (mysql_stmt_bind_param(prepared_stmt, param) != 0)
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to bind parameters to view information\n", true);
+	
+	if (mysql_stmt_execute(prepared_stmt) != 0)
+		print_stmt_error(prepared_stmt, NULL);
+	else		
+		print_color("   Successfully edited!", "orange", ' ', false, true, false);
+	
+	mysql_stmt_close(prepared_stmt);
+}
+
 
 int run_as_ucc(MYSQL *main_conn, struct configuration main_conf){
 	conn = main_conn;
@@ -480,13 +588,13 @@ int run_as_ucc(MYSQL *main_conn, struct configuration main_conf){
 		print_color("", "light blue", list[3], true, false, false); print_color(") Sell ad", "orange", ' ', false, false, false);
 		print_color("", "light blue", list[4], true, false, false); print_color(") View Personal Information", "orange", ' ', false, false, false);
 		print_color("", "light blue", list[5], true, false, false); print_color(") Edit Personal Information", "orange", ' ', false, false, false);
-		print_color("", "light blue", list[6], true, false, false); print_color(") ............", "orange", ' ', false, false, false);
+		print_color("", "light blue", list[6], true, false, false); print_color(") Add or Remove a picture of yours ad", "orange", ' ', false, false, false);
 		print_color("", "light blue", list[7], true, false, false); print_color(") quit", "orange", ' ', false, false, false);
 		
 		multiChoice("\nWhich do you choose?", list, num_list, &option);
 		
 		if(option == '#') {
-			fprintf (stderr, print_color("\e[1m\e[5mNumber doesn't exists\e[25m\e[22m\n", "red", ' ', false, false, true));
+			print_color("\e[1m\e[5mNumber doesn't exists\e[25m\e[22m\n", "red", ' ', false, false, false);
 			continue;
 		}
 		
@@ -509,13 +617,13 @@ int run_as_ucc(MYSQL *main_conn, struct configuration main_conf){
 				ad_sold();
 				break;
 			case '5':	
-				view_personal_information();
+				view_personal_information("", "", 0);
 				break;
 			case '6':	
 				edit_personal_information();
 				break;
 			case '7':	
-				//generate_report();
+				edit_photo_ad();
 				break;
 			case '8':	
 				//generate_report();

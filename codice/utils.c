@@ -7,7 +7,7 @@
 void print_stmt_error (MYSQL_STMT *stmt, char *message)
 {
 	if (message)
-		fprintf (stderr, "%s\n", message);
+		fprintf (stderr, "\e[1m\e[5m\033[40m\033[31m%s\033[0m\e[25m\e[22m\n", message);
 	
 	if (stmt != NULL) {
 		fprintf (stderr, "\e[1m\e[5m\033[40m\033[31mError %u (%s): %s\033[0m\e[25m\e[22m\n",
@@ -20,13 +20,13 @@ void print_stmt_error (MYSQL_STMT *stmt, char *message)
 
 void print_error(MYSQL *conn, char *message)
 {
-	fprintf (stderr, "%s\n", message);
+	fprintf (stderr, "\e[1m\e[5m\033[40m\033[31m%s\033[0m\e[25m\e[22m\n", message);
 	if (conn != NULL) {
 		#if MYSQL_VERSION_ID >= 40101
-		fprintf (stderr, "Error %u (%s): %s\n",
+		fprintf (stderr, "\e[1m\e[5m\033[40m\033[31mError %u (%s): %s\033[0m\e[25m\e[22m\n",
 		mysql_errno (conn), mysql_sqlstate(conn), mysql_error (conn));
 		#else
-		fprintf (stderr, "Error %u: %s\n",
+		fprintf (stderr, "\e[1m\e[5m\033[40m\033[31mError %u (%s): %s\033[0m\e[25m\e[22m\n",
 		mysql_errno (conn), mysql_error (conn));
 		#endif
 	}

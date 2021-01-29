@@ -113,10 +113,11 @@ char *getInput(unsigned int lung, char *stringa, bool hide)
 }
 
 // Scanf alternativo
-char *getInputScanf(int length_max) {
+char *getInputScanf(char *domanda, char *stringa, int length_max) {
 	int length, i=0;
-	char *stringa;
 	char c;
+	
+	printf("%s", domanda);
 	
 	handler_ign();		// Ignora eventuali segnali
 	
@@ -149,95 +150,15 @@ static void handler(int s) {
 	signo = s;
 }
 
-
-bool yesOrNo(char *domanda, char yes, char no) {
-	
-	// I caratteri 'yes' e 'no' devono essere minuscoli
-	yes = tolower(yes);
-	no = tolower(no);
-
-	// Richiesta della risposta
-	while(true) {
-		
-		printf("\e[1m%s\e[22m [\033[40m\033[1;34m%c\033[0m/\033[40m\033[1;31m%c\033[0m]: ", domanda, yes, no);	// Mostra la domanda
-
-		char c[2];
-		getInput(2, c, false);
-					
-		// Controlla quale risposta è stata data
-		if(c[0] == yes || c[0] == toupper(yes)) 
-			return true;
-		else if(c[0] == no || c[0] == toupper(no)) 
-			return false;
-	}
-}
-
-
-char *string_union(char *a, char *stringa, char *b, bool first_space, bool bold) {
-	int j, lenght;
-	char *text;
-	char *bold_a = "\e[1m";
-	char *bold_b = "\e[22m";	
-			
-	lenght = strlen(a) + strlen(stringa) + strlen(b);
-	
-	// Controllo i parametri booleani in modo da regolare la dimensione dell'allocazione
-	if(first_space){lenght++;}
-	if(bold){lenght+= strlen(bold_a) + strlen(bold_b);}
-	
-	// Alloco spazio per concatenare le stringhe
-	text = (char *) malloc(lenght*sizeof(char *));
-		
-	j = 0;	// Indice text	
-	
-	if(first_space){
-		text[j] = '\n';
-		j++;
-	}
-		
-	if(bold){
-		for(int i=0; i<(int)strlen(bold_a); i++){
-			text[j] = bold_a[i];
-			j++;
-		}
-	}
-		
-	for(int i=0; i<(int)strlen(a); i++){
-		text[j] = a[i];
-		j++;
-	}
-	
-	for(int i=0; i<(int)strlen(stringa); i++){
-		text[j] = stringa[i];
-		j++;
-	}
-	
-	for(int i=0; i<(int)strlen(b); i++){
-		text[j] = b[i];
-		j++;
-	}
-	
-	if(bold){
-		for(int i=0; i<(int)strlen(bold_b); i++){
-			text[j] = bold_b[i];
-			j++;
-		}
-	}
-	
-	text[j] = '\0';	
-	
-	return text;
-}
-
-
-char *print_color(char *colorless, char *colore_scelto, char c, bool first_space , bool bold, bool error) {
-	char *text, *stringa;
-	char *list_color[] = {"orange", "blue", "light blue", "red", "light red", "white", "purple", "cyan", "light cyan"};
+void print_color(char *colorless, char *colore_scelto, char c, bool first_space, bool last_space, bool bold) {
+	char *stringa;
+	char *list_color[] = {"orange", "blue", "light blue", "red", "light red", "white", "purple", "cyan", "light cyan", "yellow", "pink"};
 	int i, length_list_color;
 	
+	// Controllo dei parametri
 	if(strlen(colorless) == 0 && c == ' ') {
 		print_error(NULL, "Error Parameters");
-		return "Error";
+		return;
 	}
 	
 	// Il colore deve essere minuscolo
@@ -259,8 +180,7 @@ char *print_color(char *colorless, char *colore_scelto, char c, bool first_space
 	}
 	
 	// Cerco il colore
-	length_list_color = 9;
-	i = 0;		
+	length_list_color = 11; i = 0;		
 	while(1) {
 		if (i == length_list_color) {break;}
 		if (strcmp(colore_scelto, list_color[i]) == 0) {break;}
@@ -268,49 +188,105 @@ char *print_color(char *colorless, char *colore_scelto, char c, bool first_space
 	}
 	free(colore);
 	
-	// Alloco lo spazio massimo per ottenere la stringa intera da stampare
-	text = (char *) malloc(strlen("\033[40m\033[1;32m\033[0m\e[1m\e[22m")+strlen(stringa));
+	// Stampa spazio
+	if(first_space)
+		printf("\n");
 	
-	// Concatenazione delle stringhe
+	// Stampa in grassetto
+	if(bold)
+		printf("\e[1m");
+	
+	
+	// Stampa della stringa
 	switch(i) {
-		case 0:
-			strcpy(text, string_union("\033[40m\033[1;32m", stringa, "\033[0m", first_space, bold));
-			break;
-		case 1:
-			strcpy(text, string_union("\033[40m\033[34m", stringa, "\033[0m", first_space, bold));
-			break;
-		case 2:
-			strcpy(text, string_union("\033[40m\033[1;34m", stringa, "\033[0m", first_space, bold));
-			break;
-		case 3:
-			strcpy(text, string_union("\033[40m\033[31m", stringa, "\033[0m", first_space, bold));
-			break;
-		case 4:
-			strcpy(text, string_union("\033[40m\033[1;31m", stringa, "\033[0m", first_space, bold));
-			break;
-		case 5:
-			strcpy(text, string_union("\033[40m\033[1;37m", stringa, "\033[0m", first_space, bold));
-			break;
-		case 6:
-			strcpy(text, string_union("\033[40m\033[35m", stringa, "\033[0m", first_space, bold));
-			break;
-		case 7:
-			strcpy(text, string_union("\033[40m\033[36m", stringa, "\033[0m", first_space, bold));
-			break;
-		case 8:
-			strcpy(text, string_union("\033[40m\033[1;36m", stringa, "\033[0m", first_space, bold));
-			break;
-		default:
-			strcpy(text, string_union("", stringa, "", first_space, bold));
-			break;
-	}
-	text[strlen(text)-1] = '\0';
+	case 0:
+		printf("\033[40m\033[1;32m");
+		printf("%s", stringa);
+		break;
+	case 1:
+		printf("\033[40m\033[34m");
+		printf("%s", stringa);
+		break;
+	case 2:
+		printf("\033[40m\033[1;34m");
+		printf("%s", stringa);
+		break;
+	case 3:
+		printf("\033[40m\033[31m");
+		printf("%s", stringa);
+		break;
+	case 4:
+		printf("\033[40m\033[1;31m");
+		printf("%s", stringa);
+		break;
+	case 5:
+		printf("\033[40m\033[1;37m");
+		printf("%s", stringa);
+		break;
+	case 6:
+		printf("\033[40m\033[35m");
+		printf("%s", stringa);
+		break;
+	case 7:
+		printf("\033[40m\033[36m");
+		printf("%s", stringa);
+		break;
+	case 8:
+		printf("\033[40m\033[1;36m");
+		printf("%s", stringa);
+		break;
+	case 9:
+		printf("\033[40m\033[1;33m");
+		printf("%s", stringa);
+		break;
+	case 10:
+		printf("\033[40m\033[1;35m");
+		printf("%s", stringa);
+		break;
+	default:
+		printf("%s", stringa);
+		break;
+	}	
+	printf("\033[0m");	// Delimiter color
 	
-	if(!error)
-		printf("%s", text);		// Stampo la stringa concatenata solo se non serve a una print_error
-
+	// Fine stampa in grassetto
+	if(bold)
+		printf("\e[22m");
+	
+	// Stampa spazio
+	if(last_space)
+		printf("\n");
+	
 	free(stringa);	// Dealloco lo spazio nell'heap
-	return text;
+	return;
+}
+
+bool yesOrNo(char *domanda, char yes, char no) {
+	
+	// I caratteri 'yes' e 'no' devono essere minuscoli
+	yes = tolower(yes);
+	no = tolower(no);
+
+	// Richiesta della risposta
+	while(true) {
+		print_color(domanda, "white", ' ', false, false, true);	// Mostra la domanda
+		printf(" [");
+		print_color("", "light blue", yes, false, false, false);
+		printf("/");
+		print_color("", "light red", no, false, false, false);
+		printf("]: ");
+
+		//printf("\e[1m%s\e[22m [\033[40m\033[1;34m%c\033[0m/\033[40m\033[1;31m%c\033[0m]: ", domanda, yes, no);	// Mostra la domanda
+
+		char c[2];
+		getInput(2, c, false);
+					
+		// Controlla quale risposta è stata data
+		if(c[0] == yes || c[0] == toupper(yes)) 
+			return true;
+		else if(c[0] == no || c[0] == toupper(no)) 
+			return false;
+	}
 }
 
 

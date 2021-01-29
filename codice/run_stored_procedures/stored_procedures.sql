@@ -126,11 +126,17 @@ DELIMITER ;
 -- Visualizzazione delle Informazioni Anagrafiche ------------------------ 
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaInfoAnagrafiche ;
-CREATE PROCEDURE BachecaElettronicadb.visualizzaInfoAnagrafiche (IN cf VARCHAR(16))
+CREATE PROCEDURE BachecaElettronicadb.visualizzaInfoAnagrafiche (IN cf VARCHAR(16), IN check_owner INT, IN username VARCHAR(45))
 BEGIN
 	
 	if ((SELECT count(CF) FROM BachecaElettronicadb.InformazioneAnagrafica WHERE BachecaElettronicadb.InformazioneAnagrafica.CF=cf) <> 1) then
 		signal sqlstate '45004' set message_text = 'Fiscal Code not found';
+	end if;
+	
+	if ((check_owner = 1) AND (username IS NOT NULL)) then
+		IF (((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.CF_Anagrafico=cf AND BachecaElettronicadb.UCC.Username=username) <> 1) and (SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.USCC.CF_Anagrafico=cf AND BachecaElettronicadb.USCC.Username=username) <> 1) then
+			signal sqlstate '45009' set message_text = 'The fiscal code is not yours';
+		end IF;
 	end if;
 	
 	SELECT CF, Cognome, Nome, IndirizzoDiResidenza, CAP, IndirizzoDiFatturazione, tipoRecapitoPreferito, RecapitoPreferito
@@ -193,14 +199,20 @@ DELIMITER ;
 -- Inserimento o Rimozione di una foto in annuncio ------------------- Impostare un livello di isolamento per evitare repeatible read - Evento: avverti utenti che seguono l'annuncio - Inserisci o rimuovi foto a seconda del parametro
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.modificaFotoAnnuncio ;
-CREATE PROCEDURE BachecaElettronicadb.modificaFotoAnnuncio (IN codice INT, IN foto VARCHAR(9))
+CREATE PROCEDURE BachecaElettronicadb.modificaFotoAnnuncio (IN codice INT, IN username VARCHAR(45), IN foto VARCHAR(9))
 BEGIN
-	if ((SELECT(count(codice)) FROM BachecaElettronicadb.Annuncio WHERE Codice=codice AND Stato<>'Attivo') <> 1) then
+	if ((SELECT(count(codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=codice) <> 1) then
 		signal sqlstate '45006' set  message_text = 'Ad not found';
 	end if;	
-	if ((SELECT(count(codice)) FROM BachecaElettronicadb.Annuncio WHERE Codice=codice AND Stato<>'Attivo') = 1) then
+	
+	if ((SELECT(count(codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=codice AND BachecaElettronicadb.Annuncio.UCC_Username=username) <> 1) then
+		signal sqlstate '45008' set  message_text = 'You are not the owner of the ad';
+	end if;
+	
+	if ((SELECT(count(codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=codice AND BachecaElettronicadb.Annuncio.Stato='Attivo') <> 1) then
 		signal sqlstate '45007' set  message_text = 'Ad not active now';
 	end if;
+	
 	
 	UPDATE BachecaElettronicadb.Annuncio
 	SET Foto = foto

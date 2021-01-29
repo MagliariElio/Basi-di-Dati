@@ -22,9 +22,9 @@ extern struct configuration conf;
 
 extern int parse_config(char *path, struct configuration *conf);
 extern char *getInput(unsigned int lung, char *stringa, bool hide);
-extern char *getInputScanf(int length_max);
+extern char *getInputScanf(char *domanda, char *stringa, int length_max);
 extern bool yesOrNo(char *domanda, char yes, char no);
-extern char *print_color(char *stringa, char *colore_scelto, char c, bool first_space, bool bold, bool error);
+extern void print_color(char *stringa, char *colore_scelto, char c, bool first_space, bool last_space, bool bold);
 extern void multiChoice(char *domanda, char choices[], int num, char *option);
 extern void print_error (MYSQL *conn, char *message);
 extern void print_stmt_error (MYSQL_STMT *stmt, char *message);

@@ -16,4 +16,6 @@ List of error codes
 
 45007 = 'Ad not active now'
 
-45008 = 'You aren't the owner of the ad'
+45008 = 'You are not the owner of the ad'
+
+45009 = 'The fiscal code is not yours'
