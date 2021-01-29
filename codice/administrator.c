@@ -87,8 +87,8 @@ void generate_report() {
 int run_as_administrator(MYSQL *main_conn, struct configuration main_conf){
 	conn = main_conn;
 	conf = main_conf;
-	int num_list = 4;					// length of list
-	char list[4] = {'1','2','3','4'};	// list of choice
+	int num_list = 4, chosen_num;					// length of list
+	char *list[4] = {"1","2","3","4"};	// list of choice
 	char option;
 	
 	printf("Welcome %s\n", conf.username);
@@ -103,38 +103,37 @@ int run_as_administrator(MYSQL *main_conn, struct configuration main_conf){
 		exit(EXIT_FAILURE);
 	}
 	while(1){		
-		printf("\n\e[1m  What would do you want to do? \e[22m\n");
-		printf("\033[40m\033[1;34m%c\033[0m) \033[40m\033[1;32mInsert a new category\033[0m\n", list[0]);
-		printf("\033[40m\033[1;34m%c\033[0m) \033[40m\033[1;32mView names of the categories online\033[0m\n", list[1]);
-		printf("\033[40m\033[1;34m%c\033[0m) \033[40m\033[1;32mGenerate a report\033[0m\n", list[2]);
-		printf("\033[40m\033[1;34m%c\033[0m) \033[40m\033[1;32mquit\033[0m\n", list[3]);
+		print_color("  What would do you want to do? ", "white", ' ', true, true, false, false);
+		print_color(list[0], "light blue", ' ', true, false, false, false); print_color(") Insert a new category", "orange", ' ', false, false, false, false);
+		print_color(list[1], "light blue", ' ', true, false, false, false); print_color(") View names of the categories online", "orange", ' ', false, false, false, false);
+		print_color(list[2], "light blue", ' ', true, false, false, false); print_color(") Generate a report", "orange", ' ', false, false, false, false);
+		print_color(list[3], "light blue", ' ', true, false, false, false); print_color(") Quit", "orange", ' ', false, false, false, false);
 				
-		multiChoice("\nWhich do you choose?", list, num_list, &option);
+		multiChoice("\nWhich do you choose?", list, num_list, &chosen_num, &option);
 		if(option == '#') {
-			printf("*** Number doesn't exists ***\n");
+			print_color("Number doesn't exists", "red", ' ', false, true, false, true);
 			continue;
 		}
 		
-		if(option == list[num_list-1]) {
+		if(chosen_num == num_list-1) {
 			printf("*** Goodbye Administrator ***\n");
 			break;
 		}
 		
-		switch(option) {
-			case '1':	
+		switch(chosen_num) {
+			case 0:	
 				new_category();
 				break;
-			case '2':	
+			case 1:	
 				view_category();		
 				break;
-			case '3':	
+			case 2:	
 				generate_report();
 				break;
 			default:
-				printf("Error to choose a number\n");
+				print_color("Error to choose a number", "red", ' ', false, true, false, true);
 		}
 	}
 	
-	return 0;
-	
+	return 0;	
 }

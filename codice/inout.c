@@ -139,6 +139,7 @@ char *getInputScanf(char *domanda, char *stringa, int length_max) {
 	
 	handler_dfl();		// Reset di default dei segnali
 	
+	// Rilancio dei segnali pendenti
 	if(signo)
 		(void) raise(signo);
 	
@@ -150,7 +151,7 @@ static void handler(int s) {
 	signo = s;
 }
 
-void print_color(char *colorless, char *colore_scelto, char c, bool first_space, bool last_space, bool bold) {
+void print_color(char *colorless, char *colore_scelto, char c, bool first_space, bool last_space, bool bold, bool blink) {
 	char *stringa;
 	char *list_color[] = {"orange", "blue", "light blue", "red", "light red", "white", "purple", "cyan", "light cyan", "yellow", "pink"};
 	int i, length_list_color;
@@ -191,6 +192,10 @@ void print_color(char *colorless, char *colore_scelto, char c, bool first_space,
 	// Stampa spazio
 	if(first_space)
 		printf("\n");
+	
+	// Stampa blink
+	if(blink)
+		printf("\e[1m\e[5m");
 	
 	// Stampa in grassetto
 	if(bold)
@@ -246,18 +251,25 @@ void print_color(char *colorless, char *colore_scelto, char c, bool first_space,
 	default:
 		printf("%s", stringa);
 		break;
-	}	
-	printf("\033[0m");	// Delimiter color
+	}
+	
+	// Delimiter color
+	if(i<length_list_color)
+		printf("\033[0m");	
 	
 	// Fine stampa in grassetto
 	if(bold)
 		printf("\e[22m");
 	
+	// Fine stampa blink
+	if(blink)
+		printf("\e[25m\e[22m");
+	
 	// Stampa spazio
 	if(last_space)
 		printf("\n");
 	
-	free(stringa);	// Dealloco lo spazio nell'heap
+	free(stringa);	// Deallocazione spazio nell'heap
 	return;
 }
 
@@ -269,11 +281,11 @@ bool yesOrNo(char *domanda, char yes, char no) {
 
 	// Richiesta della risposta
 	while(true) {
-		print_color(domanda, "white", ' ', false, false, true);	// Mostra la domanda
+		print_color(domanda, "white", ' ', false, false, true, false);	// Mostra la domanda
 		printf(" [");
-		print_color("", "light blue", yes, false, false, false);
+		print_color("", "light blue", yes, false, false, false, false);
 		printf("/");
-		print_color("", "light red", no, false, false, false);
+		print_color("", "light red", no, false, false, false, false);
 		printf("]: ");
 
 		//printf("\e[1m%s\e[22m [\033[40m\033[1;34m%c\033[0m/\033[40m\033[1;31m%c\033[0m]: ", domanda, yes, no);	// Mostra la domanda
@@ -289,8 +301,48 @@ bool yesOrNo(char *domanda, char yes, char no) {
 	}
 }
 
+void multiChoice(char *domanda, char *choices[], int num, int *chosen_num, char *option)
+{
+	int i = 0, j = 0, lenght = 0;
+	
+	while(i<num)
+		lenght += (int)strlen(choices[i++]);
+	
+	char *possib = (char *) malloc(lenght * num * sizeof(char *)); 	// Genera la stringa delle possibilità
+	
+	// Copia tutti i valori in un unica stringa
+	for(i = 0; i < num; i++) {
+		for(int z=0; z<(int)strlen(choices[i]); z++) {
+			possib[j++] = choices[i][z];
+		}	
+		possib[j++] = '/';
+	}
+	possib[j-1] = '\0'; 	// Per eliminare l'ultima '/'
 
-void multiChoice(char *domanda, char choices[], int num, char *option)
+	// Chiede la risposta
+	print_color(domanda, "white", ' ', true, false, true, false);	// Mostra la domanda
+	printf(" [");
+	print_color(possib, "light blue", ' ', false, false, false, false);
+	printf("]: ");
+	
+	char c[3];
+	strcpy(c, getInput(3, c, false));
+
+	// Controlla se è un carattere valido
+	for(i = 0; i < num; i++) {
+		if(strcmp(c, choices[i]) == 0) {
+			*chosen_num = i;	// Imposta l'indice all'interno della lista tramite dereferenziamento di puntatore
+			return;
+		}
+	}
+	
+	*option = '#';	// numero non trovato
+	return;
+	
+}
+
+
+/*void multiChoice(char *domanda, char choices[], int num, char *option)
 {
 	char *possib = (char *) malloc(2 * num * sizeof(char)); 	// Genera la stringa delle possibilità
 	int i, j = 0;
@@ -301,9 +353,9 @@ void multiChoice(char *domanda, char choices[], int num, char *option)
 	possib[j-1] = '\0'; 	// Per eliminare l'ultima '/'
 
 	// Chiede la risposta
-	print_color(domanda, "white", ' ', true, false, true);	// Mostra la domanda
+	print_color(domanda, "white", ' ', true, false, true, false);	// Mostra la domanda
 	printf(" [");
-	print_color(possib, "light blue", ' ', false, false, false);
+	print_color(possib, "light blue", ' ', false, false, false, false);
 	printf("]: ");
 	
 	char c[2];
@@ -320,4 +372,4 @@ void multiChoice(char *domanda, char choices[], int num, char *option)
 	*option = '#';	// number not found
 	return;
 	
-}
+}*/
