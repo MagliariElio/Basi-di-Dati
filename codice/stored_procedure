@@ -46,11 +46,11 @@
 
 -- -------------------------------------------------------------------
 
--- Inserimento o Rimozione commento ---------------------------------- Evento: avverti utenti che seguono l'annuncio - Inserimento o Rimozione del commento a seconda del parametro
+-- Inserimento o Rimozione commento --------------- Evento: avverti utenti che seguono l'annuncio - Inserimento o Rimozione del commento a seconda del parametro
 
 -- -------------------------------------------------------------------
 
--- Visualizzazione commento ------------------------------------------ Impostare un livello di isolamento
+-- Visualizzazione commento ----------------------- Impostare un livello di isolamento
 
 -- -------------------------------------------------------------------
 
@@ -84,7 +84,7 @@
 
 -- -------------------------------------------------------------------
 
--- Inserimento nota in un Annuncio -----------------------------------	Attivare evento avverti utente che seguono l'annuncio
+-- Inserimento o Rimozione nota in un Annuncio -----------------------	Attivare evento avverti utente che seguono l'annuncio
 
 -- -------------------------------------------------------------------
 

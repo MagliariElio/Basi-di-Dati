@@ -340,36 +340,3 @@ void multiChoice(char *domanda, char *choices[], int num, int *chosen_num, char 
 	return;
 	
 }
-
-
-/*void multiChoice(char *domanda, char choices[], int num, char *option)
-{
-	char *possib = (char *) malloc(2 * num * sizeof(char)); 	// Genera la stringa delle possibilità
-	int i, j = 0;
-	for(i = 0; i < num; i++) {
-		possib[j++] = choices[i];
-		possib[j++] = '/';
-	}
-	possib[j-1] = '\0'; 	// Per eliminare l'ultima '/'
-
-	// Chiede la risposta
-	print_color(domanda, "white", ' ', true, false, true, false);	// Mostra la domanda
-	printf(" [");
-	print_color(possib, "light blue", ' ', false, false, false, false);
-	printf("]: ");
-	
-	char c[2];
-	getInput(2, c, false);
-
-	// Controlla se è un carattere valido
-	for(i = 0; i < num; i++) {
-		if(c[0] == choices[i]) {
-			*option = c[0];
-			return;
-		}
-	}
-	
-	*option = '#';	// number not found
-	return;
-	
-}*/

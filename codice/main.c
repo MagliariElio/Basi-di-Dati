@@ -97,7 +97,8 @@ int main(void){
 		mysql_close(conn);
 		exit(EXIT_FAILURE);
 	}
-	printf("Bacheca Elettronica\n");
+	
+	print_color("Bacheca Elettronica", "light red", ' ', true, true, true, false);
 	
 	goto start;
 	
@@ -126,18 +127,18 @@ int main(void){
 			printf("USCC\n");
 			break;
 		case FAILED_LOGIN:
-			printf("\e[1m\e[5m\033[40m\033[31mIncorrect Username or Password\033[0m\e[25m\e[22m\n");
+			print_color("Incorrect Username or Password!", "red", ' ', false, true, false, true);
 			goto restart;
 			break;
 		default:
-			printf("Error to login\n");
+			print_color("Error to login", "red", ' ', false, true, false, true);
 			abort();	//it may not delete temporary files and may not flush stream buffer
 	}
 	goto restart;
 	
 	exit:
 	
-		printf("Bye!\n");
+		print_color("Bye!\n", "light blue", ' ', true, true, true, true);
 		mysql_close(conn);
 		
 	return 0;	

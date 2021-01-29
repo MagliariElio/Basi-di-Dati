@@ -507,14 +507,27 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Inserimento nota in un Annuncio -----------------------------------	Attivare evento avverti utente che seguono l'annuncio
+-- Inserimento o Rimozione nota in un Annuncio -----------------------	Attivare evento avverti utente che seguono l'annuncio
 DELIMITER //
-DROP PROCEDURE IF EXISTS BachecaElettronicadb.inserisciNota ;
-CREATE PROCEDURE BachecaElettronicadb.inserisciNota (IN codice_annuncio INT, IN testo VARCHAR(45))
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.modificaNota ;
+CREATE PROCEDURE BachecaElettronicadb.modificaNota (IN testo VARCHAR(45), IN annuncio_codice INT, IN ID_rimozione_nota INT, IN username VARCHAR(45))
 BEGIN
-	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE Codice=codice_annuncio and Stato='Attivo') = 1) then
-		INSERT INTO BachecaElettronicadb.Nota (ID, Testo, Annuncio_Codice) VALUES(NULL, testo, codice_annuncio);
+	
+	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=annuncio_codice and BachecaElettronicadb.Annuncio.Stato='Attivo') <> 1) then
+		signal sqlstate '45007' set message_text = 'Ad not active now';
 	end if;
+	
+	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=annuncio_codice and BachecaElettronicadb.Annuncio.UCC_Username=username) <> 1) then
+		signal sqlstate '45008' set message_text = 'You are not the owner of the ad';
+	end if;
+	
+	if (ID_rimozione_nota is null) then
+		INSERT INTO BachecaElettronicadb.Nota (ID, Testo, Annuncio_Codice) VALUES(NULL, testo, annuncio_codice);
+	else 
+		DELETE FROM BachecaElettronicadb.Nota
+		WHERE BachecaElettronicadb.Nota.ID = ID_rimozione_nota;
+	end if;
+	
 END//
 DELIMITER ;
 -- -------------------------------------------------------------------
@@ -524,11 +537,14 @@ DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaNota ;
 CREATE PROCEDURE BachecaElettronicadb.visualizzaNota (IN annuncio_Codice INT)
 BEGIN
-	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE Codice=annuncio_Codice and Stato='Attivo') = 1) then
-		SELECT Testo, Annuncio_Codice AS "Codice dell'annuncio"
-		FROM BachecaElettronicadb.Nota
-		WHERE Annuncio_Codice = annuncio_Codice;
+	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=annuncio_Codice and BachecaElettronicadb.Annuncio.Stato='Attivo') <> 1) then
+		signal sqlstate '45007' set message_text = 'Ad not active now';
 	end if;
+	
+	SELECT ID, Testo, Annuncio_Codice AS "Codice dell'annuncio"
+	FROM BachecaElettronicadb.Nota
+	WHERE BachecaElettronicadb.Nota.Annuncio_Codice = annuncio_Codice;
+		
 END//
 DELIMITER ;
 -- -------------------------------------------------------------------

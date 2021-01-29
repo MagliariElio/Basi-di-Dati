@@ -3,6 +3,7 @@
 
 #define MAX_AD_CODE_LENGHT 10
 #define MAX_COMMENT_ID_LENGHT 10
+#define MAX_NOTE_ID_LENGHT 10
 
 struct configuration conf;
 MYSQL *conn;
@@ -76,7 +77,7 @@ void new_ad() {
 	if (mysql_stmt_execute(prepared_stmt) != 0)
 		print_stmt_error(prepared_stmt, NULL);
 	else
-		print_color("   Successfully generated!", "orange", ' ', false, true, false, false);
+		print_color("   Successfully generated!", "light blue", ' ', false, true, false, true);
 	
 	mysql_stmt_close(prepared_stmt);
 	return;
@@ -94,7 +95,7 @@ bool view_ad(char *username, bool check_owner_value) {
 		
 		check_owner = 1;
 		
-		printf("Ad code: ");	
+		print_color("Ad code: ", "light cyan", ' ', false, false, false, false);
 		getInput(MAX_AD_CODE_LENGHT, ad_code_string, false);
 		ad_code = atoi(ad_code_string);
 		
@@ -129,27 +130,24 @@ bool view_ad(char *username, bool check_owner_value) {
 	request = yesOrNo("Do you have any preference on ad?", 'y', 'n');
 
 	if(request == true) {
-		printf("Ad code: ");		
+		print_color("Ad code: ", "light cyan", ' ', false, false, false, false);
 		getInput(MAX_AD_CODE_LENGHT, ad_code_string, false);
 		ad_code = atoi(ad_code_string);
 	}
 	if(request == false){
 		param[0].is_null = &is_null;
 	}
-
-
+	
 	request = yesOrNo("Do you have any preference on user?", 'y', 'n');
 
 	if(request == true) {
-		printf("Username: ");
+		print_color("Username: ", "yellow", ' ', false, false, false, false);
 		getInput(45, ucc_username, false);
 	}
 	if(request == false){
 		param[1].is_null = &is_null;
 	}
-	
-	
-	
+		
 	param[0].buffer_type = MYSQL_TYPE_LONG;
 	param[0].buffer = &ad_code;
 	param[0].buffer_length = sizeof(ad_code);
@@ -207,7 +205,7 @@ void remove_ad() {
 	if (mysql_stmt_execute(prepared_stmt) != 0)
 		print_stmt_error(prepared_stmt, NULL);
 	else
-		print_color("   Successfully removed!", "orange", ' ', false, true, false, false);
+		print_color("   Successfully removed!", "light blue", ' ', false, true, false, true);
 	
 	mysql_stmt_close(prepared_stmt);
 	
@@ -239,7 +237,7 @@ void ad_sold() {
 	if (mysql_stmt_execute(prepared_stmt) != 0)
 		print_stmt_error(prepared_stmt, NULL);
 	else
-		print_color("   Successfully sold!", "orange", ' ', false, true, false, false);
+		print_color("   Successfully sold!", "light blue", ' ', false, true, false, true);
 	
 	mysql_stmt_close(prepared_stmt);
 	
@@ -307,7 +305,7 @@ bool view_personal_information(char cf_owner[16], char username_owner[45], int c
 	
 	is_null = 1;
 	
-	printf("Fiscal Code: ");
+	print_color("Fiscal Code: ", "yellow", ' ', false, false, false, false);
 	getInput(16, cf, false);
 	
 	param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
@@ -357,7 +355,7 @@ void edit_personal_information() {
 	
 	memset(param, 0, sizeof(param));
 	
-	printf("Your Fiscal Code: ");		
+	print_color("Fiscal Code: ", "yellow", ' ', false, false, false, false);
 	getInput(16, cf, false);
 	
 	// Check if the user has this fiscal code
@@ -366,8 +364,8 @@ void edit_personal_information() {
 	
 	request = yesOrNo("Do you want to edit your surname?", 'y', 'n');
 
-	if(request == true) {
-		printf("Surname: ");		
+	if(request == true) {	
+		print_color("Surname: ", "yellow", ' ', false, false, false, false);
 		getInput(20, surname, false);
 	}
 	if(request == false){
@@ -378,7 +376,7 @@ void edit_personal_information() {
 	request = yesOrNo("Do you want to edit your name?", 'y', 'n');
 
 	if(request == true) {
-		printf("Name: ");
+		print_color("Name: ", "yellow", ' ', false, false, false, false);
 		getInput(20, name, false);
 	}
 	if(request == false){
@@ -389,7 +387,7 @@ void edit_personal_information() {
 	request = yesOrNo("Do you want to edit your residential address?", 'y', 'n');
 
 	if(request == true) {
-		printf("Residential address: ");
+		print_color("Residential address: ", "yellow", ' ', false, false, false, false);
 		getInput(20, residential_address, false);
 	}
 	if(request == false){
@@ -400,7 +398,7 @@ void edit_personal_information() {
 	request = yesOrNo("Do you want to edit your CAP?", 'y', 'n');
 
 	if(request == true) {
-		printf("CAP: ");
+		print_color("CAP: ", "light cyan", ' ', false, false, false, false);
 		getInput(5, cap_string, false);
 		cap = atoi(cap_string);
 	}
@@ -412,7 +410,7 @@ void edit_personal_information() {
 	request = yesOrNo("Do you want to edit your billing address?", 'y', 'n');
 
 	if(request == true) {
-		printf("Billing address: ");
+		print_color("Billing address: ", "yellow", ' ', false, false, false, false);
 		getInput(20, billing_address, false);
 	}
 	if(request == false){
@@ -423,9 +421,9 @@ void edit_personal_information() {
 	request = yesOrNo("Do you want to edit your favourite contact?", 'y', 'n');
 
 	if(request == true) {
-		printf("Type of favourite contact: ");
+		print_color("Type of favourite contact: ", "yellow", ' ', false, false, false, false);
 		getInput(20, type_favourite_contact, false);
-		printf("Favourite contact: ");
+		print_color("Favourite contact: ", "yellow", ' ', false, false, false, false);
 		getInput(40, favourite_contact, false);
 	}
 	if(request == false){
@@ -476,7 +474,7 @@ void edit_personal_information() {
 	if (mysql_stmt_execute(prepared_stmt) != 0)
 		print_stmt_error(prepared_stmt, NULL);
 	else
-		print_color("   Successfully edited!", "orange", ' ', false, true, false, false);
+		print_color("   Successfully edited!", "light blue", ' ', false, true, false, true);
 	
 	mysql_stmt_close(prepared_stmt);	
 	return;
@@ -495,7 +493,7 @@ void edit_photo_ad() {
 
 	memset(param, 0, sizeof(param));
 	
-	printf("Ad Code: ");
+	print_color("Ad code: ", "light cyan", ' ', false, false, false, false);
 	strcpy(ad_code_string, getInput(MAX_AD_CODE_LENGHT, ad_code_string, false));
 	ad_code_edit = atoi(ad_code_string);
 	
@@ -530,7 +528,7 @@ void edit_photo_ad() {
 	if (mysql_stmt_execute(prepared_stmt) != 0)
 		print_stmt_error(prepared_stmt, NULL);
 	else		
-		print_color("   Successfully edited!", "orange", ' ', false, true, false, false);
+		print_color("   Successfully edited!", "light blue", ' ', false, true, false, true);
 	
 	mysql_stmt_close(prepared_stmt);
 	return;
@@ -549,7 +547,7 @@ void insert_remove_comment() {
 
 	memset(param, 0, sizeof(param));
 	
-	print_color("Ad Code: ", "yellow", ' ', false, false, false, false);
+	print_color("Ad code: ", "light cyan", ' ', false, false, false, false);
 	strcpy(ad_code_string, getInput(MAX_AD_CODE_LENGHT, ad_code_string, false));
 	ad_code_comment = atoi(ad_code_string);
 	
@@ -560,7 +558,7 @@ void insert_remove_comment() {
 		getInput(45, text, false);
 		param[2].is_null = &is_null;
 	} else {
-		print_color("Comment ID to remove: ", "yellow", ' ', false, false, false, false);
+		print_color("Comment ID to remove: ", "light cyan", ' ', false, false, false, false);
 		strcpy(id_comment_string, getInput(MAX_COMMENT_ID_LENGHT, id_comment_string, false));
 		id_comment = atoi(id_comment_string);
 		param[0].is_null = &is_null;
@@ -592,9 +590,9 @@ void insert_remove_comment() {
 	}
 	
 	if(request)
-		print_color("   Successfully added!", "orange", ' ', false, true, false, false);
+		print_color("   Successfully added!", "light blue", ' ', false, true, false, true);
 	else
-		print_color("   Successfully removed!", "light red", ' ', false, true, false, false);
+		print_color("   Successfully removed!", "light red", ' ', false, true, false, true);
 	
 	mysql_stmt_close(prepared_stmt);
 	return;
@@ -610,7 +608,7 @@ void view_comment() {
 	
 	memset(param, 0, sizeof(param));
 	
-	print_color("Ad Code: ", "yellow", ' ', false, false, false, false);
+	print_color("Ad code: ", "light cyan", ' ', false, false, false, false);
 	strcpy(ad_code_string, getInput(MAX_AD_CODE_LENGHT, ad_code_string, false));
 	ad_code_comment = atoi(ad_code_string);
 		
@@ -633,40 +631,146 @@ void view_comment() {
 	return;
 }
 
+void insert_remove_note() {
+	MYSQL_STMT *prepared_stmt;
+	MYSQL_BIND param[4];
+	
+	char ad_code_string[MAX_AD_CODE_LENGHT], id_note_string[MAX_NOTE_ID_LENGHT], text[45];
+	int ad_code_note, id_note;
+	
+	bool request, is_null;
+	
+	is_null = 1;
+
+	memset(param, 0, sizeof(param));
+	
+	print_color("Ad code: ", "light cyan", ' ', false, false, false, false);
+	strcpy(ad_code_string, getInput(MAX_AD_CODE_LENGHT, ad_code_string, false));
+	ad_code_note = atoi(ad_code_string);
+	
+	request = yesOrNo("Do you want to add a note to an ad?", 'y', 'n');
+	
+	if(request) {
+		print_color("Text of the note: ", "yellow", ' ', false, false, false, false);
+		getInput(45, text, false);
+		param[2].is_null = &is_null;
+	} else {
+		print_color("Note ID to remove: ", "light cyan", ' ', false, false, false, false);
+		strcpy(id_note_string, getInput(MAX_NOTE_ID_LENGHT, id_note_string, false));
+		id_note = atoi(id_note_string);
+		param[0].is_null = &is_null;
+	}		
+	
+	param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[0].buffer = text;
+	param[0].buffer_length = strlen(text);
+	
+	param[1].buffer_type = MYSQL_TYPE_LONG;
+	param[1].buffer = &ad_code_note;
+	param[1].buffer_length = sizeof(ad_code_note);
+	
+	param[2].buffer_type = MYSQL_TYPE_LONG;
+	param[2].buffer = &id_note;
+	param[2].buffer_length = sizeof(id_note);
+	
+	param[3].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[3].buffer = conf.username;
+	param[3].buffer_length = strlen(conf.username);
+	
+	
+	if (!setup_prepared_stmt(&prepared_stmt, "call modificaNota (?, ?, ?, ?)", conn))
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
+	
+	if (mysql_stmt_bind_param(prepared_stmt, param) != 0)
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to bind parameters to add or remove note\n", true);
+	
+	if (mysql_stmt_execute(prepared_stmt) != 0) {
+		print_stmt_error(prepared_stmt, NULL);
+		mysql_stmt_close(prepared_stmt);
+		return;
+	}
+	
+	if(request)
+		print_color("   Successfully added!", "light blue", ' ', false, true, false, true);
+	else
+		print_color("   Successfully removed!", "light red", ' ', false, true, false, true);
+	
+	mysql_stmt_close(prepared_stmt);
+	return;
+}
+
+void view_note() {
+	MYSQL_STMT *prepared_stmt;
+	MYSQL_BIND param[1];
+	
+	char ad_code_string[MAX_AD_CODE_LENGHT];
+	int ad_code_note;
+	
+	memset(param, 0, sizeof(param));
+	
+	print_color("Ad code: ", "light cyan", ' ', false, false, false, false);
+	strcpy(ad_code_string, getInput(MAX_AD_CODE_LENGHT, ad_code_string, false));
+	ad_code_note = atoi(ad_code_string);
+		
+	param[0].buffer_type = MYSQL_TYPE_LONG;
+	param[0].buffer = &ad_code_note;
+	param[0].buffer_length = sizeof(ad_code_note);	
+	
+	if (!setup_prepared_stmt(&prepared_stmt, "call visualizzaNota (?)", conn))
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
+	
+	if (mysql_stmt_bind_param(prepared_stmt, param) != 0)
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to bind parameters to view note\n", true);
+	
+	if (mysql_stmt_execute(prepared_stmt) != 0)
+		print_stmt_error(prepared_stmt, NULL);
+	else		
+		dump_result_set(conn, prepared_stmt, "Note\n");
+	
+	mysql_stmt_close(prepared_stmt);
+	return;
+}
 
 int run_as_ucc(MYSQL *main_conn, struct configuration main_conf){
 	conn = main_conn;
 	conf = main_conf;
 	ad_code = -1;
-	int num_list = 10, chosen_num;										// length of list
-	char *list[] = {"1","2","3","4","5","6","7","8","9","10"};			// list of choice
+	int num_list = 12, chosen_num;													// length of list
+	char *list[] = {"1","2","3","4","5","6","7","8","9","10", "11", "12"};			// list of choice
 	char option;
 	
-	printf("Welcome %s\n", conf.username);
+	print_color("Welcome ", "cyan", ' ', true, false, true, false);
+	print_color(conf.username, "cyan", ' ', false, true, true, false);
 	
 	if(!parse_config("Users/UCC.json", &conf)) {
-		fprintf(stderr, "Unable to load ucc configuration\n");
+		print_color("Unable to load ucc configuration", "red", ' ', false, true, true, true);
 		exit(EXIT_FAILURE);
 	}
 	
 	if(mysql_change_user(conn, conf.db_username, conf.db_password, conf.database)) {
-		fprintf(stderr, "mysql_change_user() failed\n");
+		print_color("mysql_change_user() failed", "red", ' ', false, true, true, true);
 		exit(EXIT_FAILURE);
 	}
 
-	while(1){		
-		print_color("  What would do you want to do? ", "white", ' ', true, true, false, false);
-		print_color(list[0], "light blue", ' ', true, false, false, false); print_color(") Insert a new ad", "orange", ' ', false, false, false, false);
-		print_color(list[1], "light blue", ' ', true, false, false, false); print_color(") View ads", "orange", ' ', false, false, false, false);
-		print_color(list[2], "light blue", ' ', true, false, false, false); print_color(") Remove Ad", "orange", ' ', false, false, false, false);
-		print_color(list[3], "light blue", ' ', true, false, false, false); print_color(") Sell ad", "orange", ' ', false, false, false, false);
-		print_color(list[4], "light blue", ' ', true, false, false, false); print_color(") View Personal Information", "orange", ' ', false, false, false, false);
-		print_color(list[5], "light blue", ' ', true, false, false, false); print_color(") Edit Personal Information", "orange", ' ', false, false, false, false);
-		print_color(list[6], "light blue", ' ', true, false, false, false); print_color(") Add or Remove a picture of yours ad", "orange", ' ', false, false, false, false);
-		print_color(list[7], "light blue", ' ', true, false, false, false); print_color(") View comments of an ad", "orange", ' ', false, false, false, false);
-		print_color(list[8], "light blue", ' ', true, false, false, false); print_color(") Add or Remove a comment to an ad", "orange", ' ', false, false, false, false);
-		print_color(list[9], "light blue", ' ', true, false, false, false); print_color(") quit", "orange", ' ', false, true, false, false);
+	while(1){
 		
+		// Sleep process for 3 seconds so that the new instructions can be read by the user
+		poll(0, 0, 290);
+		
+		print_color("  What would do you want to do? ", "white", ' ', true, true, false, false);
+		print_color(list[0], "light blue", ' ', true, false, false, false); print_color(") Insert a new ad", "light cyan", ' ', false, false, false, false);
+		print_color(list[1], "light blue", ' ', true, false, false, false); print_color(") View ads", "orange", ' ', false, false, false, false);
+		print_color(list[2], "light blue", ' ', true, false, false, false); print_color(") Remove Ad", "light cyan", ' ', false, false, false, false);
+		print_color(list[3], "light blue", ' ', true, false, false, false); print_color(") Sell ad", "orange", ' ', false, false, false, false);
+		print_color(list[4], "light blue", ' ', true, false, false, false); print_color(") View Personal Information", "light cyan", ' ', false, false, false, false);
+		print_color(list[5], "light blue", ' ', true, false, false, false); print_color(") Edit Personal Information", "orange", ' ', false, false, false, false);
+		print_color(list[6], "light blue", ' ', true, false, false, false); print_color(") Add or Remove a picture of yours ad", "light cyan", ' ', false, false, false, false);
+		print_color(list[7], "light blue", ' ', true, false, false, false); print_color(") View comments of an ad", "orange", ' ', false, false, false, false);
+		print_color(list[8], "light blue", ' ', true, false, false, false); print_color(") Add or Remove a comment to an ad", "light cyan", ' ', false, false, false, false);
+		print_color(list[9], "light blue", ' ', true, false, false, false); print_color(") View note of an ad", "orange", ' ', false, false, false, false);
+		print_color(list[10], "light blue", ' ', true, false, false, false); print_color(") Add or Remove a note to an ad", "light cyan", ' ', false, false, false, false);
+		print_color(list[11], "light red", ' ', true, false, false, false); print_color(") quit", "light red", ' ', false, true, false, false);
+
 		multiChoice("Which do you choose?", list, num_list, &chosen_num, &option);
 		
 		if(option == '#') {
@@ -675,7 +779,9 @@ int run_as_ucc(MYSQL *main_conn, struct configuration main_conf){
 		}
 		
 		if(chosen_num == num_list-1) {
-			printf("Goodbye %s\n", conf.username);
+			print_color("Goodbye ", "orange", ' ', true, false, true, true);
+			print_color(conf.username, "orange", ' ', false, true, true, true);
+			printf("\n");
 			break;
 		}
 				
@@ -707,10 +813,16 @@ int run_as_ucc(MYSQL *main_conn, struct configuration main_conf){
 			case 8:	
 				insert_remove_comment();
 				break;
+			case 9:	
+				view_note();
+				break;
+			case 10:	
+				insert_remove_note();
+				break;
 			default:
 				print_color("Error to choose a number", "red", ' ', false, true, false, true);
 		}
 	}
 	
-	return 0;	
+	return 0;		
 }
