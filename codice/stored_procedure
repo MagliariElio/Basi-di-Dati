@@ -1,144 +1,108 @@
--- Registrazione di un utente UCC---------------------------
+-- Registrazione di un utente UCC--------------------
 
--- -------------------------------------------------------------------
 
 -- Inserimento di uno Storico Conversazioni ------------------ Impostare un livello di isolamento per evitare errori con last_insert_id()
 
--- -------------------------------------------------------------------
 
 -- Inserimento Recapito non preferito --------------------------- 
 
--- -------------------------------------------------------------------
 
 -- Registrazione di un utente USCC -------------------------
 
--- -------------------------------------------------------------------
 
 -- Inserimento delle Informazioni Anagrafiche -------------- 
 
--- -------------------------------------------------------------------
 
 -- Modifica delle Informazioni Anagrafiche -------------- Modifico le informazioni a seconda delle cose che voglio modificare
 
--- -------------------------------------------------------------------
 
 - Visualizzazione delle Informazioni Anagrafiche -------------  fare le operazioni su questa procedura 
 
--- -------------------------------------------------------------------
 
 -- Inserimento di una nuova categoria -------------------
 
--- -------------------------------------------------------------------
 
 -- Visualizzazione categoria ---------------------- Impostare un livello di isolamento
 
--- -------------------------------------------------------------------
 
 -- Inserimento di un nuovo annuncio ------------- Impostare una livello di isolamento - Le categorie potrebbere essere preimpostate
 
--- -------------------------------------------------------------------
 
 -- Inserimento o Rimozione di una foto in annuncio ------ Impostare un livello di isolamento per evitare repeatible read - Evento: avverti utenti che seguono l'annuncio - Inserisci o rimuovi foto a seconda del parametro
 
--- -------------------------------------------------------------------
 
 -- Visualizza annuncio ------------------------------------  Impostare un livello di isolamento
 
--- -------------------------------------------------------------------
 
 -- Inserimento o Rimozione commento --------------- Evento: avverti utenti che seguono l'annuncio - Inserimento o Rimozione del commento a seconda del parametro
 
--- -------------------------------------------------------------------
 
 -- Visualizzazione commento ----------------------- Impostare un livello di isolamento
 
--- -------------------------------------------------------------------
 
 -- Invio messaggio da parte USCC ------------------------------------- Evento: arrivato un nuovo messaggio
 
--- -------------------------------------------------------------------
 
 
 -- Inserimento Conversazione ----------------------------------------- Impostare un livello di isolamento
 
--- -------------------------------------------------------------------
-
 
 -- Invio messaggio da parte UCC AD UN USCC --------------------------- Evento: arrivato un nuovo messaggio
 
--- -------------------------------------------------------------------
 
 -- Invio messaggio da parte UCC AD UN UCC ---------------------------- Evento: arrivato un nuovo messaggio
 
--- -------------------------------------------------------------------
 
 -- Visualizza messaggio ---------------------------------------------- Impostare un livello di isolamento
 
--- -------------------------------------------------------------------
 
 -- Seguire un annuncio UCC ----------------------------
 
--- -------------------------------------------------------------------
 
 -- Seguire un annuncio USCC ---------------------------
 
--- -------------------------------------------------------------------
 
--- Inserimento o Rimozione nota in un Annuncio -----------------------	Attivare evento avverti utente che seguono l'annuncio
+-- Inserimento o Rimozione nota in un Annuncio --------	Attivare evento avverti utente che seguono l'annuncio
 
--- -------------------------------------------------------------------
 
--- Visualizza nota --------------------------------------------------- Impostare un livello di isolamento
+-- Visualizza nota ------------------------------ Impostare un livello di isolamento
 
--- -------------------------------------------------------------------
 
 -- Rimozione di un Annuncio -------------------------	Attivare evento avverti utente che seguono l'annuncio - Attivare evento genera report
 
--- -------------------------------------------------------------------
 
--- Annuncio Venduto ------------------------------------------	Attivare evento avverti utente che seguono l'annuncio - Attivare evento genera report
-
+-- Annuncio Venduto ---------------------------	Attivare evento avverti utente che seguono l'annuncio - Attivare evento genera report
 ----------------------------------------------------------------------
 
 -- Visualizzazione degli Annunci seguiti UCC ------------------------- Impostare un livello di isolamento
 
--- -------------------------------------------------------------------
 
 -- Visualizzazione degli Annunci seguiti USCC ------------------------ Impostare un livello di isolamento
 
--- -------------------------------------------------------------------
 
 -- Visualizzazione Storico USCC -------------------------------------- Impostare un livello di isolamento
 
--- -------------------------------------------------------------------
 
 -- Visualizzazione Storico UCC --------------------------------------- Impostare un livello di isolamento
 
--- -------------------------------------------------------------------
 
 -- Generazione di un nuovo report ------------------------------------ Controllare se bisogna attivare un evento per non calcolare ogni volta annunci già calcolati
 
--- -------------------------------------------------------------------
 
 -- Riscossione di un report ------------------------------------------
 
--- -------------------------------------------------------------------
 
 -- Selezione Conversazione dallo Storico UCC -------------------------
 
--- -------------------------------------------------------------------
 
 -- Selezione Conversazione dallo Storico USCC ------------------------
 
--- -------------------------------------------------------------------
 
 -- Visualizzazione informazioni utente UCC ------------		fare le operazioni per questa store procedure
 
--- -------------------------------------------------------------------
 
 -- Visualizzazione informazioni utente USCC ---------------------------
 
--- -------------------------------------------------------------------
 
 -- Login ------------------------------------------------------------- Impostare un livello di isolamento
 

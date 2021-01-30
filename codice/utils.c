@@ -7,10 +7,10 @@
 void print_stmt_error (MYSQL_STMT *stmt, char *message)
 {
 	if (message)
-		fprintf (stderr, "\e[1m\e[5m\033[40m\033[31m%s\033[0m\e[25m\e[22m\n", message);
+		fprintf (stderr, "   \e[1m\e[5m\033[40m\033[31m%s\033[0m\e[25m\e[22m\n", message);
 	
 	if (stmt != NULL) {
-		fprintf (stderr, "\e[1m\e[5m\033[40m\033[31mError %u (%s): %s\033[0m\e[25m\e[22m\n",
+		fprintf (stderr, "   \e[1m\e[5m\033[40m\033[31mError %u (%s): %s\033[0m\e[25m\e[22m\n",
 			mysql_stmt_errno (stmt),				// returns SQLSTATE value
 			mysql_stmt_sqlstate(stmt),				// returns MYSQL_ERRNO value 
 			mysql_stmt_error (stmt));				// returns MESSAGE_TEXT value
@@ -20,13 +20,13 @@ void print_stmt_error (MYSQL_STMT *stmt, char *message)
 
 void print_error(MYSQL *conn, char *message)
 {
-	fprintf (stderr, "\e[1m\e[5m\033[40m\033[31m%s\033[0m\e[25m\e[22m\n", message);
+	fprintf (stderr, "  \e[1m\e[5m\033[40m\033[31m%s\033[0m\e[25m\e[22m\n", message);
 	if (conn != NULL) {
 		#if MYSQL_VERSION_ID >= 40101
-		fprintf (stderr, "\e[1m\e[5m\033[40m\033[31mError %u (%s): %s\033[0m\e[25m\e[22m\n",
+		fprintf (stderr, "  \e[1m\e[5m\033[40m\033[31mError %u (%s): %s\033[0m\e[25m\e[22m\n",
 		mysql_errno (conn), mysql_sqlstate(conn), mysql_error (conn));
 		#else
-		fprintf (stderr, "\e[1m\e[5m\033[40m\033[31mError %u (%s): %s\033[0m\e[25m\e[22m\n",
+		fprintf (stderr, "  \e[1m\e[5m\033[40m\033[31mError %u (%s): %s\033[0m\e[25m\e[22m\n",
 		mysql_errno (conn), mysql_error (conn));
 		#endif
 	}
@@ -39,12 +39,12 @@ bool setup_prepared_stmt(MYSQL_STMT **stmt, char *statement, MYSQL *conn)
 	*stmt = mysql_stmt_init(conn);
 	if (*stmt == NULL)
 	{
-		print_error(conn, "Could not initialize statement handler");
+		print_error(conn, "  Could not initialize statement handler");
 		return false;
 	}
 
 	if (mysql_stmt_prepare (*stmt, statement, strlen(statement)) != 0) {
-		print_stmt_error(*stmt, "Could not prepare statement");
+		print_stmt_error(*stmt, "  Could not prepare statement");
 		return false;
 	}
 

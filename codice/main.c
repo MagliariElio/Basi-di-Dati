@@ -138,7 +138,7 @@ int main(void){
 	
 	exit:
 	
-		print_color("Bye!\n", "light blue", ' ', true, true, true, true);
+		print_color("   Bye!\n", "light blue", ' ', true, true, true, true);
 		mysql_close(conn);
 		
 	return 0;	

@@ -326,8 +326,8 @@ void multiChoice(char *domanda, char *choices[], int num, int *chosen_num, char 
 	printf("]: ");
 	
 	char c[3];
-	strcpy(c, getInput(3, c, false));
-
+	sprintf(c, "%s", getInput(3, c, false));
+	
 	// Controlla se è un carattere valido
 	for(i = 0; i < num; i++) {
 		if(strcmp(c, choices[i]) == 0) {

@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`InformazioneAnagrafica` (
   `CAP` INT NOT NULL,
   `IndirizzoDiFatturazione` VARCHAR(20) NULL DEFAULT NULL,
   `TipoRecapitoPreferito` ENUM('email', 'cellulare', 'id_social', 'sms') NOT NULL,
-  `RecapitoPreferito` VARCHAR(20) NOT NULL,
+  `RecapitoPreferito` VARCHAR(40) NOT NULL,
   PRIMARY KEY (`CF`))
 ENGINE = InnoDB;
 
@@ -268,8 +268,8 @@ CREATE UNIQUE INDEX `Conversazione_Codice_UNIQUE` ON `BachecaElettronicadb`.`Mes
 DROP TABLE IF EXISTS `BachecaElettronicadb`.`RecapitoNonPreferito` ;
 
 CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`RecapitoNonPreferito` (
-  `Recapito` VARCHAR(20) NOT NULL,
-  `Tipo` ENUM('email', 'cellulare', 'social_username', 'sms') NOT NULL,
+  `Recapito` VARCHAR(40) NOT NULL,
+  `Tipo` ENUM('email', 'cellulare', 'social', 'sms') NOT NULL,
   `InformazioneAnagrafica_CF` VARCHAR(16) NOT NULL,
   PRIMARY KEY (`InformazioneAnagrafica_CF`, `Recapito`),
   CONSTRAINT `fk_RecapitoNonPreferito_InformazioneAnagrafica1`
@@ -280,9 +280,6 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`RecapitoNonPreferito` (
 ENGINE = InnoDB;
 
 CREATE INDEX `fk_RecapitoNonPreferito_InformazioneAnagrafica1_idx` ON `BachecaElettronicadb`.`RecapitoNonPreferito` (`InformazioneAnagrafica_CF` ASC) VISIBLE;
-
-CREATE UNIQUE INDEX `InformazioneAnagrafica_CF_UNIQUE` ON `BachecaElettronicadb`.`RecapitoNonPreferito` (`InformazioneAnagrafica_CF` ASC) VISIBLE;
-
 
 -- -----------------------------------------------------
 -- Table `BachecaElettronicadb`.`Seguito-UCC`
