@@ -149,7 +149,9 @@ void dump_result_set(MYSQL *conn, MYSQL_STMT *stmt, char *title)
 
 	if (num_fields > 0) {
 		/* there is a result set to fetch */
-		printf("%s\n", title);
+		printf("\n   ");
+		print_color(title, "light cyan", ' ', false, true, true, true);
+
 
 		if((rs_metadata = mysql_stmt_result_metadata(stmt)) == NULL) {
 			finish_with_stmt_error(conn, stmt, "Unable to retrieve result metadata\n", true);
@@ -240,11 +242,19 @@ void dump_result_set(MYSQL *conn, MYSQL_STMT *stmt, char *title)
 				switch (rs_bind[i].buffer_type) {
 					
 					case MYSQL_TYPE_VAR_STRING:
-					case MYSQL_TYPE_DATETIME:
-						printf(" %-*s |", (int)fields[i].max_length, (char*)rs_bind[i].buffer);
+						printf(" %-*s |", (int)fields[i].max_length, (char *)rs_bind[i].buffer);
 						break;
-				       
+					
+					case MYSQL_TYPE_DATETIME:
+						date = (MYSQL_TIME *)rs_bind[i].buffer;
+						printf("%02d/%02d/%4d %02d:%02d:%02d %-*s |", date->day, date->month, date->year,date->hour,date->minute,date->second, ((int)fields[i].max_length)-19, " ");
+						break;
+					
 					case MYSQL_TYPE_DATE:
+						date = (MYSQL_TIME *)rs_bind[i].buffer;
+						printf(" %d-%02d-%02d %-*s |", date->year, date->month, date->day, 1, "");
+						break;
+					
 					case MYSQL_TYPE_TIMESTAMP:
 						date = (MYSQL_TIME *)rs_bind[i].buffer;
 						printf(" %d-%02d-%02d %-*s |", date->year, date->month, date->day, 1, "");
@@ -270,7 +280,7 @@ void dump_result_set(MYSQL *conn, MYSQL_STMT *stmt, char *title)
 						break;
 	 
 					default:
-					    printf("ERROR: Unhandled type (%d)\n", rs_bind[i].buffer_type);
+					    printf("  \e[1m\e[5m\033[40m\033[31mERROR: Unhandled type (%d)\033[0m\e[25m\e[22m\n", rs_bind[i].buffer_type);
 					    abort();
 				}
 			}

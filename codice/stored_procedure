@@ -4,7 +4,9 @@
 -- Inserimento di uno Storico Conversazioni ------------------ Impostare un livello di isolamento per evitare errori con last_insert_id()
 
 
--- Inserimento Recapito non preferito --------------------------- 
+-- Inserimento o Rimozione Recapito non preferito ----- 
+
+-- Visualizzazione contatti ------------------------ 
 
 
 -- Registrazione di un utente USCC -------------------------
@@ -40,26 +42,27 @@
 -- Visualizzazione commento ----------------------- Impostare un livello di isolamento
 
 
--- Invio messaggio da parte USCC ------------------------------------- Evento: arrivato un nuovo messaggio
+-- Inserimento Conversazione -------------------------- Privilegi a nessuno
+
+-- Seleziona Storico UCC ------------------------------ Impostare un livello di isolamento - Privilegi a nessuno
 
 
-
--- Inserimento Conversazione ----------------------------------------- Impostare un livello di isolamento
-
-
--- Invio messaggio da parte UCC AD UN USCC --------------------------- Evento: arrivato un nuovo messaggio
+-- Seleziona Storico USCC ----------------------------- Impostare un livello di isolamento - Privilegi a nessuno
 
 
--- Invio messaggio da parte UCC AD UN UCC ---------------------------- Evento: arrivato un nuovo messaggio
+-- Tracciamento Conversazioni ------------------------- Privilegi a nessuno
+
+
+-- Invio messaggio da parte utente ----------------------------------- Evento: arrivato un nuovo messaggio
 
 
 -- Visualizza messaggio ---------------------------------------------- Impostare un livello di isolamento
 
 
--- Seguire un annuncio UCC ----------------------------
+-- Seguire un annuncio UCC -------------------------------------------
 
 
--- Seguire un annuncio USCC ---------------------------
+-- Seguire un annuncio USCC -------------------------------------------
 
 
 -- Inserimento o Rimozione nota in un Annuncio --------	Attivare evento avverti utente che seguono l'annuncio
@@ -72,18 +75,13 @@
 
 
 -- Annuncio Venduto ---------------------------	Attivare evento avverti utente che seguono l'annuncio - Attivare evento genera report
-----------------------------------------------------------------------
+
 
 -- Visualizzazione degli Annunci seguiti UCC ------------------------- Impostare un livello di isolamento
 
 
 -- Visualizzazione degli Annunci seguiti USCC ------------------------ Impostare un livello di isolamento
 
-
--- Visualizzazione Storico USCC -------------------------------------- Impostare un livello di isolamento
-
-
--- Visualizzazione Storico UCC --------------------------------------- Impostare un livello di isolamento
 
 
 -- Generazione di un nuovo report ------------------------------------ Controllare se bisogna attivare un evento per non calcolare ogni volta annunci già calcolati
@@ -92,16 +90,22 @@
 -- Riscossione di un report ------------------------------------------
 
 
+-- Visualizzazione Storico USCC -------------------------------------- Impostare un livello di isolamento
+
+
+-- Visualizzazione Storico UCC --------------------------------------- Impostare un livello di isolamento
+
+
 -- Selezione Conversazione dallo Storico UCC -------------------------
 
 
 -- Selezione Conversazione dallo Storico USCC ------------------------
 
 
--- Visualizzazione informazioni utente UCC ------------		fare le operazioni per questa store procedure
+-- Visualizzazione informazioni utente UCC ------------		fare le operazioni per questa store procedure - Impostare un livello di isolamento
 
 
--- Visualizzazione informazioni utente USCC ---------------------------
+-- Visualizzazione informazioni utente USCC --------------------------- Impostare un livello di isolamento
 
 
 -- Login ------------------------------------------------------------- Impostare un livello di isolamento

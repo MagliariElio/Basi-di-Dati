@@ -12,20 +12,32 @@ DROP SCHEMA IF EXISTS `BachecaElettronicadb` ;
 -- -----------------------------------------------------
 -- Schema BachecaElettronicadb
 -- -----------------------------------------------------
-CREATE SCHEMA IF NOT EXISTS `BachecaElettronicadb` ;
+CREATE SCHEMA IF NOT EXISTS `BachecaElettronicadb` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci ;
 USE `BachecaElettronicadb` ;
 
 -- -----------------------------------------------------
--- Table `BachecaElettronicadb`.`StoricoConversazione`
+-- Table `BachecaElettronicadb`.`Amministratore`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `BachecaElettronicadb`.`StoricoConversazione` ;
+DROP TABLE IF EXISTS `BachecaElettronicadb`.`Amministratore` ;
 
-CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`StoricoConversazione` (
-  `ID` INT NOT NULL AUTO_INCREMENT,
-  PRIMARY KEY (`ID`))
+CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Amministratore` (
+  `Username` VARCHAR(45) NOT NULL,
+  `Password` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`Username`))
 ENGINE = InnoDB;
 
-CREATE UNIQUE INDEX `ID_UNIQUE` ON `BachecaElettronicadb`.`StoricoConversazione` (`ID` ASC) VISIBLE;
+
+-- -----------------------------------------------------
+-- Table `BachecaElettronicadb`.`Categoria`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `BachecaElettronicadb`.`Categoria` ;
+
+CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Categoria` (
+  `Nome` VARCHAR(20) NOT NULL,
+  PRIMARY KEY (`Nome`))
+ENGINE = InnoDB;
+
+CREATE UNIQUE INDEX `Nome_UNIQUE` ON `BachecaElettronicadb`.`Categoria` (`Nome` ASC) VISIBLE;
 
 
 -- -----------------------------------------------------
@@ -49,6 +61,19 @@ CREATE UNIQUE INDEX `CF_UNIQUE` ON `BachecaElettronicadb`.`InformazioneAnagrafic
 
 
 -- -----------------------------------------------------
+-- Table `BachecaElettronicadb`.`StoricoConversazione`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `BachecaElettronicadb`.`StoricoConversazione` ;
+
+CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`StoricoConversazione` (
+  `ID` INT NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`ID`))
+ENGINE = InnoDB;
+
+CREATE UNIQUE INDEX `ID_UNIQUE` ON `BachecaElettronicadb`.`StoricoConversazione` (`ID` ASC) VISIBLE;
+
+
+-- -----------------------------------------------------
 -- Table `BachecaElettronicadb`.`UCC`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `BachecaElettronicadb`.`UCC` ;
@@ -62,16 +87,12 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`UCC` (
   `StoricoConversazione_ID` INT NOT NULL,
   `CF_Anagrafico` VARCHAR(16) NOT NULL,
   PRIMARY KEY (`Username`),
-  CONSTRAINT `fk_UCC_StoricoConversazione1`
-    FOREIGN KEY (`StoricoConversazione_ID`)
-    REFERENCES `BachecaElettronicadb`.`StoricoConversazione` (`ID`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
   CONSTRAINT `fk_UCC_InformazioneAnagrafica1`
     FOREIGN KEY (`CF_Anagrafico`)
-    REFERENCES `BachecaElettronicadb`.`InformazioneAnagrafica` (`CF`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    REFERENCES `BachecaElettronicadb`.`InformazioneAnagrafica` (`CF`),
+  CONSTRAINT `fk_UCC_StoricoConversazione1`
+    FOREIGN KEY (`StoricoConversazione_ID`)
+    REFERENCES `BachecaElettronicadb`.`StoricoConversazione` (`ID`))
 ENGINE = InnoDB;
 
 CREATE UNIQUE INDEX `Username_UNIQUE` ON `BachecaElettronicadb`.`UCC` (`Username` ASC) VISIBLE;
@@ -79,19 +100,6 @@ CREATE UNIQUE INDEX `Username_UNIQUE` ON `BachecaElettronicadb`.`UCC` (`Username
 CREATE INDEX `fk_UCC_StoricoConversazione1_idx` ON `BachecaElettronicadb`.`UCC` (`StoricoConversazione_ID` ASC) VISIBLE;
 
 CREATE INDEX `fk_UCC_InformazioneAnagrafica1_idx` ON `BachecaElettronicadb`.`UCC` (`CF_Anagrafico` ASC) VISIBLE;
-
-
--- -----------------------------------------------------
--- Table `BachecaElettronicadb`.`Categoria`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `BachecaElettronicadb`.`Categoria` ;
-
-CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Categoria` (
-  `Nome` VARCHAR(20) NOT NULL,
-  PRIMARY KEY (`Nome`))
-ENGINE = InnoDB;
-
-CREATE UNIQUE INDEX `Nome_UNIQUE` ON `BachecaElettronicadb`.`Categoria` (`Nome` ASC) VISIBLE;
 
 
 -- -----------------------------------------------------
@@ -108,16 +116,12 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Annuncio` (
   `UCC_Username` VARCHAR(45) NOT NULL,
   `Categoria_Nome` VARCHAR(20) NOT NULL,
   PRIMARY KEY (`Codice`),
-  CONSTRAINT `fk_Annuncio_UCC`
-    FOREIGN KEY (`UCC_Username`)
-    REFERENCES `BachecaElettronicadb`.`UCC` (`Username`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
   CONSTRAINT `fk_Annuncio_Categoria1`
     FOREIGN KEY (`Categoria_Nome`)
-    REFERENCES `BachecaElettronicadb`.`Categoria` (`Nome`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    REFERENCES `BachecaElettronicadb`.`Categoria` (`Nome`),
+  CONSTRAINT `fk_Annuncio_UCC`
+    FOREIGN KEY (`UCC_Username`)
+    REFERENCES `BachecaElettronicadb`.`UCC` (`Username`))
 ENGINE = InnoDB;
 
 CREATE UNIQUE INDEX `Codice_UNIQUE` ON `BachecaElettronicadb`.`Annuncio` (`Codice` ASC) VISIBLE;
@@ -125,28 +129,6 @@ CREATE UNIQUE INDEX `Codice_UNIQUE` ON `BachecaElettronicadb`.`Annuncio` (`Codic
 CREATE INDEX `fk_Annuncio_UCC_idx` ON `BachecaElettronicadb`.`Annuncio` (`UCC_Username` ASC) VISIBLE;
 
 CREATE INDEX `fk_Annuncio_Categoria1_idx` ON `BachecaElettronicadb`.`Annuncio` (`Categoria_Nome` ASC) VISIBLE;
-
-
--- -----------------------------------------------------
--- Table `BachecaElettronicadb`.`Nota`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `BachecaElettronicadb`.`Nota` ;
-
-CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Nota` (
-  `ID` INT NOT NULL AUTO_INCREMENT,
-  `Testo` VARCHAR(45) NOT NULL,
-  `Annuncio_Codice` INT NOT NULL,
-  PRIMARY KEY (`ID`, `Annuncio_Codice`),
-  CONSTRAINT `fk_Nota_Annuncio1`
-    FOREIGN KEY (`Annuncio_Codice`)
-    REFERENCES `BachecaElettronicadb`.`Annuncio` (`Codice`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
-CREATE INDEX `fk_Nota_Annuncio1_idx` ON `BachecaElettronicadb`.`Nota` (`Annuncio_Codice` ASC) VISIBLE;
-
-CREATE UNIQUE INDEX `Annuncio_Codice_UNIQUE` ON `BachecaElettronicadb`.`Nota` (`Annuncio_Codice` ASC) VISIBLE;
 
 
 -- -----------------------------------------------------
@@ -161,39 +143,12 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Commento` (
   PRIMARY KEY (`ID`, `Annuncio_Codice`),
   CONSTRAINT `fk_Commento_Annuncio1`
     FOREIGN KEY (`Annuncio_Codice`)
-    REFERENCES `BachecaElettronicadb`.`Annuncio` (`Codice`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    REFERENCES `BachecaElettronicadb`.`Annuncio` (`Codice`))
 ENGINE = InnoDB;
-
-CREATE INDEX `fk_Commento_Annuncio1_idx` ON `BachecaElettronicadb`.`Commento` (`Annuncio_Codice` ASC) VISIBLE;
 
 CREATE UNIQUE INDEX `Annuncio_Codice_UNIQUE` ON `BachecaElettronicadb`.`Commento` (`Annuncio_Codice` ASC) VISIBLE;
 
-
--- -----------------------------------------------------
--- Table `BachecaElettronicadb`.`Report`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `BachecaElettronicadb`.`Report` ;
-
-CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Report` (
-  `UCC_Username` VARCHAR(45) NOT NULL,
-  `ImportoTotale` INT NOT NULL,
-  `NumeroCarta` VARCHAR(16) NOT NULL,
-  `Data` DATETIME NOT NULL,
-  `Riscosso` INT NOT NULL DEFAULT 0,
-  `SommaAmministratore` INT NOT NULL DEFAULT 0,
-  PRIMARY KEY (`UCC_Username`),
-  CONSTRAINT `fk_Report_UCC1`
-    FOREIGN KEY (`UCC_Username`)
-    REFERENCES `BachecaElettronicadb`.`UCC` (`Username`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
-CREATE INDEX `fk_Report_UCC1_idx` ON `BachecaElettronicadb`.`Report` (`UCC_Username` ASC) VISIBLE;
-
-CREATE UNIQUE INDEX `UCC_Username_UNIQUE` ON `BachecaElettronicadb`.`Report` (`UCC_Username` ASC) VISIBLE;
+CREATE INDEX `fk_Commento_Annuncio1_idx` ON `BachecaElettronicadb`.`Commento` (`Annuncio_Codice` ASC) VISIBLE;
 
 
 -- -----------------------------------------------------
@@ -207,16 +162,12 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`USCC` (
   `StoricoConversazione_ID` INT NOT NULL,
   `CF_Anagrafico` VARCHAR(16) NOT NULL,
   PRIMARY KEY (`Username`),
-  CONSTRAINT `fk_USCC_StoricoConversazione1`
-    FOREIGN KEY (`StoricoConversazione_ID`)
-    REFERENCES `BachecaElettronicadb`.`StoricoConversazione` (`ID`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
   CONSTRAINT `fk_USCC_InformazioneAnagrafica1`
     FOREIGN KEY (`CF_Anagrafico`)
-    REFERENCES `BachecaElettronicadb`.`InformazioneAnagrafica` (`CF`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    REFERENCES `BachecaElettronicadb`.`InformazioneAnagrafica` (`CF`),
+  CONSTRAINT `fk_USCC_StoricoConversazione1`
+    FOREIGN KEY (`StoricoConversazione_ID`)
+    REFERENCES `BachecaElettronicadb`.`StoricoConversazione` (`ID`))
 ENGINE = InnoDB;
 
 CREATE UNIQUE INDEX `Username_UNIQUE` ON `BachecaElettronicadb`.`USCC` (`Username` ASC) VISIBLE;
@@ -233,10 +184,51 @@ DROP TABLE IF EXISTS `BachecaElettronicadb`.`Conversazione` ;
 
 CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Conversazione` (
   `Codice` INT NOT NULL AUTO_INCREMENT,
-  PRIMARY KEY (`Codice`))
+  `UCC_Username_1` VARCHAR(45) NOT NULL,
+  `UCC_Username_2` VARCHAR(45) NULL,
+  `USCC_Username` VARCHAR(45) NULL,
+  PRIMARY KEY (`Codice`),
+  CONSTRAINT `fk_Conversazione_UCC1`
+    FOREIGN KEY (`UCC_Username_1`)
+    REFERENCES `BachecaElettronicadb`.`UCC` (`Username`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Conversazione_USCC1`
+    FOREIGN KEY (`USCC_Username`)
+    REFERENCES `BachecaElettronicadb`.`USCC` (`Username`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Conversazione_UCC2`
+    FOREIGN KEY (`UCC_Username_2`)
+    REFERENCES `BachecaElettronicadb`.`UCC` (`Username`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 CREATE UNIQUE INDEX `Codice_UNIQUE` ON `BachecaElettronicadb`.`Conversazione` (`Codice` ASC) VISIBLE;
+
+CREATE INDEX `fk_Conversazione_UCC1_idx` ON `BachecaElettronicadb`.`Conversazione` (`UCC_Username_1` ASC) VISIBLE;
+
+CREATE INDEX `fk_Conversazione_USCC1_idx` ON `BachecaElettronicadb`.`Conversazione` (`USCC_Username` ASC) VISIBLE;
+
+CREATE INDEX `fk_Conversazione_UCC2_idx` ON `BachecaElettronicadb`.`Conversazione` (`UCC_Username_2` ASC) VISIBLE;
+
+
+-- -----------------------------------------------------
+-- Table `BachecaElettronicadb`.`ConversazioneCodice`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `BachecaElettronicadb`.`ConversazioneCodice` ;
+
+CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`ConversazioneCodice` (
+  `CodiceConv` INT NOT NULL,
+  `StoricoConversazione_ID` INT NOT NULL,
+  PRIMARY KEY (`StoricoConversazione_ID`, `CodiceConv`),
+  CONSTRAINT `fk_ConversazioneCodice_StoricoConversazione1`
+    FOREIGN KEY (`StoricoConversazione_ID`)
+    REFERENCES `BachecaElettronicadb`.`StoricoConversazione` (`ID`))
+ENGINE = InnoDB;
+
+CREATE INDEX `fk_ConversazioneCodice_StoricoConversazione1_idx` ON `BachecaElettronicadb`.`ConversazioneCodice` (`StoricoConversazione_ID` ASC) VISIBLE;
 
 
 -- -----------------------------------------------------
@@ -252,14 +244,80 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Messaggio` (
   PRIMARY KEY (`ID`, `Conversazione_Codice`),
   CONSTRAINT `fk_Messaggio_Conversazione1`
     FOREIGN KEY (`Conversazione_Codice`)
-    REFERENCES `BachecaElettronicadb`.`Conversazione` (`Codice`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    REFERENCES `BachecaElettronicadb`.`Conversazione` (`Codice`))
 ENGINE = InnoDB;
+
+CREATE UNIQUE INDEX `Conversazione_Codice_UNIQUE` ON `BachecaElettronicadb`.`Messaggio` (`Conversazione_Codice` ASC) VISIBLE;
 
 CREATE INDEX `fk_Messaggio_Conversazione1_idx` ON `BachecaElettronicadb`.`Messaggio` (`Conversazione_Codice` ASC) VISIBLE;
 
-CREATE UNIQUE INDEX `Conversazione_Codice_UNIQUE` ON `BachecaElettronicadb`.`Messaggio` (`Conversazione_Codice` ASC) VISIBLE;
+
+-- -----------------------------------------------------
+-- Table `BachecaElettronicadb`.`Modificato-UCC`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `BachecaElettronicadb`.`Modificato-UCC` ;
+
+CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Modificato-UCC` (
+  `InformazioneAnagrafica_CF` VARCHAR(16) NOT NULL,
+  `UCC_Username` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`InformazioneAnagrafica_CF`),
+  CONSTRAINT `fk_Modificato-UCC_InformazioneAnagrafica1`
+    FOREIGN KEY (`InformazioneAnagrafica_CF`)
+    REFERENCES `BachecaElettronicadb`.`InformazioneAnagrafica` (`CF`),
+  CONSTRAINT `fk_Modificato-UCC_UCC1`
+    FOREIGN KEY (`UCC_Username`)
+    REFERENCES `BachecaElettronicadb`.`UCC` (`Username`))
+ENGINE = InnoDB;
+
+CREATE UNIQUE INDEX `InformazioneAnagrafica_CF_UNIQUE` ON `BachecaElettronicadb`.`Modificato-UCC` (`InformazioneAnagrafica_CF` ASC) VISIBLE;
+
+CREATE INDEX `fk_Modificato-UCC_UCC1_idx` ON `BachecaElettronicadb`.`Modificato-UCC` (`UCC_Username` ASC) VISIBLE;
+
+CREATE INDEX `fk_Modificato-UCC_InformazioneAnagrafica1_idx` ON `BachecaElettronicadb`.`Modificato-UCC` (`InformazioneAnagrafica_CF` ASC) VISIBLE;
+
+
+-- -----------------------------------------------------
+-- Table `BachecaElettronicadb`.`Modificato-USCC`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `BachecaElettronicadb`.`Modificato-USCC` ;
+
+CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Modificato-USCC` (
+  `InformazioneAnagrafica_CF` VARCHAR(16) NOT NULL,
+  `USCC_Username` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`InformazioneAnagrafica_CF`),
+  CONSTRAINT `fk_Modificato-USCC_InformazioneAnagrafica1`
+    FOREIGN KEY (`InformazioneAnagrafica_CF`)
+    REFERENCES `BachecaElettronicadb`.`InformazioneAnagrafica` (`CF`),
+  CONSTRAINT `fk_Modificato-USCC_USCC1`
+    FOREIGN KEY (`USCC_Username`)
+    REFERENCES `BachecaElettronicadb`.`USCC` (`Username`))
+ENGINE = InnoDB;
+
+CREATE UNIQUE INDEX `InformazioneAnagrafica_CF_UNIQUE` ON `BachecaElettronicadb`.`Modificato-USCC` (`InformazioneAnagrafica_CF` ASC) VISIBLE;
+
+CREATE INDEX `fk_Modificato-USCC_USCC1_idx` ON `BachecaElettronicadb`.`Modificato-USCC` (`USCC_Username` ASC) VISIBLE;
+
+CREATE INDEX `fk_Modificato-USCC_InformazioneAnagrafica1_idx` ON `BachecaElettronicadb`.`Modificato-USCC` (`InformazioneAnagrafica_CF` ASC) VISIBLE;
+
+
+-- -----------------------------------------------------
+-- Table `BachecaElettronicadb`.`Nota`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `BachecaElettronicadb`.`Nota` ;
+
+CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Nota` (
+  `ID` INT NOT NULL AUTO_INCREMENT,
+  `Testo` VARCHAR(45) NOT NULL,
+  `Annuncio_Codice` INT NOT NULL,
+  PRIMARY KEY (`ID`, `Annuncio_Codice`),
+  CONSTRAINT `fk_Nota_Annuncio1`
+    FOREIGN KEY (`Annuncio_Codice`)
+    REFERENCES `BachecaElettronicadb`.`Annuncio` (`Codice`))
+ENGINE = InnoDB;
+
+CREATE UNIQUE INDEX `Annuncio_Codice_UNIQUE` ON `BachecaElettronicadb`.`Nota` (`Annuncio_Codice` ASC) VISIBLE;
+
+CREATE INDEX `fk_Nota_Annuncio1_idx` ON `BachecaElettronicadb`.`Nota` (`Annuncio_Codice` ASC) VISIBLE;
 
 
 -- -----------------------------------------------------
@@ -274,12 +332,34 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`RecapitoNonPreferito` (
   PRIMARY KEY (`InformazioneAnagrafica_CF`, `Recapito`),
   CONSTRAINT `fk_RecapitoNonPreferito_InformazioneAnagrafica1`
     FOREIGN KEY (`InformazioneAnagrafica_CF`)
-    REFERENCES `BachecaElettronicadb`.`InformazioneAnagrafica` (`CF`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    REFERENCES `BachecaElettronicadb`.`InformazioneAnagrafica` (`CF`))
 ENGINE = InnoDB;
 
 CREATE INDEX `fk_RecapitoNonPreferito_InformazioneAnagrafica1_idx` ON `BachecaElettronicadb`.`RecapitoNonPreferito` (`InformazioneAnagrafica_CF` ASC) VISIBLE;
+
+
+-- -----------------------------------------------------
+-- Table `BachecaElettronicadb`.`Report`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `BachecaElettronicadb`.`Report` ;
+
+CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Report` (
+  `UCC_Username` VARCHAR(45) NOT NULL,
+  `ImportoTotale` INT NOT NULL,
+  `NumeroCarta` VARCHAR(16) NOT NULL,
+  `Data` DATETIME NOT NULL,
+  `Riscosso` INT NOT NULL DEFAULT '0',
+  `SommaAmministratore` INT NOT NULL DEFAULT '0',
+  PRIMARY KEY (`UCC_Username`),
+  CONSTRAINT `fk_Report_UCC1`
+    FOREIGN KEY (`UCC_Username`)
+    REFERENCES `BachecaElettronicadb`.`UCC` (`Username`))
+ENGINE = InnoDB;
+
+CREATE UNIQUE INDEX `UCC_Username_UNIQUE` ON `BachecaElettronicadb`.`Report` (`UCC_Username` ASC) VISIBLE;
+
+CREATE INDEX `fk_Report_UCC1_idx` ON `BachecaElettronicadb`.`Report` (`UCC_Username` ASC) VISIBLE;
+
 
 -- -----------------------------------------------------
 -- Table `BachecaElettronicadb`.`Seguito-UCC`
@@ -290,16 +370,12 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Seguito-UCC` (
   `UCC_Username` VARCHAR(45) NOT NULL,
   `Annuncio_Codice` INT NOT NULL,
   PRIMARY KEY (`UCC_Username`, `Annuncio_Codice`),
-  CONSTRAINT `fk_Seguito-UCC_UCC1`
-    FOREIGN KEY (`UCC_Username`)
-    REFERENCES `BachecaElettronicadb`.`UCC` (`Username`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
   CONSTRAINT `fk_Seguito-UCC_Annuncio1`
     FOREIGN KEY (`Annuncio_Codice`)
-    REFERENCES `BachecaElettronicadb`.`Annuncio` (`Codice`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    REFERENCES `BachecaElettronicadb`.`Annuncio` (`Codice`),
+  CONSTRAINT `fk_Seguito-UCC_UCC1`
+    FOREIGN KEY (`UCC_Username`)
+    REFERENCES `BachecaElettronicadb`.`UCC` (`Username`))
 ENGINE = InnoDB;
 
 CREATE INDEX `fk_Seguito-UCC_UCC1_idx` ON `BachecaElettronicadb`.`Seguito-UCC` (`UCC_Username` ASC) VISIBLE;
@@ -318,126 +394,15 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Seguito-USCC` (
   PRIMARY KEY (`Annuncio_Codice`, `USCC_Username`),
   CONSTRAINT `fk_Seguito-USCC_Annuncio1`
     FOREIGN KEY (`Annuncio_Codice`)
-    REFERENCES `BachecaElettronicadb`.`Annuncio` (`Codice`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    REFERENCES `BachecaElettronicadb`.`Annuncio` (`Codice`),
   CONSTRAINT `fk_Seguito-USCC_USCC1`
     FOREIGN KEY (`USCC_Username`)
-    REFERENCES `BachecaElettronicadb`.`USCC` (`Username`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    REFERENCES `BachecaElettronicadb`.`USCC` (`Username`))
 ENGINE = InnoDB;
 
 CREATE INDEX `fk_Seguito-USCC_Annuncio1_idx` ON `BachecaElettronicadb`.`Seguito-USCC` (`Annuncio_Codice` ASC) VISIBLE;
 
 CREATE INDEX `fk_Seguito-USCC_USCC1_idx` ON `BachecaElettronicadb`.`Seguito-USCC` (`USCC_Username` ASC) VISIBLE;
-
-
--- -----------------------------------------------------
--- Table `BachecaElettronicadb`.`Partecipa-USCC`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `BachecaElettronicadb`.`Partecipa-USCC` ;
-
-CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Partecipa-USCC` (
-  `Conversazione_Codice` INT NOT NULL,
-  `USCC_Username` VARCHAR(45) NOT NULL,
-  PRIMARY KEY (`Conversazione_Codice`),
-  CONSTRAINT `fk_Partecipa-USCC_Conversazione1`
-    FOREIGN KEY (`Conversazione_Codice`)
-    REFERENCES `BachecaElettronicadb`.`Conversazione` (`Codice`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_Partecipa-USCC_USCC1`
-    FOREIGN KEY (`USCC_Username`)
-    REFERENCES `BachecaElettronicadb`.`USCC` (`Username`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
-CREATE INDEX `fk_Partecipa-USCC_Conversazione1_idx` ON `BachecaElettronicadb`.`Partecipa-USCC` (`Conversazione_Codice` ASC) VISIBLE;
-
-CREATE INDEX `fk_Partecipa-USCC_USCC1_idx` ON `BachecaElettronicadb`.`Partecipa-USCC` (`USCC_Username` ASC) VISIBLE;
-
-CREATE UNIQUE INDEX `Conversazione_Codice_UNIQUE` ON `BachecaElettronicadb`.`Partecipa-USCC` (`Conversazione_Codice` ASC) VISIBLE;
-
-
--- -----------------------------------------------------
--- Table `BachecaElettronicadb`.`Modificato-UCC`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `BachecaElettronicadb`.`Modificato-UCC` ;
-
-CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Modificato-UCC` (
-  `InformazioneAnagrafica_CF` VARCHAR(16) NOT NULL,
-  `UCC_Username` VARCHAR(45) NOT NULL,
-  PRIMARY KEY (`InformazioneAnagrafica_CF`),
-  CONSTRAINT `fk_Modificato-UCC_UCC1`
-    FOREIGN KEY (`UCC_Username`)
-    REFERENCES `BachecaElettronicadb`.`UCC` (`Username`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_Modificato-UCC_InformazioneAnagrafica1`
-    FOREIGN KEY (`InformazioneAnagrafica_CF`)
-    REFERENCES `BachecaElettronicadb`.`InformazioneAnagrafica` (`CF`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
-CREATE INDEX `fk_Modificato-UCC_UCC1_idx` ON `BachecaElettronicadb`.`Modificato-UCC` (`UCC_Username` ASC) VISIBLE;
-
-CREATE INDEX `fk_Modificato-UCC_InformazioneAnagrafica1_idx` ON `BachecaElettronicadb`.`Modificato-UCC` (`InformazioneAnagrafica_CF` ASC) VISIBLE;
-
-CREATE UNIQUE INDEX `InformazioneAnagrafica_CF_UNIQUE` ON `BachecaElettronicadb`.`Modificato-UCC` (`InformazioneAnagrafica_CF` ASC) VISIBLE;
-
-
--- -----------------------------------------------------
--- Table `BachecaElettronicadb`.`Modificato-USCC`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `BachecaElettronicadb`.`Modificato-USCC` ;
-
-CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Modificato-USCC` (
-  `InformazioneAnagrafica_CF` VARCHAR(16) NOT NULL,
-  `USCC_Username` VARCHAR(45) NOT NULL,
-  PRIMARY KEY (`InformazioneAnagrafica_CF`),
-  CONSTRAINT `fk_Modificato-USCC_USCC1`
-    FOREIGN KEY (`USCC_Username`)
-    REFERENCES `BachecaElettronicadb`.`USCC` (`Username`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_Modificato-USCC_InformazioneAnagrafica1`
-    FOREIGN KEY (`InformazioneAnagrafica_CF`)
-    REFERENCES `BachecaElettronicadb`.`InformazioneAnagrafica` (`CF`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
-CREATE INDEX `fk_Modificato-USCC_USCC1_idx` ON `BachecaElettronicadb`.`Modificato-USCC` (`USCC_Username` ASC) VISIBLE;
-
-CREATE INDEX `fk_Modificato-USCC_InformazioneAnagrafica1_idx` ON `BachecaElettronicadb`.`Modificato-USCC` (`InformazioneAnagrafica_CF` ASC) VISIBLE;
-
-CREATE UNIQUE INDEX `InformazioneAnagrafica_CF_UNIQUE` ON `BachecaElettronicadb`.`Modificato-USCC` (`InformazioneAnagrafica_CF` ASC) VISIBLE;
-
-
--- -----------------------------------------------------
--- Table `BachecaElettronicadb`.`ConversazioneCodice`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `BachecaElettronicadb`.`ConversazioneCodice` ;
-
-CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`ConversazioneCodice` (
-  `CodiceConv` INT NOT NULL,
-  `StoricoConversazione_ID` INT NOT NULL,
-  PRIMARY KEY (`StoricoConversazione_ID`, `CodiceConv`),
-  CONSTRAINT `fk_ConversazioneCodice_StoricoConversazione1`
-    FOREIGN KEY (`StoricoConversazione_ID`)
-    REFERENCES `BachecaElettronicadb`.`StoricoConversazione` (`ID`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
-CREATE INDEX `fk_ConversazioneCodice_StoricoConversazione1_idx` ON `BachecaElettronicadb`.`ConversazioneCodice` (`StoricoConversazione_ID` ASC) VISIBLE;
-
-CREATE UNIQUE INDEX `StoricoConversazione_ID_UNIQUE` ON `BachecaElettronicadb`.`ConversazioneCodice` (`StoricoConversazione_ID` ASC) VISIBLE;
-
-CREATE UNIQUE INDEX `CodiceConv_UNIQUE` ON `BachecaElettronicadb`.`ConversazioneCodice` (`CodiceConv` ASC) VISIBLE;
 
 
 -- -----------------------------------------------------
@@ -449,67 +414,19 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Tracciato` (
   `Conversazione_Codice` INT NOT NULL,
   `StoricoConversazione_ID` INT NOT NULL,
   PRIMARY KEY (`Conversazione_Codice`, `StoricoConversazione_ID`),
-  CONSTRAINT `fk_Tracciato_StoricoConversazione1`
-    FOREIGN KEY (`StoricoConversazione_ID`)
-    REFERENCES `BachecaElettronicadb`.`StoricoConversazione` (`ID`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
   CONSTRAINT `fk_Tracciato_Conversazione1`
     FOREIGN KEY (`Conversazione_Codice`)
     REFERENCES `BachecaElettronicadb`.`Conversazione` (`Codice`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE RESTRICT
+    ON UPDATE RESTRICT,
+  CONSTRAINT `fk_Tracciato_StoricoConversazione1`
+    FOREIGN KEY (`StoricoConversazione_ID`)
+    REFERENCES `BachecaElettronicadb`.`StoricoConversazione` (`ID`))
 ENGINE = InnoDB;
 
 CREATE INDEX `fk_Tracciato_StoricoConversazione1_idx` ON `BachecaElettronicadb`.`Tracciato` (`StoricoConversazione_ID` ASC) VISIBLE;
 
-CREATE UNIQUE INDEX `StoricoConversazione_ID_UNIQUE` ON `BachecaElettronicadb`.`Tracciato` (`StoricoConversazione_ID` ASC) VISIBLE;
-
 CREATE INDEX `fk_Tracciato_Conversazione1_idx` ON `BachecaElettronicadb`.`Tracciato` (`Conversazione_Codice` ASC) VISIBLE;
-
-CREATE UNIQUE INDEX `Conversazione_Codice_UNIQUE` ON `BachecaElettronicadb`.`Tracciato` (`Conversazione_Codice` ASC) VISIBLE;
-
-
--- -----------------------------------------------------
--- Table `BachecaElettronicadb`.`Partecipa-UCC`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `BachecaElettronicadb`.`Partecipa-UCC` ;
-
-CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Partecipa-UCC` (
-  `Conversazione_Codice` INT NOT NULL,
-  `UCC_Username` VARCHAR(45) NOT NULL,
-  PRIMARY KEY (`Conversazione_Codice`, `UCC_Username`),
-  CONSTRAINT `fk_Partecipa-UCC_Conversazione1`
-    FOREIGN KEY (`Conversazione_Codice`)
-    REFERENCES `BachecaElettronicadb`.`Conversazione` (`Codice`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_Partecipa-UCC_UCC1`
-    FOREIGN KEY (`UCC_Username`)
-    REFERENCES `BachecaElettronicadb`.`UCC` (`Username`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
-CREATE INDEX `fk_Partecipa-UCC_Conversazione1_idx` ON `BachecaElettronicadb`.`Partecipa-UCC` (`Conversazione_Codice` ASC) VISIBLE;
-
-CREATE UNIQUE INDEX `Conversazione_Codice_UNIQUE` ON `BachecaElettronicadb`.`Partecipa-UCC` (`Conversazione_Codice` ASC) VISIBLE;
-
-CREATE INDEX `fk_Partecipa-UCC_UCC1_idx` ON `BachecaElettronicadb`.`Partecipa-UCC` (`UCC_Username` ASC) VISIBLE;
-
-CREATE UNIQUE INDEX `UCC_Username_UNIQUE` ON `BachecaElettronicadb`.`Partecipa-UCC` (`UCC_Username` ASC) VISIBLE;
-
-
--- -----------------------------------------------------
--- Table `BachecaElettronicadb`.`Amministratore`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `BachecaElettronicadb`.`Amministratore` ;
-
-CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Amministratore` (
-  `Username` VARCHAR(45) NOT NULL,
-  `Password` VARCHAR(45) NOT NULL,
-  PRIMARY KEY (`Username`))
-ENGINE = InnoDB;
 
 SET SQL_MODE = '';
 DROP USER IF EXISTS UCC;

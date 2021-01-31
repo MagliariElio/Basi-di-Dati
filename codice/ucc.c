@@ -4,6 +4,7 @@
 #define MAX_AD_CODE_LENGHT 10
 #define MAX_COMMENT_ID_LENGHT 10
 #define MAX_NOTE_ID_LENGHT 10
+#define MAX_CF_LENGHT 17
 
 struct configuration conf;
 MYSQL *conn;
@@ -245,7 +246,7 @@ void ad_sold() {
 	return;
 }
 
-bool view_personal_information(char cf_owner[17], char username_owner[45], int check_owner) {
+bool view_personal_information(char cf_owner[], char username_owner[], int check_owner) {
 	MYSQL_STMT *prepared_stmt;
 	
 	// Check information for other functions
@@ -300,13 +301,13 @@ bool view_personal_information(char cf_owner[17], char username_owner[45], int c
 	
 	memset(param, 0, sizeof(param));
 	
-	char cf[17];
+	char cf[MAX_CF_LENGHT];
 	bool is_null;
 	
 	is_null = 1;
 	
 	print_color("Fiscal Code: ", "yellow", ' ', false, false, false, false);
-	getInput(17, cf, false);
+	getInput(MAX_CF_LENGHT, cf, false);
 	cf[16] = '\0';
 	
 	param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
@@ -343,21 +344,62 @@ bool view_personal_information(char cf_owner[17], char username_owner[45], int c
 	return true;
 }
 
-
-void edit_personal_information() {
+void edit_personal_information(char cf_set_favourite[], char type_set_favourite[], char contact_set_favourites[]) {
 	MYSQL_STMT *prepared_stmt;
 	MYSQL_BIND param[8];
-			
-	char cf[17], surname[20], name[20], residential_address[20], cap_string[5], billing_address[20], type_favourite_contact[20], favourite_contact[40];
-	int cap;
-	bool request, is_null;
-	
-	is_null = 1;
 	
 	memset(param, 0, sizeof(param));
 	
+	bool is_null = 1;
+	
+	// Set contact as favourite
+	if(cf_set_favourite != NULL && type_set_favourite != NULL && contact_set_favourites != NULL) {
+		param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
+		param[0].buffer = cf_set_favourite;
+		param[0].buffer_length = strlen(cf_set_favourite);
+
+		//param[1].buffer_type = MYSQL_TYPE_VAR_STRING;
+		//param[1].buffer = surname;
+		//param[1].buffer_length = strlen(surname);
+		param[1].is_null = &is_null;
+		
+		//param[2].buffer_type = MYSQL_TYPE_VAR_STRING;
+		//param[2].buffer = name;
+		//param[2].buffer_length = strlen(name);
+		param[2].is_null = &is_null;
+		
+		//param[3].buffer_type = MYSQL_TYPE_VAR_STRING;
+		//param[3].buffer = residential_address;
+		//param[3].buffer_length = strlen(residential_address);
+		param[3].is_null = &is_null;
+
+		//param[4].buffer_type = MYSQL_TYPE_LONG;
+		//param[4].buffer = &cap;
+		//param[4].buffer_length = sizeof(cap);
+		param[4].is_null = &is_null;
+		
+		//param[5].buffer_type = MYSQL_TYPE_VAR_STRING;
+		//param[5].buffer = billing_address;
+		//param[5].buffer_length = strlen(billing_address);
+		param[5].is_null = &is_null;
+
+		param[6].buffer_type = MYSQL_TYPE_VAR_STRING;
+		param[6].buffer = type_set_favourite;
+		param[6].buffer_length = strlen(type_set_favourite);
+
+		param[7].buffer_type = MYSQL_TYPE_VAR_STRING;
+		param[7].buffer = contact_set_favourites;
+		param[7].buffer_length = strlen(contact_set_favourites);
+		
+		goto execution;
+	}
+				
+	char cf[MAX_CF_LENGHT], surname[20], name[20], residential_address[20], cap_string[5], billing_address[20], type_favourite_contact[20], favourite_contact[40];
+	int cap;
+	bool request;
+		
 	print_color("Fiscal Code: ", "yellow", ' ', false, false, false, false);
-	getInput(17, cf, false);
+	getInput(MAX_CF_LENGHT, cf, false);
 	cf[16] = '\0';
 	
 	// Check if the user has this fiscal code
@@ -466,7 +508,7 @@ void edit_personal_information() {
 	param[7].buffer = favourite_contact;
 	param[7].buffer_length = strlen(favourite_contact);
 	
-	
+	execution:
 	if (!setup_prepared_stmt(&prepared_stmt, "call modificaInfoAnagrafiche (?, ?, ?, ?, ?, ?, ?, ?)", conn))
 		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
 	
@@ -735,27 +777,23 @@ void view_note() {
 
 
 void insert_remove_contact() {
-	MYSQL_STMT *prepared_stmt;
-	MYSQL_BIND param[4];
 	
-	char type[20], contact[40], cf[17];
+	char type[20], contact[40], cf[MAX_CF_LENGHT];
 	int remove = 1;
 	
 	char *list_choice_type_it[] = {"email", "cellulare", "social", "sms"}, choice[20];
 	char *list_choice_type_en[] = {"email", "mobile phone", "social", "sms"};
 	int lenght_choice_type = 4, i;
 	
-	bool request, is_null;
+	bool request, request_2, is_null;
 	
 	is_null = 1;
-
-	memset(param, 0, sizeof(param));
 	
 	print_color("Fiscal Code: ", "yellow", ' ', false, false, false, false);
-	//sprintf(cf, "%s", getInput(17, cf, false));
+	//sprintf(cf, "%s", getInput(MAX_CF_LENGHT, cf, false));
 	//cf[16] = '\0';
 	
-	getInput(17, cf, false);
+	getInput(MAX_CF_LENGHT, cf, false);
 	
 	request = yesOrNo("Do you want to add a contact?", 'y', 'n');
 	
@@ -785,10 +823,26 @@ void insert_remove_contact() {
 		}
 	}
 	
-	if(request)
-		param[3].is_null= &is_null;
-		
 	execution:
+		
+	if(request) {
+		request_2 = yesOrNo("Do you want to set it as a favourite?", 'y', 'n');
+		
+		// If the user sends yes then it set as favourite
+		if (request_2) {
+			edit_personal_information(cf, type, contact);
+			return;
+		}
+	}
+	
+	MYSQL_STMT *prepared_stmt;
+	MYSQL_BIND param[4];
+	
+	memset(param, 0, sizeof(param));
+
+	// If the user wants to remove a contact
+	if(request) 
+		param[3].is_null= &is_null;
 	
 	param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
 	param[0].buffer = type;
@@ -828,12 +882,138 @@ void insert_remove_contact() {
 	return;
 }
 
+void view_contact() {
+	MYSQL_STMT *prepared_stmt;
+	MYSQL_BIND param[2];
+	
+	char cf[MAX_CF_LENGHT];
+	int favourite = 1;
+	
+	bool request, is_null;
+	
+	is_null = 1;
+	
+	memset(param, 0, sizeof(param));
+	
+	print_color("Fiscal Code: ", "yellow", ' ', false, false, false, false);
+	getInput(MAX_CF_LENGHT, cf, false);
+	
+	request = yesOrNo("Do you want to see favourite contact?", 'y', 'n');
+	
+	// Set the var to null
+	if(!request)
+		param[1].is_null = &is_null;	
+	
+	param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[0].buffer = cf;
+	param[0].buffer_length = strlen(cf);	
+	
+	param[1].buffer_type = MYSQL_TYPE_LONG;
+	param[1].buffer = &favourite;
+	param[1].buffer_length = sizeof(favourite);	
+	
+	if (!setup_prepared_stmt(&prepared_stmt, "call visualizza_contatti (?, ?)", conn))
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
+	
+	if (mysql_stmt_bind_param(prepared_stmt, param) != 0)
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to bind parameters to view contacts\n", true);
+	
+	if (mysql_stmt_execute(prepared_stmt) != 0)
+		print_stmt_error(prepared_stmt, NULL);
+	else		
+		dump_result_set(conn, prepared_stmt, "Contacts\n");
+	
+	mysql_stmt_close(prepared_stmt);
+	return;
+}
+
+
+void send_message() {
+	
+	char receiver_username[45], text[100];
+	
+	print_color("   Username of the user that you want to send the message", "white", ' ', true, true, false, false);
+	print_color("Username: ", "yellow", ' ', false, false, false, false);
+	getInput(45, receiver_username, false);
+	
+	print_color("Message text: ", "yellow", ' ', false, false, false, false);
+	getInput(100, text, false);
+	
+	MYSQL_STMT *prepared_stmt;
+	MYSQL_BIND param[3];
+	
+	memset(param, 0, sizeof(param));
+	
+	param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[0].buffer = conf.username;
+	param[0].buffer_length = strlen(conf.username);
+	
+	param[1].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[1].buffer = receiver_username;
+	param[1].buffer_length = strlen(receiver_username);
+	
+	param[2].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[2].buffer = text;
+	param[2].buffer_length = strlen(text);
+	
+	if (!setup_prepared_stmt(&prepared_stmt, "call invioMessaggio (?, ?, ?)", conn))
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
+	
+	if (mysql_stmt_bind_param(prepared_stmt, param) != 0)
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to bind parameters to send message\n", true);
+	
+	if (mysql_stmt_execute(prepared_stmt) != 0)
+		print_stmt_error(prepared_stmt, NULL);
+	else
+		print_color("   Successfully sent", "light blue", ' ', false, true, false, true);
+	
+	mysql_stmt_close(prepared_stmt);
+	return;
+}
+
+void view_message() {
+	
+	char receiver_username[45];
+	
+	print_color("   Username of the user that you want to view the message", "white", ' ', true, true, false, false);
+	print_color("Username: ", "yellow", ' ', false, false, false, false);
+	getInput(45, receiver_username, false);
+	
+	MYSQL_STMT *prepared_stmt;
+	MYSQL_BIND param[2];
+	
+	memset(param, 0, sizeof(param));
+	
+	param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[0].buffer = conf.username;
+	param[0].buffer_length = strlen(conf.username);
+	
+	param[1].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[1].buffer = receiver_username;
+	param[1].buffer_length = strlen(receiver_username);
+	
+	if (!setup_prepared_stmt(&prepared_stmt, "call visualizzaMessaggio (?, ?)", conn))
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
+	
+	if (mysql_stmt_bind_param(prepared_stmt, param) != 0)
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to bind parameters to view messages\n", true);
+	
+	if (mysql_stmt_execute(prepared_stmt) != 0)
+		print_stmt_error(prepared_stmt, NULL);
+	else
+		dump_result_set(conn, prepared_stmt, "Messages\n");
+	
+	mysql_stmt_close(prepared_stmt);
+	return;
+}
+
+
 int run_as_ucc(MYSQL *main_conn, struct configuration main_conf){
 	conn = main_conn;
 	conf = main_conf;
 	ad_code = -1;
-	int num_list = 13, chosen_num;															// length of list
-	char *list[] = {"1","2","3","4","5","6","7","8","9","10", "11", "12", "13"};			// list of choice
+	int num_list = 16, chosen_num;																			// length of list
+	char *list[] = {"1","2","3","4","5","6","7","8","9","10", "11", "12", "13", "14", "15", "16"};			// list of choice
 	char option;
 	
 	print_color("Welcome ", "cyan", ' ', true, false, true, false);
@@ -869,8 +1049,11 @@ int run_as_ucc(MYSQL *main_conn, struct configuration main_conf){
 		print_color(list[8], "light blue", ' ', true, false, false, false); print_color(") Add or Remove a comment to an ad", "light cyan", ' ', false, false, false, false);
 		print_color(list[9], "light blue", ' ', true, false, false, false); print_color(") View note of an ad", "orange", ' ', false, false, false, false);
 		print_color(list[10], "light blue", ' ', true, false, false, false); print_color(") Add or Remove a note to an ad", "light cyan", ' ', false, false, false, false);
-		print_color(list[11], "light blue", ' ', true, false, false, false); print_color(") Add a contact", "orange", ' ', false, false, false, false);
-		print_color(list[12], "light red", ' ', true, false, false, false); print_color(") quit", "light red", ' ', false, true, false, false);
+		print_color(list[11], "light blue", ' ', true, false, false, false); print_color(") View your contacts", "orange", ' ', false, false, false, false);
+		print_color(list[12], "light blue", ' ', true, false, false, false); print_color(") Add o remove a contact", "light cyan", ' ', false, false, false, false);
+		print_color(list[13], "light blue", ' ', true, false, false, false); print_color(") Send a message", "orange", ' ', false, false, false, false);
+		print_color(list[14], "light blue", ' ', true, false, false, false); print_color(") View your messages", "light cyan", ' ', false, false, false, false);
+		print_color(list[15], "light red", ' ', true, false, false, false); print_color(") quit", "light red", ' ', false, true, false, false);
 
 		multiChoice("Which do you choose?", list, num_list, &chosen_num, &option);
 		
@@ -885,7 +1068,7 @@ int run_as_ucc(MYSQL *main_conn, struct configuration main_conf){
 			printf("\n");
 			break;
 		}
-				
+		
 		switch(chosen_num) {
 			case 0:	
 				new_ad();
@@ -903,7 +1086,7 @@ int run_as_ucc(MYSQL *main_conn, struct configuration main_conf){
 				view_personal_information("", "", 0);
 				break;
 			case 5:	
-				edit_personal_information();
+				edit_personal_information(NULL, NULL, NULL);
 				break;
 			case 6:	
 				edit_photo_ad();
@@ -921,7 +1104,16 @@ int run_as_ucc(MYSQL *main_conn, struct configuration main_conf){
 				insert_remove_note();
 				break;
 			case 11:	
+				view_contact();
+				break;
+			case 12:	
 				insert_remove_contact();
+				break;
+			case 13:	
+				send_message();
+				break;
+			case 14:	
+				view_message();
 				break;
 			default:
 				print_color("  Error to choose a number", "red", ' ', false, true, false, true);
