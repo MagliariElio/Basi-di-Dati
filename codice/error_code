@@ -25,3 +25,5 @@ List of error codes
 45011 = 'Conversation not found';
 
 45012 = 'You are not authorized to access this conversation'
+
+45013 = 'You cannot write to another USCC user'

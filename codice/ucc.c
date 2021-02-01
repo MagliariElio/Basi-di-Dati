@@ -134,6 +134,8 @@ bool view_ad(char *username, bool check_owner_value) {
 		print_color("Ad code: ", "light cyan", ' ', false, false, false, false);
 		getInput(MAX_AD_CODE_LENGHT, ad_code_string, false);
 		ad_code = atoi(ad_code_string);
+		param[1].is_null = &is_null;
+		goto execution_ucc_views_ad;
 	}
 	if(request == false){
 		param[0].is_null = &is_null;
@@ -148,7 +150,9 @@ bool view_ad(char *username, bool check_owner_value) {
 	if(request == false){
 		param[1].is_null = &is_null;
 	}
-		
+	
+	execution_ucc_views_ad:
+	
 	param[0].buffer_type = MYSQL_TYPE_LONG;
 	param[0].buffer = &ad_code;
 	param[0].buffer_length = sizeof(ad_code);
@@ -330,15 +334,8 @@ bool view_personal_information(char cf_owner[], char username_owner[], int check
 	param[0].buffer = cf;
 	param[0].buffer_length = strlen(cf);
 	
-	param[1].buffer_type = MYSQL_TYPE_VAR_STRING;
-	param[1].buffer = cf;
-	param[1].buffer_length = strlen(cf);
-	param[1].is_null = &is_null;
-	
-	param[2].buffer_type = MYSQL_TYPE_VAR_STRING;
-	param[2].buffer = cf;
-	param[2].buffer_length = strlen(cf);
-	param[2].is_null = &is_null;
+	param[1].is_null = &is_null;		// check_owner
+	param[2].is_null = &is_null;		// username
 		
 	if (!setup_prepared_stmt(&prepared_stmt, "call visualizzaInfoAnagrafiche (?, ?, ?)", conn))
 		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
@@ -350,6 +347,7 @@ bool view_personal_information(char cf_owner[], char username_owner[], int check
 	execution:
 	if (mysql_stmt_execute(prepared_stmt) != 0) {
 		print_stmt_error(prepared_stmt, NULL);
+		mysql_stmt_close(prepared_stmt);
 		return false;
 	}
 		
@@ -360,7 +358,7 @@ bool view_personal_information(char cf_owner[], char username_owner[], int check
 	return true;
 }
 
-void edit_personal_information(char cf_set_favourite[], char type_set_favourite[], char contact_set_favourites[]) {
+void edit_personal_information(char cf_set_favorite[], char type_set_favorite[], char contact_set_favorites[]) {
 	MYSQL_STMT *prepared_stmt;
 	MYSQL_BIND param[8];
 	
@@ -368,11 +366,11 @@ void edit_personal_information(char cf_set_favourite[], char type_set_favourite[
 	
 	bool is_null = 1;
 	
-	// Set contact as favourite
-	if(cf_set_favourite != NULL && type_set_favourite != NULL && contact_set_favourites != NULL) {
+	// Set contact as favorite
+	if(cf_set_favorite != NULL && type_set_favorite != NULL && contact_set_favorites != NULL) {
 		param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
-		param[0].buffer = cf_set_favourite;
-		param[0].buffer_length = strlen(cf_set_favourite);
+		param[0].buffer = cf_set_favorite;
+		param[0].buffer_length = strlen(cf_set_favorite);
 
 		param[1].is_null = &is_null;
 		param[2].is_null = &is_null;
@@ -381,17 +379,17 @@ void edit_personal_information(char cf_set_favourite[], char type_set_favourite[
 		param[5].is_null = &is_null;
 
 		param[6].buffer_type = MYSQL_TYPE_VAR_STRING;
-		param[6].buffer = type_set_favourite;
-		param[6].buffer_length = strlen(type_set_favourite);
+		param[6].buffer = type_set_favorite;
+		param[6].buffer_length = strlen(type_set_favorite);
 
 		param[7].buffer_type = MYSQL_TYPE_VAR_STRING;
-		param[7].buffer = contact_set_favourites;
-		param[7].buffer_length = strlen(contact_set_favourites);
+		param[7].buffer = contact_set_favorites;
+		param[7].buffer_length = strlen(contact_set_favorites);
 		
 		goto execution;
 	}
 				
-	char cf[MAX_CF_LENGHT], surname[20], name[20], residential_address[20], cap_string[5], billing_address[20], type_favourite_contact[20], favourite_contact[40];
+	char cf[MAX_CF_LENGHT], surname[20], name[20], residential_address[20], cap_string[5], billing_address[20], type_favorite_contact[20], favorite_contact[40];
 	int cap;
 	bool request;
 		
@@ -459,13 +457,13 @@ void edit_personal_information(char cf_set_favourite[], char type_set_favourite[
 	}
 
 
-	request = yesOrNo("Do you want to edit your favourite contact?", 'y', 'n');
+	request = yesOrNo("Do you want to edit your favorite contact?", 'y', 'n');
 
 	if(request == true) {
-		print_color("Type of favourite contact: ", "yellow", ' ', false, false, false, false);
-		getInput(20, type_favourite_contact, false);
-		print_color("Favourite contact: ", "yellow", ' ', false, false, false, false);
-		getInput(40, favourite_contact, false);
+		print_color("Type of favorite contact: ", "yellow", ' ', false, false, false, false);
+		getInput(20, type_favorite_contact, false);
+		print_color("favorite contact: ", "yellow", ' ', false, false, false, false);
+		getInput(40, favorite_contact, false);
 	}
 	if(request == false){
 		param[6].is_null = &is_null;
@@ -498,12 +496,12 @@ void edit_personal_information(char cf_set_favourite[], char type_set_favourite[
 	param[5].buffer_length = strlen(billing_address);
 	
 	param[6].buffer_type = MYSQL_TYPE_VAR_STRING;
-	param[6].buffer = type_favourite_contact;
-	param[6].buffer_length = strlen(type_favourite_contact);
+	param[6].buffer = type_favorite_contact;
+	param[6].buffer_length = strlen(type_favorite_contact);
 
 	param[7].buffer_type = MYSQL_TYPE_VAR_STRING;
-	param[7].buffer = favourite_contact;
-	param[7].buffer_length = strlen(favourite_contact);
+	param[7].buffer = favorite_contact;
+	param[7].buffer_length = strlen(favorite_contact);
 	
 	execution:
 	if (!setup_prepared_stmt(&prepared_stmt, "call modificaInfoAnagrafiche (?, ?, ?, ?, ?, ?, ?, ?)", conn))
@@ -789,13 +787,17 @@ void insert_remove_contact() {
 	print_color("Fiscal Code: ", "yellow", ' ', false, false, false, false);
 	getInput(MAX_CF_LENGHT, cf, false);
 	
+	// Check if the user has this fiscal code
+	if(!view_personal_information_uscc(cf, conf.username, 1))
+		return;
+	
 	request = yesOrNo("Do you want to add a contact?", 'y', 'n');
 	
 	while(1) {
 		if (request)
-			print_color("Which do you choose to add?", "white", ' ', false, true, false, false);
+			print_color("  Which do you choose to add?", "orange", ' ', false, true, false, false);
 		else
-			print_color("Which do you choose to remove?", "white", ' ', false, true, false, false);
+			print_color("  Which do you choose to remove?", "orange", ' ', false, true, false, false);
 		
 		for(i=0; i<lenght_choice_type; i++) {
 			print_color(" - ", "cyan", ' ', false, false, false, false);
@@ -820,9 +822,9 @@ void insert_remove_contact() {
 	execution:
 		
 	if(request) {
-		request_2 = yesOrNo("Do you want to set it as a favourite?", 'y', 'n');
+		request_2 = yesOrNo("Do you want to set it as a favorite?", 'y', 'n');
 		
-		// If the user sends yes then it set as favourite
+		// If the user sends yes then it set as favorite
 		if (request_2) {
 			edit_personal_information(cf, type, contact);
 			return;
@@ -881,7 +883,7 @@ void view_contact() {
 	MYSQL_BIND param[2];
 	
 	char cf[MAX_CF_LENGHT];
-	int favourite = 1;
+	int favorite = 1;
 	
 	bool request, is_null;
 	
@@ -892,7 +894,7 @@ void view_contact() {
 	print_color("Fiscal Code: ", "yellow", ' ', false, false, false, false);
 	getInput(MAX_CF_LENGHT, cf, false);
 	
-	request = yesOrNo("Do you want to see favourite contact?", 'y', 'n');
+	request = yesOrNo("Do you want to see favorite contact?", 'y', 'n');
 	
 	// Set the var to null
 	if(!request)
@@ -903,8 +905,8 @@ void view_contact() {
 	param[0].buffer_length = strlen(cf);	
 	
 	param[1].buffer_type = MYSQL_TYPE_LONG;
-	param[1].buffer = &favourite;
-	param[1].buffer_length = sizeof(favourite);	
+	param[1].buffer = &favorite;
+	param[1].buffer_length = sizeof(favorite);	
 	
 	if (!setup_prepared_stmt(&prepared_stmt, "call visualizza_contatti (?, ?)", conn))
 		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);

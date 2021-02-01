@@ -127,7 +127,7 @@ DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.modificaInfoAnagrafiche ;
 CREATE PROCEDURE BachecaElettronicadb.modificaInfoAnagrafiche (IN cf VARCHAR(16), IN cognome VARCHAR(20), IN nome VARCHAR(20), IN indirizzoDiResidenza VARCHAR(20), IN cap INT, IN indirizzoDiFatturazione VARCHAR(20), IN tipoRecapitoPreferito VARCHAR(20), IN recapitoPreferito VARCHAR(40))
 BEGIN
-	if ((SELECT count(CF) FROM BachecaElettronicadb.InformazioneAnagrafica WHERE BachecaElettronicadb.InformazioneAnagrafica.CF=cf) <> 1) then
+	if ((SELECT count(CF) FROM BachecaElettronicadb.InformazioneAnagrafica WHERE BachecaElettronicadb.InformazioneAnagrafica.CF = cf) <> 1) then
 		signal sqlstate '45004' set message_text = 'Fiscal Code not found';
 	end if;
 	
@@ -147,8 +147,8 @@ BEGIN
 		UPDATE BachecaElettronicadb.InformazioneAnagrafica SET BachecaElettronicadb.InformazioneAnagrafica.CAP=cap, IndirizzoDiFatturazione=indirizzoDiFatturazione WHERE BachecaElettronicadb.InformazioneAnagrafica.CF=cf;
 	END IF;
 	IF ((tipoRecapitoPreferito IS NOT NULL) AND (recapitoPreferito IS NOT NULL)) THEN
-		UPDATE BachecaElettronicadb.InformazioneAnagrafica SET BachecaElettronicadb.InformazioneAnagrafica.TipoRecapitoPreferito=tipoRecapitoPreferito WHERE BachecaElettronicadb.InformazioneAnagrafica.CF=cf;
-		UPDATE BachecaElettronicadb.InformazioneAnagrafica SET BachecaElettronicadb.InformazioneAnagrafica.RecapitoPreferito=recapitoPreferito WHERE BachecaElettronicadb.InformazioneAnagrafica.CF=cf;
+		UPDATE BachecaElettronicadb.InformazioneAnagrafica SET BachecaElettronicadb.InformazioneAnagrafica.TipoRecapitoPreferito = tipoRecapitoPreferito WHERE BachecaElettronicadb.InformazioneAnagrafica.CF = cf;
+		UPDATE BachecaElettronicadb.InformazioneAnagrafica SET BachecaElettronicadb.InformazioneAnagrafica.RecapitoPreferito = recapitoPreferito WHERE BachecaElettronicadb.InformazioneAnagrafica.CF = cf;
 	END IF;
 	
 END//
@@ -165,15 +165,17 @@ BEGIN
 		signal sqlstate '45004' set message_text = 'Fiscal Code not found';
 	end if;
 	
-	if ((check_owner = 1) AND (username IS NOT NULL)) then
-		IF (((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.CF_Anagrafico=cf AND BachecaElettronicadb.UCC.Username=username) <> 1) and (SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.USCC.CF_Anagrafico=cf AND BachecaElettronicadb.USCC.Username=username) <> 1) then
-			signal sqlstate '45009' set message_text = 'The fiscal code is not yours';
+	if ((check_owner IS NOT NULL) AND (username IS NOT NULL)) then
+		IF ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.CF_Anagrafico = cf AND BachecaElettronicadb.UCC.Username = username) <> 1) then
+			if ((SELECT(count(Username)) FROM BachecaElettronicadb.USCC WHERE BachecaElettronicadb.USCC.CF_Anagrafico = cf AND BachecaElettronicadb.USCC.Username = username) <> 1) then	
+				signal sqlstate '45009' set message_text = 'The fiscal code is not yours';
+			end if;
 		end IF;
 	end if;
 	
-	SELECT CF, Cognome, Nome, IndirizzoDiResidenza, CAP, IndirizzoDiFatturazione, tipoRecapitoPreferito, RecapitoPreferito
+	SELECT CF AS 'Codice Fiscale', Cognome, Nome, IndirizzoDiResidenza AS 'Indirizzo di Residenza', CAP, IndirizzoDiFatturazione AS 'Indirizzo di Fatturazione', tipoRecapitoPreferito AS 'Tipo Recapito', RecapitoPreferito AS 'Recapito Preferito'
 	FROM BachecaElettronicadb.InformazioneAnagrafica
-	WHERE BachecaElettronicadb.InformazioneAnagrafica.CF=cf;
+	WHERE BachecaElettronicadb.InformazioneAnagrafica.CF = cf;
 
 END//
 DELIMITER ;
@@ -455,7 +457,10 @@ BEGIN
 	else
 		signal sqlstate '45000' set message_text = 'User not found';		-- utente non trovato nel database 
 	end if;
-		
+	
+	if ((sender_is_uscc = 1) AND (receiver_is_uscc = 1)) then
+		signal sqlstate '45013' set message_text = 'You cannot write to another USCC user';
+	end if;	
 	
 	call controllo_conversazione(NULL, sender_username, receiver_username, conversazione_codice);  -- cerca il codice della conversazione 
 	
@@ -857,12 +862,12 @@ BEGIN
 		IF ((SELECT(count(Username)) FROM BachecaElettronicadb.USCC WHERE BachecaElettronicadb.USCC.Username=username) <> 1) THEN
 			signal sqlstate '45000' set message_text = 'User not found';
 		ELSE
-			SELECT Username, Password, CF_Anagrafico
+			SELECT Username, Password, CF_Anagrafico AS 'Codice Fiscale'
 			FROM BachecaElettronicadb.USCC
 			WHERE BachecaElettronicadb.USCC.Username=username;
 		end IF;
 	else
-		SELECT Username, Password, NumeroCarta, DataScadenza, CVC, CF_Anagrafico
+		SELECT Username, Password, NumeroCarta AS 'Numero Carta', DataScadenza AS 'Scadenza', CVC, CF_Anagrafico AS 'Codice Fiscale'
 		FROM BachecaElettronicadb.UCC
 		WHERE BachecaElettronicadb.UCC.Username = username;
 	end if;

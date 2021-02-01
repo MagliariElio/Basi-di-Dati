@@ -104,8 +104,10 @@ int main(void){
 	restart:	if (yesOrNo("Do you want continue?", 'y', 'n') == false) goto exit;
 	
 	start:
-		strcat(conf.username, "ingediero");
-		strcat(conf.password, "a46e76a9");
+		strcat(conf.username, "inglucssi");
+		strcat(conf.password, "da8a0e5a");
+		//strcat(conf.username, "ingediero");
+		//strcat(conf.password, "a46e76a9");
 		//strcat(conf.username, "amm1");
 		//strcat(conf.password, "password");
 		//printf("Username: ");
@@ -123,7 +125,7 @@ int main(void){
 			run_as_ucc(conn, conf);
 			break;
 		case USCC:
-			printf("USCC\n");
+			run_as_uscc(conn, conf);
 			break;
 		case FAILED_LOGIN:
 			print_color("Incorrect Username or Password!", "red", ' ', false, true, false, true);
