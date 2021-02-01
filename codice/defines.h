@@ -34,3 +34,4 @@ extern bool setup_prepared_stmt(MYSQL_STMT **stmt, char *statement, MYSQL *conn)
 extern void dump_result_set(MYSQL *conn, MYSQL_STMT *stmt, char *title);
 extern int run_as_administrator(MYSQL *conn, struct configuration conf);
 extern int run_as_ucc(MYSQL *conn, struct configuration conf);
+extern int run_as_uscc(MYSQL *conn, struct configuration conf);

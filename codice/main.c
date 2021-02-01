@@ -1,4 +1,3 @@
-
 #include "defines.h"
 
 struct configuration conf;

@@ -269,10 +269,9 @@ BEGIN
 	
 	if ((check_owner = 1) AND (username IS NOT NULL) AND (annuncio_codice IS NOT NULL)) then
 		IF ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=annuncio_codice AND BachecaElettronicadb.Annuncio.UCC_Username=username) <> 1) then
-			signal sqlstate '45008' set message_text = "You aren't the owner of the ad";
+			signal sqlstate '45008' set message_text = 'You are not the owner of the ad';
 		end IF;
 	end if;
-	
 	
 	IF ((annuncio_codice IS NOT NULL) AND (username IS NOT NULL)) THEN
 		SELECT *
@@ -291,6 +290,7 @@ BEGIN
 		FROM BachecaElettronicadb.Annuncio 
 		WHERE BachecaElettronicadb.Annuncio.Stato='Attivo';
 	end IF;
+	
 END//
 DELIMITER ;
 -- -------------------------------------------------------------------
@@ -343,7 +343,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Seleziona Storico UCC --------------------------------------------- Impostare un livello di isolamento - Privilegi a nessuno
+-- Seleziona Storico UCC per la stored procedure --------------------- Impostare un livello di isolamento - Privilegi a nessuno
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.seleziona_Storico_UCC ;
 CREATE PROCEDURE BachecaElettronicadb.seleziona_Storico_UCC (IN username VARCHAR(45), OUT storico_id_ucc INT)
@@ -357,7 +357,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Seleziona Storico USCC -------------------------------------------- Impostare un livello di isolamento - Privilegi a nessuno
+-- Seleziona Storico USCC per la stored procedure -------------------- Impostare un livello di isolamento - Privilegi a nessuno
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.seleziona_Storico_USCC ;
 CREATE PROCEDURE BachecaElettronicadb.seleziona_Storico_USCC (IN username VARCHAR(45), OUT storico_id_uscc INT)
@@ -455,43 +455,28 @@ BEGIN
 	else
 		signal sqlstate '45000' set message_text = 'User not found';		-- utente non trovato nel database 
 	end if;
+		
 	
+	call controllo_conversazione(NULL, sender_username, receiver_username, conversazione_codice);  -- cerca il codice della conversazione 
 	
-	-- cerca il codice della conversazione a seconda della natura dell'utente
-	SELECT Conversazione_Codice into conversazione_codice
-	FROM BachecaElettronicadb.Conversazione
-	WHERE BachecaElettronicadb.Conversazione.UCC_Username_1 = sender_username and BachecaElettronicadb.Conversazione.UCC_Username_2 = receiver_username;
-	
-	if(conversazione_codice is null) then		-- conversazione non trovata, allora cerca con un'altra combinazione di username
-		SELECT Conversazione_Codice into conversazione_codice
-		FROM BachecaElettronicadb.Conversazione
-		WHERE BachecaElettronicadb.Conversazione.UCC_Username_1 = sender_username and BachecaElettronicadb.Conversazione.USCC_Username = receiver_username;
-	end if;
-	if(conversazione_codice is null) then						-- l'utente che invia e che riceve sono UCC, ma registrati con valori inversi
-		SELECT Conversazione_Codice into conversazione_codice
-		FROM BachecaElettronicadb.Conversazione
-		WHERE BachecaElettronicadb.Conversazione.UCC_Username_1 = receiver_username and BachecaElettronicadb.Conversazione.UCC_Username_2 = sender_username;
-	end if;
-	if(conversazione_codice is null) then						-- l'utente che invia è un USCC
-		SELECT Conversazione_Codice into conversazione_codice
-		FROM BachecaElettronicadb.Conversazione
-		WHERE BachecaElettronicadb.Conversazione.UCC_Username_1 = receiver_username and BachecaElettronicadb.Conversazione.USCC_Username = sender_username;
-	end if;
-	
-	-- conversazione inesistente
-	if (conversazione_codice is null) then
+	if(conversazione_codice = -1) then 			-- conversazione non trovata quindi inesistente, si inserisce una nuova
 		-- traccia le conversazioni 
 		if ((sender_is_ucc = 1) and (receiver_is_ucc = 1)) then
 			call BachecaElettronicadb.inserimentoConversazione(conversazione_codice, sender_username, receiver_username, NULL);			-- nuova conversazione
-			call traccia_Conversazione(conversazione_codice, sender_username, receiver_username, NULL);
+			call traccia_Conversazione(conversazione_codice, sender_username, receiver_username, NULL);									-- inserisce tutti i vincoli
 		elseif ((sender_is_ucc = 1) and (receiver_is_uscc = 1)) then
-			call BachecaElettronicadb.inserimentoConversazione(conversazione_codice, sender_username, NULL, receiver_username);			-- nuova conversazione
+			call BachecaElettronicadb.inserimentoConversazione(conversazione_codice, sender_username, NULL, receiver_username);	
 			call traccia_Conversazione(conversazione_codice, sender_username, NULL, receiver_username);
-		else																				-- (sender_is_uscc = 1) and (receiver_is_ucc = 1)
-			call BachecaElettronicadb.inserimentoConversazione(conversazione_codice, receiver_username, NULL, sender_username);			-- nuova conversazione
+		else		-- (sender_is_uscc = 1) and (receiver_is_ucc = 1)
+			call BachecaElettronicadb.inserimentoConversazione(conversazione_codice, receiver_username, NULL, sender_username);
 			call traccia_Conversazione(conversazione_codice, receiver_username, NULL, sender_username);
 		end if;
 	end if;
+	
+	/* 							Nota
+	 * Non è presente la condizione (sender_is_uscc = 1) and (receiver_is_uscc = 1))
+	 * perchè non è possibile che due utenti USCC comunicano 
+	 */
 	
 	if (conversazione_codice is not null) then
 		INSERT INTO BachecaElettronicadb.Messaggio (Data, Conversazione_Codice, Testo)		-- conversazione esistente, allora inserisco il messaggio
@@ -502,10 +487,76 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
+-- Controllo Privacy e Ricerca conversazione -------------------------- Impostare un livello di isolamento - privilegi a nessuno
+DELIMITER //
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.controllo_conversazione ;
+CREATE PROCEDURE BachecaElettronicadb.controllo_conversazione (IN id_conversation_check INT, sender_username VARCHAR(45), IN receiver_username VARCHAR(45), OUT conversazione_codice_controllo INT)
+BEGIN
+	
+	SET conversazione_codice_controllo = NULL;
+	
+	-- ricerca del codice della conversazione, basando la ricerca sulla combinazione degli username   
+	if (id_conversation_check is null) then
+		SELECT Codice into conversazione_codice_controllo
+		FROM BachecaElettronicadb.Conversazione
+		WHERE BachecaElettronicadb.Conversazione.UCC_Username_1 = sender_username and BachecaElettronicadb.Conversazione.USCC_Username = receiver_username;
+			
+		if(conversazione_codice_controllo is null) then 
+			SELECT Codice into conversazione_codice_controllo
+			FROM BachecaElettronicadb.Conversazione
+			WHERE BachecaElettronicadb.Conversazione.UCC_Username_1 = sender_username and BachecaElettronicadb.Conversazione.UCC_Username_2 = receiver_username;
+		end if;
+		if(conversazione_codice_controllo is null) then 
+			SELECT Codice into conversazione_codice_controllo
+			FROM BachecaElettronicadb.Conversazione
+			WHERE BachecaElettronicadb.Conversazione.UCC_Username_1 = receiver_username and BachecaElettronicadb.Conversazione.UCC_Username_2 = sender_username;
+		end if;
+		if(conversazione_codice_controllo is null) then 
+			SELECT Codice into conversazione_codice_controllo
+			FROM BachecaElettronicadb.Conversazione
+			WHERE BachecaElettronicadb.Conversazione.UCC_Username_1 = receiver_username and BachecaElettronicadb.Conversazione.USCC_Username = sender_username;
+		end if;
+		
+		if(conversazione_codice_controllo is null) then 			-- errore, conversazione non trovata quindi inesistente
+			SET conversazione_codice_controllo = -1;
+		end if;
+	end if;
+		
+	-- Controlla che gli utenti, con gli username passati, siano autorizzati ad accedere al codice di conversazione passato   
+	if (id_conversation_check is not null) then	
+		SELECT Codice into conversazione_codice_controllo
+		FROM BachecaElettronicadb.Conversazione
+		WHERE BachecaElettronicadb.Conversazione.Codice = id_conversation_check and BachecaElettronicadb.Conversazione.UCC_Username_1 = sender_username and BachecaElettronicadb.Conversazione.USCC_Username = receiver_username;
+			
+		if(conversazione_codice_controllo is null) then 
+			SELECT Codice into conversazione_codice_controllo
+			FROM BachecaElettronicadb.Conversazione
+			WHERE BachecaElettronicadb.Conversazione.Codice = id_conversation_check and BachecaElettronicadb.Conversazione.UCC_Username_1 = sender_username and BachecaElettronicadb.Conversazione.UCC_Username_2 = receiver_username;
+		end if;
+		if(conversazione_codice_controllo is null) then 
+			SELECT Codice into conversazione_codice_controllo
+			FROM BachecaElettronicadb.Conversazione
+			WHERE BachecaElettronicadb.Conversazione.Codice = id_conversation_check and BachecaElettronicadb.Conversazione.UCC_Username_1 = receiver_username and BachecaElettronicadb.Conversazione.UCC_Username_2 = sender_username;
+		end if;
+		if(conversazione_codice_controllo is null) then 
+			SELECT Codice into conversazione_codice_controllo
+			FROM BachecaElettronicadb.Conversazione
+			WHERE BachecaElettronicadb.Conversazione.Codice = id_conversation_check and BachecaElettronicadb.Conversazione.UCC_Username_1 = receiver_username and BachecaElettronicadb.Conversazione.USCC_Username = sender_username;
+		end if;
+		
+		if(conversazione_codice_controllo is null) then 			-- errore, conversazione non trovata quindi inesistente
+			SET conversazione_codice_controllo = -1;
+		end if;
+	end if;
+	
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
+
 -- Visualizza messaggio ---------------------------------------------- Impostare un livello di isolamento
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaMessaggio ;
-CREATE PROCEDURE BachecaElettronicadb.visualizzaMessaggio (IN sender_username VARCHAR(45), IN receiver_username VARCHAR(45))
+CREATE PROCEDURE BachecaElettronicadb.visualizzaMessaggio (IN id_conversation INT, sender_username VARCHAR(45), IN receiver_username VARCHAR(45))
 BEGIN
 	
 	-- sender_username è l'username dell'utente che sta chiamando la stored procedure
@@ -513,32 +564,21 @@ BEGIN
 	
 	declare conversazione_codice INT DEFAULT NULL;
 	
-	-- stesso procedimento per la ricerca del codice della conversazione
-	SELECT Codice into conversazione_codice
-	FROM BachecaElettronicadb.Conversazione
-	WHERE BachecaElettronicadb.Conversazione.UCC_Username_1 = sender_username and BachecaElettronicadb.Conversazione.USCC_Username = receiver_username;
-
-	if(conversazione_codice is null) then 
-		SELECT Codice into conversazione_codice
-		FROM BachecaElettronicadb.Conversazione
-		WHERE BachecaElettronicadb.Conversazione.UCC_Username_1 = sender_username and BachecaElettronicadb.Conversazione.UCC_Username_2 = receiver_username;
-	end if;
-	if(conversazione_codice is null) then 
-		SELECT Codice into conversazione_codice
-		FROM BachecaElettronicadb.Conversazione
-		WHERE BachecaElettronicadb.Conversazione.UCC_Username_1 = receiver_username and BachecaElettronicadb.Conversazione.UCC_Username_2 = sender_username;
-	end if;
-	if(conversazione_codice is null) then 
-		SELECT Codice into conversazione_codice
-		FROM BachecaElettronicadb.Conversazione
-		WHERE BachecaElettronicadb.Conversazione.UCC_Username_1 = receiver_username and BachecaElettronicadb.Conversazione.USCC_Username = sender_username;
+	-- l'utente ha passato un codice di conversazione, probabilmente visualizzando lo storico 
+	if(id_conversation is not null) then
+		call controllo_conversazione(id_conversation, sender_username, receiver_username, conversazione_codice);
+		IF (conversazione_codice = -1) then
+			signal sqlstate '45012' set message_text = 'You are not authorized to access this conversation';
+		end IF;
 	end if;
 	
-	if(conversazione_codice is null) then 			-- errore, conversazione non trovata quindi inesistente
+	if(id_conversation is null) then
+		call controllo_conversazione(NULL, sender_username, receiver_username, conversazione_codice);
+	end if;
+	
+	if(conversazione_codice = -1) then 			-- errore, conversazione non trovata quindi inesistente
 		signal sqlstate '45011' set message_text = 'Conversation not found'; 
-	end if;
-	
-	if(conversazione_codice is not null) then 
+	else
 		SELECT Testo, Data
 		FROM BachecaElettronicadb.Messaggio
 		WHERE BachecaElettronicadb.Messaggio.Conversazione_Codice = conversazione_codice
@@ -549,31 +589,110 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Seguire un annuncio UCC -------------------------------------------
+-- Visualizzazione Storico UCC --------------------------------------- Impostare un livello di isolamento
 DELIMITER //
-DROP PROCEDURE IF EXISTS BachecaElettronicadb.seguiAnnuncioUCC ;
-CREATE PROCEDURE BachecaElettronicadb.seguiAnnuncioUCC (IN codice_annuncio INT, IN ucc_username VARCHAR(45))
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaStorico_UCC ;
+CREATE PROCEDURE BachecaElettronicadb.visualizzaStorico_UCC (IN ucc_username VARCHAR(45))
 BEGIN
-	if (SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=codice_annuncio and Stato='Attivo') = 0 then
-		signal sqlstate '45006' set message_text = "Ad not found";
+	
+	declare idStorico INT;
+	
+	if ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username = ucc_username) <> 1) then
+		signal sqlstate '45000' set message_text = 'User not found';
 	end if;
 	
-	INSERT INTO BachecaElettronicadb.`Seguito-UCC`(UCC_Username, Annuncio_Codice) VALUES(ucc_username, codice_annuncio);
+	-- Trova il codice dello storico creato nel momento della registrazione 
+	SELECT StoricoConversazione_ID INTO idStorico FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username = ucc_username;
+	
+	-- Stampa tutte le conversazioni dell'utente con il relativo partecipante 
+	SELECT Codice, UCC_Username_2 AS 'Username utente UCC', USCC_Username AS 'Username utente USCC'
+	FROM BachecaElettronicadb.Conversazione
+	WHERE BachecaElettronicadb.Conversazione.Codice in (SELECT CodiceConv
+														FROM BachecaElettronicadb.ConversazioneCodice
+														WHERE BachecaElettronicadb.ConversazioneCodice.StoricoConversazione_ID = idStorico);
+		
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
+
+-- Visualizzazione Storico USCC -------------------------------------- Impostare un livello di isolamento
+DELIMITER //
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaStorico_USCC ;
+CREATE PROCEDURE BachecaElettronicadb.visualizzaStorico_USCC (IN uscc_username VARCHAR(45))
+BEGIN
+	
+	
+	declare idStorico INT;
+	
+	if ((SELECT(count(Username)) FROM BachecaElettronicadb.USCC WHERE BachecaElettronicadb.USCC.Username = uscc_username) <> 1) then
+		signal sqlstate '45000' set message_text = 'User not found';
+	end if;
+	
+	-- Trova il codice dello storico creato nel momento della registrazione 
+	SELECT StoricoConversazione_ID INTO idStorico FROM BachecaElettronicadb.USCC WHERE BachecaElettronicadb.USCC.Username = uscc_username;
+	
+	-- Stampa tutte le conversazioni dell'utente con il relativo partecipante 
+	SELECT Codice, UCC_Username_1 AS 'Username utente UCC', UCC_Username_2 AS 'Username utente UCC'
+	FROM BachecaElettronicadb.Conversazione
+	WHERE BachecaElettronicadb.Conversazione.Codice in (SELECT CodiceConv
+														FROM BachecaElettronicadb.ConversazioneCodice
+														WHERE BachecaElettronicadb.ConversazioneCodice.StoricoConversazione_ID = idStorico);
 
 END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Seguire un annuncio USCC ------------------------------------------
+-- Seguire un annuncio -----------------------------------------------
 DELIMITER //
-DROP PROCEDURE IF EXISTS BachecaElettronicadb.seguiAnnuncioUSCC ;
-CREATE PROCEDURE BachecaElettronicadb.seguiAnnuncioUSCC (IN codice_annuncio INT, IN uscc_username VARCHAR(45))
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.segui_Annuncio ;
+CREATE PROCEDURE BachecaElettronicadb.segui_Annuncio (IN codice_annuncio INT, IN username VARCHAR(45))
 BEGIN
-	if (SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=codice_annuncio and Stato='Attivo') = 0 then
-		signal sqlstate '45006' set message_text = "Ad not found";
-	end if;		
+	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice = codice_annuncio) = 0) then
+		signal sqlstate '45006' set message_text = 'Ad not found';
+	end if;
 	
-	INSERT INTO BachecaElettronicadb.`Seguito-USCC`(USCC_Username, Annuncio_Codice) VALUES(uscc_username, codice_annuncio);
+	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice = codice_annuncio and BachecaElettronicadb.Annuncio.Stato = 'Attivo') = 0) then
+		signal sqlstate '45007' set message_text = 'Ad not active now';
+	end if;
+	
+	if ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username = username) <> 1) then
+		IF ((SELECT(count(Username)) FROM BachecaElettronicadb.USCC WHERE BachecaElettronicadb.USCC.Username = username) <> 1) THEN
+			signal sqlstate '45000' set message_text = 'User not found';
+		ELSE
+			INSERT INTO BachecaElettronicadb.`Seguito-USCC`(USCC_Username, Annuncio_Codice) VALUES(username, codice_annuncio);
+		end IF;
+	else	
+		INSERT INTO BachecaElettronicadb.`Seguito-UCC`(UCC_Username, Annuncio_Codice) VALUES(username, codice_annuncio);
+	end if;
+	
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
+
+-- Visualizzazione degli Annunci seguiti ----------------------------- Impostare un livello di isolamento
+DELIMITER //
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizza_Annunci_Seguiti ;
+CREATE PROCEDURE BachecaElettronicadb.visualizza_Annunci_Seguiti (IN username VARCHAR(45))
+BEGIN
+	
+	/* Nota
+	 * L'idea è: Verifica che l'utente sia un UCC, altrimenti controlla se è un USCC.
+	 * Se non fosse nè UCC e nè USCC allora l'utente non esiste
+	 */	
+	
+	if ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username = username) <> 1) then
+		IF ((SELECT(count(Username)) FROM BachecaElettronicadb.USCC WHERE BachecaElettronicadb.USCC.Username = username) <> 1) THEN
+			signal sqlstate '45000' set message_text = 'User not found';
+		ELSE
+			SELECT annuncio.Codice, annuncio.Stato
+			FROM BachecaElettronicadb.`Seguito-USCC` AS seguiti JOIN BachecaElettronicadb.Annuncio AS annuncio ON seguiti.Annuncio_Codice = annuncio.Codice
+			WHERE seguiti.USCC_Username = username;
+		end IF;
+	else
+		SELECT annuncio.Codice, annuncio.Stato
+		FROM BachecaElettronicadb.`Seguito-UCC` AS seguiti JOIN BachecaElettronicadb.Annuncio AS annuncio ON seguiti.Annuncio_Codice = annuncio.Codice
+		WHERE seguiti.UCC_Username = username;
+	end if;
 
 END//
 DELIMITER ;
@@ -626,13 +745,17 @@ DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.rimuoviAnnuncio ;
 CREATE PROCEDURE BachecaElettronicadb.rimuoviAnnuncio (IN codice_annuncio INT)
 BEGIN
-	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=codice_annuncio and BachecaElettronicadb.Annuncio.Stato='Attivo') <> 1) then
+	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=codice_annuncio) <> 1) then
 		signal sqlstate '45006' set message_text = 'Ad not found';
 	end if;
 	
+	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice = codice_annuncio and BachecaElettronicadb.Annuncio.Stato = 'Attivo') <> 1) then
+		signal sqlstate '45007' set message_text = 'Ad not active now';
+	end if;
+	
 	UPDATE BachecaElettronicadb.Annuncio
-	SET Stato = 'Rimosso'
-	WHERE BachecaElettronicadb.Annuncio.Codice=codice_annuncio AND BachecaElettronicadb.Annuncio.Stato='Attivo';
+	SET BachecaElettronicadb.Annuncio.Stato = 'Rimosso'
+	WHERE BachecaElettronicadb.Annuncio.Codice = codice_annuncio AND BachecaElettronicadb.Annuncio.Stato = 'Attivo';
 
 END//
 DELIMITER ;
@@ -643,42 +766,18 @@ DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.vendutoAnnuncio ;
 CREATE PROCEDURE BachecaElettronicadb.vendutoAnnuncio (IN codice_annuncio INT)
 BEGIN
-	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=codice_annuncio and BachecaElettronicadb.Annuncio.Stato='Attivo') <> 1) then
+	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=codice_annuncio) <> 1) then
 		signal sqlstate '45006' set message_text = 'Ad not found';
 	end if;
 	
+	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice = codice_annuncio and BachecaElettronicadb.Annuncio.Stato = 'Attivo') <> 1) then
+		signal sqlstate '45007' set message_text = 'Ad not active now';
+	end if;
+	
 	UPDATE BachecaElettronicadb.Annuncio
-	SET Stato = 'Venduto'
-	WHERE BachecaElettronicadb.Annuncio.Codice=codice_annuncio AND BachecaElettronicadb.Annuncio.Stato='Attivo';
+	SET BachecaElettronicadb.Annuncio.Stato = 'Venduto'
+	WHERE BachecaElettronicadb.Annuncio.Codice = codice_annuncio AND BachecaElettronicadb.Annuncio.Stato = 'Attivo';
 
-END//
-DELIMITER ;
--- -------------------------------------------------------------------
-
--- Visualizzazione degli Annunci seguiti UCC ------------------------- Impostare un livello di isolamento
-DELIMITER //
-DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaAnnunciSeguiti_UCC ;
-CREATE PROCEDURE BachecaElettronicadb.visualizzaAnnunciSeguiti_UCC (IN ucc_username VARCHAR(45))
-BEGIN
-	if ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE Username=ucc_username) = 1) then
-		SELECT Annuncio_Codice, Stato
-		FROM BachecaElettronicadb.`Seguito-UCC` AS seguiti JOIN BachecaElettronicadb.Annuncio AS annuncio ON seguiti.Annuncio_Codice=annuncio.Codice
-		WHERE seguiti.UCC_Username = ucc_username;
-	end if;
-END//
-DELIMITER ;
--- -------------------------------------------------------------------
-
--- Visualizzazione degli Annunci seguiti USCC ------------------------ Impostare un livello di isolamento
-DELIMITER //
-DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaAnnunciSeguiti_USCC ;
-CREATE PROCEDURE BachecaElettronicadb.visualizzaAnnunciSeguiti_USCC (IN uscc_username VARCHAR(45))
-BEGIN
-	if ((SELECT(count(Username)) FROM BachecaElettronicadb.USCC WHERE Username=uscc_username) = 1) then
-		SELECT Annuncio_Codice, Stato
-		FROM BachecaElettronicadb.`Seguito-USCC` AS seguiti JOIN BachecaElettronicadb.Annuncio AS annuncio ON seguiti.Annuncio_Codice=annuncio.Codice
-		WHERE seguiti.USCC_Username = uscc_username;
-	end if;
 END//
 DELIMITER ;
 -- -------------------------------------------------------------------
@@ -743,105 +842,30 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Visualizzazione Storico USCC -------------------------------------- Impostare un livello di isolamento
+-- Visualizzazione informazioni utente ------------------------------- Impostare un livello di isolamento
 DELIMITER //
-DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaStorico_USCC ;
-CREATE PROCEDURE BachecaElettronicadb.visualizzaStorico_USCC (IN uscc_username VARCHAR(45))
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizza_Info_Utente ;
+CREATE PROCEDURE BachecaElettronicadb.visualizza_Info_Utente (IN username VARCHAR(45))
 BEGIN
-	declare idStorico INT;
-	if ((SELECT(count(Username)) FROM BachecaElettronicadb.USCC WHERE Username=uscc_username) = 1) then
-		SELECT StoricoConversazione_ID INTO idStorico FROM BachecaElettronicadb.USCC WHERE Username=uscc_username;
-		
-		SELECT CodiceConv AS `Codice Conversazione`
-		FROM BachecaElettronicadb.ConversazioneCodice
-		WHERE StoricoConversazione_ID = idStorico;
-	end if;
-END//
-DELIMITER ;
--- -------------------------------------------------------------------
-
--- Visualizzazione Storico UCC --------------------------------------- Impostare un livello di isolamento
-DELIMITER //
-DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaStorico_UCC ;
-CREATE PROCEDURE BachecaElettronicadb.visualizzaStorico_UCC (IN ucc_username VARCHAR(45))
-BEGIN
-	declare idStorico INT;
-	if ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE Username=ucc_username) = 1) then
-		SELECT StoricoConversazione_ID INTO idStorico FROM BachecaElettronicadb.UCC WHERE Username=ucc_username;
-		
-		SELECT CodiceConv AS `Codice Conversazione`
-		FROM BachecaElettronicadb.ConversazioneCodice
-		WHERE StoricoConversazione_ID = idStorico;
-	end if;
-END//
-DELIMITER ;
--- -------------------------------------------------------------------
-
--- Selezione Conversazione dallo Storico UCC -------------------------
-DELIMITER //
-DROP PROCEDURE IF EXISTS BachecaElettronicadb.selezionaConversazioneStorico_UCC ;
-CREATE PROCEDURE BachecaElettronicadb.selezionaConversazioneStorico_UCC (IN ucc_username VARCHAR(45), IN codiceConv INT)
-BEGIN
-	declare idStorico INT;
-	if ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE Username=ucc_username) = 1) then
-		SELECT StoricoConversazione_ID INTO idStorico FROM BachecaElettronicadb.UCC WHERE Username=ucc_username;
-		
-		SELECT CodiceConv AS `Codice Conversazione`
-		FROM BachecaElettronicadb.ConversazioneCodice
-		WHERE StoricoConversazione_ID = idStorico and CodiceConv = codiceConv;
-	end if;
-END//
-DELIMITER ;
--- -------------------------------------------------------------------
-
--- Selezione Conversazione dallo Storico USCC ------------------------
-DELIMITER //
-DROP PROCEDURE IF EXISTS BachecaElettronicadb.selezionaConversazioneStorico_USCC ;
-CREATE PROCEDURE BachecaElettronicadb.selezionaConversazioneStorico_USCC (IN ucc_username VARCHAR(45), IN codiceConv INT)
-BEGIN
-	declare idStorico INT;
-	if ((SELECT(count(Username)) FROM BachecaElettronicadb.USCC WHERE Username=uscc_username) = 1) then
-		SELECT StoricoConversazione_ID INTO idStorico FROM BachecaElettronicadb.USCC WHERE Username=uscc_username;
-		
-		SELECT CodiceConv AS `Codice Conversazione`
-		FROM BachecaElettronicadb.ConversazioneCodice
-		WHERE StoricoConversazione_ID = idStorico and CodiceConv = codiceConv;
-	end if;
-END//
-DELIMITER ;
--- -------------------------------------------------------------------
-
--- Visualizzazione informazioni utente UCC --------------------------- Impostare un livello di isolamento
-DELIMITER //
-DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaUtenteUCC ;
-CREATE PROCEDURE BachecaElettronicadb.visualizzaUtenteUCC (IN username VARCHAR(45))
-BEGIN
+	
+	/* Nota
+	 * L'idea è: Verifica che l'utente sia un UCC, altrimenti controlla se è un USCC.
+	 * Se non sarà nè UCC e nè USCC allora l'utente non esiste
+	 */	
 	
 	if ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username=username) <> 1) then
-		signal sqlstate '45000' set message_text = 'User not found';
+		IF ((SELECT(count(Username)) FROM BachecaElettronicadb.USCC WHERE BachecaElettronicadb.USCC.Username=username) <> 1) THEN
+			signal sqlstate '45000' set message_text = 'User not found';
+		ELSE
+			SELECT Username, Password, CF_Anagrafico
+			FROM BachecaElettronicadb.USCC
+			WHERE BachecaElettronicadb.USCC.Username=username;
+		end IF;
+	else
+		SELECT Username, Password, NumeroCarta, DataScadenza, CVC, CF_Anagrafico
+		FROM BachecaElettronicadb.UCC
+		WHERE BachecaElettronicadb.UCC.Username = username;
 	end if;
-	
-	SELECT Username, Password, NumeroCarta, DataScadenza, CVC, CF_Anagrafico
-	FROM BachecaElettronicadb.UCC
-	WHERE BachecaElettronicadb.UCC.Username=username;
-	
-END//
-DELIMITER ;
--- -------------------------------------------------------------------
-
--- Visualizzazione informazioni utente USCC --------------------------- Impostare un livello di isolamento
-DELIMITER //
-DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaUtenteUSCC ;
-CREATE PROCEDURE BachecaElettronicadb.visualizzaUtenteUSCC (IN username VARCHAR(45))
-BEGIN
-			
-	if ((SELECT(count(Username)) FROM BachecaElettronicadb.USCC WHERE BachecaElettronicadb.USCC.Username=username) <> 1) then
-		signal sqlstate '45000' set message_text = 'User not found';
-	end if;
-	
-	SELECT Username, Password, CF_Anagrafico
-	FROM BachecaElettronicadb.USCC
-	WHERE BachecaElettronicadb.USCC.Username=username;	
 	
 END//
 DELIMITER ;

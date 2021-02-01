@@ -5,4 +5,4 @@ all:
 	$(CC) -Wall -Wextra *.c -o main $(OTPS)
 
 clean:
-	rm main
+	rm *.o main
