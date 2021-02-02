@@ -6,6 +6,13 @@
 #include <stdbool.h>
 #include <mysql.h>
 
+#define MAX_AD_CODE_LENGHT 10
+#define MAX_COMMENT_ID_LENGHT 10
+#define MAX_NOTE_ID_LENGHT 10
+#define MAX_CF_LENGHT 17
+#define MAX_CODE_CONVERSATION 10
+#define MAX_LENGHT_USERNAME 45
+
 
 struct configuration {
 	char *host;

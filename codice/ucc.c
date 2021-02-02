@@ -1,13 +1,5 @@
 #include "defines.h"
 
-
-#define MAX_AD_CODE_LENGHT 10
-#define MAX_COMMENT_ID_LENGHT 10
-#define MAX_NOTE_ID_LENGHT 10
-#define MAX_CF_LENGHT 17
-#define MAX_CODE_CONVERSATION 10
-
-
 struct configuration conf;
 MYSQL *conn;
 int ad_code;
@@ -788,7 +780,7 @@ void insert_remove_contact() {
 	getInput(MAX_CF_LENGHT, cf, false);
 	
 	// Check if the user has this fiscal code
-	if(!view_personal_information_uscc(cf, conf.username, 1))
+	if(!view_personal_information(cf, conf.username, 1))
 		return;
 	
 	request = yesOrNo("Do you want to add a contact?", 'y', 'n');
@@ -1109,13 +1101,38 @@ void view_ad_followed() {
 	return;
 }
 
+void view_report_ucc() {
+	MYSQL_STMT *prepared_stmt;
+	MYSQL_BIND param[1];
+		
+	memset(param, 0, sizeof(param));
+	
+	param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[0].buffer = conf.username;
+	param[0].buffer_length = strlen(conf.username);
+	
+	if (!setup_prepared_stmt(&prepared_stmt, "call visualizza_report(?)", conn))
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize report statement", true);
+	
+	if (mysql_stmt_bind_param(prepared_stmt, param) != 0)
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to bind parameters to collect the report", true);
+	
+	if (mysql_stmt_execute(prepared_stmt) != 0)
+		print_stmt_error(prepared_stmt, NULL);
+	else
+		dump_result_set(conn, prepared_stmt, "Reports\n");
+	
+	mysql_stmt_close(prepared_stmt);
+	return;
+}
+
 
 int run_as_ucc(MYSQL *main_conn, struct configuration main_conf){
 	conn = main_conn;
 	conf = main_conf;
 	ad_code = -1;
-	int num_list = 20, chosen_num;																									// length of list
-	char *list[] = {"1","2","3","4","5","6","7","8","9","10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"};				// list of choice
+	int num_list = 21, chosen_num;																												// length of list
+	char *list[] = {"1","2","3","4","5","6","7","8","9","10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"};				// list of choice
 	char option;
 	
 	print_color("Welcome ", "cyan", ' ', true, false, true, false);
@@ -1159,7 +1176,8 @@ int run_as_ucc(MYSQL *main_conn, struct configuration main_conf){
 		print_color(list[16], "light blue", ' ', true, false, false, false); print_color(") View your conversation history", "orange", ' ', false, false, false, false);
 		print_color(list[17], "light blue", ' ', true, false, false, false); print_color(") Follow an ad", "light cyan", ' ', false, false, false, false);
 		print_color(list[18], "light blue", ' ', true, false, false, false); print_color(") View ad followed", "orange", ' ', false, false, false, false);
-		print_color(list[19], "light red", ' ', true, false, false, false); print_color(") quit", "light red", ' ', false, true, false, false);
+		print_color(list[19], "light blue", ' ', true, false, false, false); print_color(") View own report", "light cyan", ' ', false, false, false, false);
+		print_color(list[20], "light red", ' ', true, false, false, false); print_color(") quit", "light red", ' ', false, true, false, false);
 
 		multiChoice("Which do you choose?", list, num_list, &chosen_num, &option);
 		
@@ -1230,8 +1248,11 @@ int run_as_ucc(MYSQL *main_conn, struct configuration main_conf){
 			case 17:	
 				follow_ad();
 				break;
-			case 19:	
+			case 18:	
 				view_ad_followed();
+				break;
+			case 19:	
+				view_report_ucc();
 				break;
 			default:
 				print_color("  Error to choose a number", "red", ' ', false, true, false, true);

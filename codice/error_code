@@ -27,3 +27,9 @@ List of error codes
 45012 = 'You are not authorized to access this conversation'
 
 45013 = 'You cannot write to another USCC user'
+
+45014 = 'This user has not sold any ads'
+
+45015 = 'Report not found'
+
+45016 = 'Report already collected'

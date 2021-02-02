@@ -26,6 +26,8 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Amministratore` (
   PRIMARY KEY (`Username`))
 ENGINE = InnoDB;
 
+CREATE UNIQUE INDEX `Username_UNIQUE` ON `BachecaElettronicadb`.`Amministratore` (`Username` ASC) VISIBLE;
+
 
 -- -----------------------------------------------------
 -- Table `BachecaElettronicadb`.`Categoria`
@@ -113,6 +115,7 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Annuncio` (
   `Descrizione` VARCHAR(100) NOT NULL,
   `Importo` INT NOT NULL,
   `Foto` VARCHAR(9) NULL DEFAULT NULL,
+  `Report_calcolato` TINYINT NOT NULL DEFAULT 0,
   `UCC_Username` VARCHAR(45) NOT NULL,
   `Categoria_Nome` VARCHAR(20) NOT NULL,
   PRIMARY KEY (`Codice`),
@@ -344,21 +347,25 @@ CREATE INDEX `fk_RecapitoNonPreferito_InformazioneAnagrafica1_idx` ON `BachecaEl
 DROP TABLE IF EXISTS `BachecaElettronicadb`.`Report` ;
 
 CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Report` (
+  `Codice` INT NOT NULL AUTO_INCREMENT,
   `UCC_Username` VARCHAR(45) NOT NULL,
   `ImportoTotale` INT NOT NULL,
   `NumeroCarta` VARCHAR(16) NOT NULL,
-  `Data` DATETIME NOT NULL,
-  `Riscosso` INT NOT NULL DEFAULT '0',
-  `SommaAmministratore` INT NOT NULL DEFAULT '0',
-  PRIMARY KEY (`UCC_Username`),
+  `Data` DATE NOT NULL,
+  `NumeroAnnunci` INT NOT NULL,
+  `Riscosso_UCC` TINYINT NOT NULL DEFAULT 0,
+  `Riscosso_Amministratore` TINYINT NOT NULL DEFAULT 0,
+  `Importo_Amministratore` INT NOT NULL DEFAULT 0,
+  `Importo_UCC` INT NOT NULL DEFAULT 0,
+  PRIMARY KEY (`Codice`, `UCC_Username`),
   CONSTRAINT `fk_Report_UCC1`
     FOREIGN KEY (`UCC_Username`)
     REFERENCES `BachecaElettronicadb`.`UCC` (`Username`))
 ENGINE = InnoDB;
 
-CREATE UNIQUE INDEX `UCC_Username_UNIQUE` ON `BachecaElettronicadb`.`Report` (`UCC_Username` ASC) VISIBLE;
-
 CREATE INDEX `fk_Report_UCC1_idx` ON `BachecaElettronicadb`.`Report` (`UCC_Username` ASC) VISIBLE;
+
+CREATE UNIQUE INDEX `Codice_UNIQUE` ON `BachecaElettronicadb`.`Report` (`Codice` ASC) VISIBLE;
 
 
 -- -----------------------------------------------------

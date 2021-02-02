@@ -104,12 +104,12 @@ int main(void){
 	restart:	if (yesOrNo("Do you want continue?", 'y', 'n') == false) goto exit;
 	
 	start:
-		strcat(conf.username, "inglucssi");
-		strcat(conf.password, "da8a0e5a");
+		//strcat(conf.username, "inglucssi");
+		//strcat(conf.password, "da8a0e5a");
 		//strcat(conf.username, "ingediero");
 		//strcat(conf.password, "a46e76a9");
-		//strcat(conf.username, "amm1");
-		//strcat(conf.password, "password");
+		strcat(conf.username, "amm1");
+		strcat(conf.password, "password");
 		//printf("Username: ");
 		//getInput(45, conf.username, false);
 		//printf("Password: ");

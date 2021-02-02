@@ -276,19 +276,19 @@ BEGIN
 	end if;
 	
 	IF ((annuncio_codice IS NOT NULL) AND (username IS NOT NULL)) THEN
-		SELECT *
+		SELECT Codice, Stato, Descrizione, Importo, Foto, UCC_Username AS 'Proprietario', Categoria_Nome AS 'Categoria'
 		FROM BachecaElettronicadb.Annuncio
 		WHERE BachecaElettronicadb.Annuncio.UCC_Username=username AND BachecaElettronicadb.Annuncio.Codice=annuncio_codice AND BachecaElettronicadb.Annuncio.Stato='Attivo';
 	ELSEIF ((annuncio_codice IS NULL) AND (username IS NOT NULL)) THEN
-		SELECT *
+		SELECT Codice, Stato, Descrizione, Importo, Foto, UCC_Username AS 'Proprietario', Categoria_Nome AS 'Categoria'
 		FROM BachecaElettronicadb.Annuncio
 		WHERE BachecaElettronicadb.Annuncio.UCC_Username=username AND BachecaElettronicadb.Annuncio.Stato='Attivo';
 	ELSEIF ((annuncio_codice IS NOT NULL) AND (username IS NULL)) THEN
-		SELECT *
+		SELECT Codice, Stato, Descrizione, Importo, Foto, UCC_Username AS 'Proprietario', Categoria_Nome AS 'Categoria'
 		FROM BachecaElettronicadb.Annuncio
 		WHERE BachecaElettronicadb.Annuncio.Codice=annuncio_codice AND BachecaElettronicadb.Annuncio.Stato='Attivo';
 	ELSE
-		SELECT *
+		SELECT Codice, Stato, Descrizione, Importo, Foto, UCC_Username AS 'Proprietario', Categoria_Nome AS 'Categoria'
 		FROM BachecaElettronicadb.Annuncio 
 		WHERE BachecaElettronicadb.Annuncio.Stato='Attivo';
 	end IF;
@@ -792,12 +792,19 @@ DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.generaReport ;
 CREATE PROCEDURE BachecaElettronicadb.generaReport (IN ucc_username VARCHAR(45))
 BEGIN
+	
 	declare numeroCarta VARCHAR(16);
 	declare codice_annuncio INT;
-	declare importo INT DEFAULT 0;
-	declare loop_import INT DEFAULT 0;
-	declare sum_import CURSOR FOR SELECT Codice FROM BachecaElettronica.Annuncio WHERE UCC_Username=ucc_username and Stato='Venduto';
-	declare continue handler for not found set loop_import=1;
+	declare numero_annunci INT DEFAULT 0;
+	declare importo_totale INT DEFAULT 0;
+	declare loop_amount INT DEFAULT 0;
+	declare cur_id_annuncio CURSOR FOR SELECT Codice FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.UCC_Username = ucc_username and BachecaElettronicadb.Annuncio.Stato = 'Venduto';
+	declare CONTINUE HANDLER FOR NOT FOUND SET loop_amount = 1;
+	
+	/*NOTA
+	 * L'idea è: Calcolare la somma degli importi di tutti
+	 * gli annunci venduti non riscossi
+	 */
 	
 	-- begin 
 		-- rollback;
@@ -805,43 +812,129 @@ BEGIN
 	-- end;
 	
 	-- start transaction;
-		if ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE Username=ucc_username) = 1) then
-			
-			SELECT NumeroCarta INTO numeroCarta FROM BachecaElettronicadb.UCC WHERE Username=ucc_username;
-			
-			if sum_import is not null then
-				OPEN sum_import;
-				calculate_import: WHILE(loop_import=0) DO
-					FETCH sum_import INTO codice_annuncio;
-					IF loop_import = 1 THEN
-						LEAVE calculate_import;
-					END IF;
-					SET importo = importo + (SELECT Importo FROM BachecaElettronicadb.Annuncio WHERE Codice=codice_annuncio);
-				end  WHILE;
-				CLOSE sum_import;
-			end if;
+	
+	if ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username = ucc_username) <> 1) then
+		signal sqlstate '45000' set message_text = "User not found";
+	end if;
+	
+	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.UCC_Username = ucc_username and BachecaElettronicadb.Annuncio.Stato = 'Venduto') = 0) then
+		signal sqlstate '45014' set message_text = 'This user has not sold any ads';
+	end if;
+	
+	-- Cerca il numero di carta dell'utente
+	SELECT BachecaElettronicadb.UCC.NumeroCarta INTO numeroCarta 
+	FROM BachecaElettronicadb.UCC 
+	WHERE BachecaElettronicadb.UCC.Username = ucc_username;
 		
-			INSERT INTO BachecaElettronicadb.Report (UCC_Username, ImportoTotale, NumeroCarta, Data, Riscosso, SommaAmministratore)
-			VALUES(ucc_username, importo, numeroCarta, now(), 0, 0);
-		else
-			signal sqlstate '45000' set message_text = "User not found\n";
-		end if;
+	-- Calcola l'importo totale degli annunci venduti ancora non riscossi 
+	OPEN cur_id_annuncio;
+	calculate_amount: LOOP
+					  FETCH cur_id_annuncio INTO codice_annuncio;
+					  
+					  IF loop_amount = 1 THEN
+					  	LEAVE calculate_amount;
+					  end IF;
+					  
+					  SET numero_annunci = numero_annunci + 1;
+					  SET importo_totale = importo_totale + (SELECT Importo 
+					  										 FROM BachecaElettronicadb.Annuncio
+					  										 WHERE BachecaElettronicadb.Annuncio.Codice = codice_annuncio AND BachecaElettronicadb.Annuncio.Report_calcolato = false);
+					  
+					  -- Imposta a true l'attributo in modo tale da non essere ricalcolato
+					  UPDATE BachecaElettronicadb.Annuncio 
+					  WHERE BachecaElettronicadb.Annuncio.Codice = codice_annuncio
+					  SET BachecaElettronicadb.Annuncio.Report_calcolato = true;
+
+	end LOOP calculate_amount;
+	CLOSE cur_id_annuncio;
+
+	INSERT INTO BachecaElettronicadb.Report (Codice, UCC_Username, ImportoTotale, NumeroCarta, Data, NumeroAnnunci, Riscosso_UCC, Riscosso_Amministratore, Importo_Amministratore, Importo_UCC)
+	VALUES(NULL, ucc_username, importo_totale, numeroCarta, now(), numero_annunci, false, false, 0, importo_totale);
+		
 	-- commit;
 END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Riscossione di un report ------------------------------------------
+-- Riscossione di un report UCC -------------------------------------- Impostare un livello di isolamento 
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.riscossioneReport ;
-CREATE PROCEDURE BachecaElettronicadb.riscossioneReport (IN ucc_username VARCHAR(45), IN data DATETIME)
+CREATE PROCEDURE BachecaElettronicadb.riscossioneReport (IN codice_report INT, IN ucc_username VARCHAR(45))
 BEGIN
 		declare importo INT;
-		SELECT ImportoTotale FROM BachecaElettronicadb.Report WHERE UCC_Username=ucc_username and Data=data INTO importo;
+		
+		if ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username = ucc_username) <> 1) then
+			signal sqlstate '45000' set message_text = 'User not found';
+		end if;
+		
+		if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Report WHERE BachecaElettronicadb.Report.Codice = codice_report and BachecaElettronicadb.Report.UCC_Username = ucc_username) <> 1) then
+			signal sqlstate '45015' set message_text = 'Report not found';
+		end if;
+		
+		if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Report WHERE BachecaElettronicadb.Report.Codice = codice_report and BachecaElettronicadb.Report.Riscosso_Amministratore = false and BachecaElettronicadb.Report.Riscosso_UCC = false) <> 1) then
+			signal sqlstate '45016' set message_text = 'Report already collected';
+		end if;
+		
+		SELECT ImportoTotale INTO importo
+		FROM BachecaElettronicadb.Report 
+		WHERE BachecaElettronicadb.Report.Codice = codice_report and BachecaElettronicadb.Report.UCC_Username = ucc_username; -- basterebbe anche solo una ricerca sulla chiave codice essendo unica nel database 
 		
 		UPDATE BachecaElettronicadb.Report
-		SET Riscosso = 1, SommaAmministratore = importo*0.3
-		WHERE UCC_Username = ucc_username and Data = data and Riscosso = 0;
+		SET BachecaElettronicadb.Report.Riscosso_UCC = true
+		WHERE BachecaElettronicadb.Report.Codice = codice_report and BachecaElettronicadb.Report.UCC_Username = ucc_username and BachecaElettronicadb.Report.Riscosso_UCC = false;
+		
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
+
+-- Riscossione di un report Amministratore --------------------------- Impostare un livello di isolamento 
+DELIMITER //
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.riscossioneReport ;
+CREATE PROCEDURE BachecaElettronicadb.riscossioneReport (IN codice_report INT, IN ucc_username VARCHAR(45))
+BEGIN
+		declare importo INT;
+		
+		/*NOTA
+		 * L'idea è: L'amministratore riscuote la sua percentuale se l'utente UCC non ha già riscosso,
+		 * altrimenti il sistema calcola una percentuale del 3%
+		 */
+		
+		if ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username = ucc_username) <> 1) then
+			signal sqlstate '45000' set message_text = 'User not found';
+		end if;
+		
+		if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Report WHERE BachecaElettronicadb.Report.Codice = codice_report and BachecaElettronicadb.Report.UCC_Username = ucc_username) <> 1) then
+			signal sqlstate '45015' set message_text = 'Report not found';
+		end if;
+		
+		if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Report WHERE BachecaElettronicadb.Report.Codice = codice_report and BachecaElettronicadb.Report.Riscosso_Amministratore = false and BachecaElettronicadb.Report.Riscosso_UCC = false) <> 1) then
+			signal sqlstate '45016' set message_text = 'Report already collected';
+		end if;
+		
+		SELECT ImportoTotale INTO importo
+		FROM BachecaElettronicadb.Report 
+		WHERE BachecaElettronicadb.Report.Codice = codice_report and BachecaElettronicadb.Report.UCC_Username = ucc_username;
+		
+		UPDATE BachecaElettronicadb.Report
+		SET BachecaElettronicadb.Report.Importo_Amministratore = importo*0.3, BachecaElettronicadb.Report.Importo_UCC = importo*0,7, BachecaElettronicadb.Report.Riscosso_Amministratore = true
+		WHERE BachecaElettronicadb.Report.Codice = codice_report and BachecaElettronicadb.Report.UCC_Username = ucc_username and BachecaElettronicadb.Report.Riscosso_UCC = false;
+		
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
+
+-- Visualizzazione report ---------------------------------------------  Impostare un livello di isolamento
+DELIMITER //
+DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizza_report ;
+CREATE PROCEDURE BachecaElettronicadb.visualizza_report (IN ucc_username VARCHAR(45))
+BEGIN
+		if ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username = ucc_username) <> 1) then
+			signal sqlstate '45000' set message_text = "User not found";
+		end if;
+		
+		SELECT UCC_Username AS 'Username utente', ImportoTotale AS 'Importo', NumeroCarta AS 'Numero Carta', Data, NumeroAnnunci AS 'Numero Annunci', Riscosso_UCC AS "Riscosso dall'utente", Importo_UCC AS 'Importo UCC', Riscosso_Amministratore AS "Riscosso dall'amministratore", Importo_Amministratore AS 'Percentuale Amministratore' 
+		FROM BachecaElettronicadb.Report
+		WHERE BachecaElettronicadb.Report.UCC_Username = ucc_username and BachecaElettronicadb.Report.Data = data;
 		
 END//
 DELIMITER ;
