@@ -120,21 +120,25 @@ void view_ad_administrator() {
 
 void generate_report() {
 	MYSQL_STMT *prepared_stmt;
-	MYSQL_BIND param[1];
+	MYSQL_BIND param[2];
 	
 	char ucc_username[MAX_LENGHT_USERNAME];
 	
-	print_color("Username: ", "yellow", ' ', false, false, false, false);
+	print_color("User's username: ", "yellow", ' ', false, false, false, false);
 	getInput(MAX_LENGHT_USERNAME, ucc_username, false);
-	
-	if (!setup_prepared_stmt(&prepared_stmt, "call generaReport(?)", conn))
-		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize report statement\n", true);
 	
 	memset(param, 0, sizeof(param));
 	
 	param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
 	param[0].buffer = ucc_username;
 	param[0].buffer_length = strlen(ucc_username);
+	
+	param[1].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[1].buffer = conf.username;
+	param[1].buffer_length = strlen(conf.username);
+	
+	if (!setup_prepared_stmt(&prepared_stmt, "call genera_report(?, ?)", conn))
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize report statement\n", true);
 	
 	if (mysql_stmt_bind_param(prepared_stmt, param) != 0)
 		finish_with_stmt_error(conn, prepared_stmt, "Unable to bind parameters for a new report\n", true);
@@ -172,7 +176,11 @@ void collect_report() {
 	param[1].buffer = ucc_username;
 	param[1].buffer_length = strlen(ucc_username);
 	
-	if (!setup_prepared_stmt(&prepared_stmt, "call riscossioneReport(?, ?)", conn))
+	param[2].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[2].buffer = conf.username;
+	param[2].buffer_length = strlen(conf.username);
+	
+	if (!setup_prepared_stmt(&prepared_stmt, "call riscossione_report(?, ?, ?)", conn))
 		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize report statement", true);
 	
 	if (mysql_stmt_bind_param(prepared_stmt, param) != 0)
@@ -189,20 +197,39 @@ void collect_report() {
 
 void view_report() {
 	MYSQL_STMT *prepared_stmt;
-	MYSQL_BIND param[1];
+	MYSQL_BIND param[2];
 	
-	char ucc_username[MAX_LENGHT_USERNAME];
+	char ucc_username[MAX_LENGHT_USERNAME], report_code_string[10];
+	int report_code;
 	
+	bool request, is_null;
+	
+	is_null = 1;
+		
 	print_color("Username: ", "yellow", ' ', false, false, false, false);
 	getInput(MAX_LENGHT_USERNAME, ucc_username, false);
 	
+	request = yesOrNo("Do you know the report code?", 'y', 'n');
+	
 	memset(param, 0, sizeof(param));
 	
-	param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
-	param[0].buffer = ucc_username;
-	param[0].buffer_length = strlen(ucc_username);
+	if(request) {	
+		print_color("Report code: ", "light cyan", ' ', false, false, false, false);
+		getInput(10, report_code_string, false);
+		report_code = atoi(report_code_string);
+	} else
+		param[0].is_null = &is_null;
+
 	
-	if (!setup_prepared_stmt(&prepared_stmt, "call visualizza_report(?)", conn))
+	param[0].buffer_type = MYSQL_TYPE_LONG;
+	param[0].buffer = &report_code;
+	param[0].buffer_length = sizeof(report_code);
+	
+	param[1].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[1].buffer = ucc_username;
+	param[1].buffer_length = strlen(ucc_username);
+	
+	if (!setup_prepared_stmt(&prepared_stmt, "call visualizza_report(?, ?)", conn))
 		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize report statement", true);
 	
 	if (mysql_stmt_bind_param(prepared_stmt, param) != 0)

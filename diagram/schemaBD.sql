@@ -350,14 +350,14 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Report` (
   `Codice` INT NOT NULL AUTO_INCREMENT,
   `UCC_Username` VARCHAR(45) NOT NULL,
   `ImportoTotale` INT NOT NULL,
+  `NumeroAnnunci` INT NOT NULL,
   `NumeroCarta` VARCHAR(16) NOT NULL,
   `Data` DATE NOT NULL,
-  `NumeroAnnunci` INT NOT NULL,
-  `Riscosso_UCC` TINYINT NOT NULL DEFAULT 0,
+  `Amministratore_Username` VARCHAR(45) NOT NULL,
   `Riscosso_Amministratore` TINYINT NOT NULL DEFAULT 0,
   `Importo_Amministratore` INT NOT NULL DEFAULT 0,
   `Importo_UCC` INT NOT NULL DEFAULT 0,
-  PRIMARY KEY (`Codice`, `UCC_Username`),
+  PRIMARY KEY (`Codice`),
   CONSTRAINT `fk_Report_UCC1`
     FOREIGN KEY (`UCC_Username`)
     REFERENCES `BachecaElettronicadb`.`UCC` (`Username`))

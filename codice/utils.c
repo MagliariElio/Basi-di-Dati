@@ -238,50 +238,58 @@ void dump_result_set(MYSQL *conn, MYSQL_STMT *stmt, char *title)
 					printf(" %-*s |", (int)fields[i].max_length, "NULL");
 					continue;
 				}
-
-				switch (rs_bind[i].buffer_type) {
-					
-					case MYSQL_TYPE_VAR_STRING:
-						printf(" %-*s |", (int)fields[i].max_length, (char *)rs_bind[i].buffer);
-						break;
-					
-					case MYSQL_TYPE_DATETIME:
-						date = (MYSQL_TIME *)rs_bind[i].buffer;
-						printf("%02d/%02d/%4d %02d:%02d:%02d %-*s |", date->day, date->month, date->year,date->hour,date->minute,date->second, ((int)fields[i].max_length)-19, " ");
-						break;
-					
-					case MYSQL_TYPE_DATE:
-						date = (MYSQL_TIME *)rs_bind[i].buffer;
-						printf(" %d-%02d-%02d %-*s |", date->year, date->month, date->day, 1, "");
-						break;
-					
-					case MYSQL_TYPE_TIMESTAMP:
-						date = (MYSQL_TIME *)rs_bind[i].buffer;
-						printf(" %d-%02d-%02d %-*s |", date->year, date->month, date->day, 1, "");
-						break;
-				       
-					case MYSQL_TYPE_STRING:
-						printf(" %-*s |", (int)fields[i].max_length, (char *)rs_bind[i].buffer);
-						break;
+				
+				
+				if(rs_bind[i].buffer_type == MYSQL_TYPE_TINY) { 
+					if (*(char *)rs_bind[i].buffer == 0)
+						printf(" %-*s |", (int)fields[i].max_length+((int)strlen("FALSE")), "FALSE");
+					if (*(char *)rs_bind[i].buffer == 1)
+						printf(" %-*s |", (int)fields[i].max_length+((int)strlen("TRUE")), "TRUE");
+				} else {
+					switch (rs_bind[i].buffer_type) {
+						
+						case MYSQL_TYPE_VAR_STRING:
+							printf(" %-*s |", (int)fields[i].max_length, (char *)rs_bind[i].buffer);
+							break;
+						
+						case MYSQL_TYPE_DATETIME:
+							date = (MYSQL_TIME *)rs_bind[i].buffer;
+							printf("%02d/%02d/%4d %02d:%02d:%02d %-*s |", date->day, date->month, date->year,date->hour,date->minute,date->second, ((int)fields[i].max_length)-19, " ");
+							break;
+						
+						case MYSQL_TYPE_DATE:
+							date = (MYSQL_TIME *)rs_bind[i].buffer;
+							printf(" %d-%02d-%02d %-*s |", date->year, date->month, date->day, 1, "");
+							break;
+						
+						case MYSQL_TYPE_TIMESTAMP:
+							date = (MYSQL_TIME *)rs_bind[i].buffer;
+							printf(" %d-%02d-%02d %-*s |", date->year, date->month, date->day, 1, "");
+							break;
+						   
+						case MYSQL_TYPE_STRING:
+							printf(" %-*s |", (int)fields[i].max_length, (char *)rs_bind[i].buffer);
+							break;
+			 
+						case MYSQL_TYPE_FLOAT:
+						case MYSQL_TYPE_DOUBLE:
+							printf(" %.02f |", *(float *)rs_bind[i].buffer);
+							break;
+			 
+						case MYSQL_TYPE_LONG:
+						case MYSQL_TYPE_SHORT:
+						case MYSQL_TYPE_TINY:
+							printf(" %-*d |", (int)fields[i].max_length, *(int *)rs_bind[i].buffer);
+							break;
+							
+						case MYSQL_TYPE_NEWDECIMAL:
+							printf(" %-*.02lf |", (int)fields[i].max_length, *(float*) rs_bind[i].buffer);
+							break;
 		 
-					case MYSQL_TYPE_FLOAT:
-					case MYSQL_TYPE_DOUBLE:
-						printf(" %.02f |", *(float *)rs_bind[i].buffer);
-						break;
-		 
-					case MYSQL_TYPE_LONG:
-					case MYSQL_TYPE_SHORT:
-					case MYSQL_TYPE_TINY:
-						printf(" %-*d |", (int)fields[i].max_length, *(int *)rs_bind[i].buffer);
-						break;
-				       
-					case MYSQL_TYPE_NEWDECIMAL:
-						printf(" %-*.02lf |", (int)fields[i].max_length, *(float*) rs_bind[i].buffer);
-						break;
-	 
-					default:
-					    printf("  \e[1m\e[5m\033[40m\033[31mERROR: Unhandled type (%d)\033[0m\e[25m\e[22m\n", rs_bind[i].buffer_type);
-					    abort();
+						default:
+							printf("  \e[1m\e[5m\033[40m\033[31mERROR: Unhandled type (%d)\033[0m\e[25m\e[22m\n", rs_bind[i].buffer_type);
+							abort();
+					}
 				}
 			}
 			putchar('\n');

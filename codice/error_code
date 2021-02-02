@@ -33,3 +33,5 @@ List of error codes
 45015 = 'Report not found'
 
 45016 = 'Report already collected'
+
+45017 = 'You are not the owner of the report'
