@@ -13,7 +13,6 @@
 #define MAX_CODE_CONVERSATION 10
 #define MAX_LENGHT_USERNAME 45
 
-
 struct configuration {
 	char *host;
 	char *db_username;

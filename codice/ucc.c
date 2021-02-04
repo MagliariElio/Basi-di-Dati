@@ -318,7 +318,7 @@ bool view_personal_information(char cf_owner[], char username_owner[], int check
 	
 	is_null = 1;
 	
-	print_color("Fiscal Code: ", "yellow", ' ', false, false, false, false);
+	print_color("Tax code: ", "yellow", ' ', false, false, false, false);
 	getInput(MAX_CF_LENGHT, cf, false);
 	cf[16] = '\0';
 	
@@ -381,15 +381,22 @@ void edit_personal_information(char cf_set_favorite[], char type_set_favorite[],
 		goto execution;
 	}
 				
-	char cf[MAX_CF_LENGHT], surname[20], name[20], residential_address[20], cap_string[5], billing_address[20], type_favorite_contact[20], favorite_contact[40];
+	char cf[MAX_CF_LENGHT], surname[20], name[20], residential_address[20], cap_string[6], billing_address[20], type_favorite_contact[20], favorite_contact[40];
 	int cap;
+	
+	char *list_choice_type_it[] = {"email", "cellulare", "social", "sms"};
+	char *list_choice_type_en[] = {"email", "mobile phone", "social", "sms"};
+	int lenght_choice_type = 4;
+	
+	char choice[20];
+	
 	bool request;
 		
-	print_color("Fiscal Code: ", "yellow", ' ', false, false, false, false);
+	print_color("Tax code: ", "yellow", ' ', false, false, false, false);
 	getInput(MAX_CF_LENGHT, cf, false);
 	cf[16] = '\0';
 	
-	// Check if the user has this fiscal code
+	// Check if the user has this tax code
 	if(!view_personal_information(cf, conf.username, 1))
 		return;
 	
@@ -430,7 +437,8 @@ void edit_personal_information(char cf_set_favorite[], char type_set_favorite[],
 
 	if(request == true) {
 		print_color("CAP: ", "light cyan", ' ', false, false, false, false);
-		getInput(5, cap_string, false);
+		getInput(6, cap_string, false);
+		cap_string[5] = '\0';
 		cap = atoi(cap_string);
 	}
 	if(request == false){
@@ -451,16 +459,37 @@ void edit_personal_information(char cf_set_favorite[], char type_set_favorite[],
 
 	request = yesOrNo("Do you want to edit your favorite contact?", 'y', 'n');
 
-	if(request == true) {
-		print_color("Type of favorite contact: ", "yellow", ' ', false, false, false, false);
-		getInput(20, type_favorite_contact, false);
-		print_color("favorite contact: ", "yellow", ' ', false, false, false, false);
-		getInput(40, favorite_contact, false);
-	}
-	if(request == false){
-		param[6].is_null = &is_null;
-		param[7].is_null = &is_null;
-	}
+	while(1) {
+			if (request)
+				print_color("  Which do you choose to edit?", "orange", ' ', true, true, false, false);
+			else {
+				param[6].is_null = &is_null;
+				param[7].is_null = &is_null;
+				break;
+			}
+			
+			for(int i=0; i<lenght_choice_type; i++) {
+				print_color(" - ", "cyan", ' ', false, false, false, false);
+				print_color(list_choice_type_en[i], "light blue", ' ', false, true, false, false);
+			}
+			
+			// Take input
+			getInput(20, choice, false);
+			for(int i=0; i<lenght_choice_type; i++) {
+				
+				if(strcmp(list_choice_type_en[i], choice) == 0) {
+					sprintf(type_favorite_contact, "%s", list_choice_type_it[i]);
+					type_favorite_contact[strlen(list_choice_type_it[i])] = '\0';
+					
+					print_color("Contact: ", "yellow", ' ', false, false, false, false);
+					getInput(40, favorite_contact, false);
+										
+					goto execution_editing_information;
+				}
+			}
+		}
+			
+		execution_editing_information:
 	
 	
 	param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
@@ -679,14 +708,14 @@ void insert_remove_note() {
 	strcpy(ad_code_string, getInput(MAX_AD_CODE_LENGHT, ad_code_string, false));
 	ad_code_note = atoi(ad_code_string);
 	
-	request = yesOrNo("Do you want to add a note to an ad?", 'y', 'n');
+	request = yesOrNo("Do you want to add a note to the ad?", 'y', 'n');
 	
 	if(request) {
 		print_color("Text of the note: ", "yellow", ' ', false, false, false, false);
 		getInput(45, text, false);
 		param[2].is_null = &is_null;
 	} else {
-		print_color("Note ID to remove: ", "light cyan", ' ', false, false, false, false);
+		print_color("ID of the note to remove: ", "light cyan", ' ', false, false, false, false);
 		strcpy(id_note_string, getInput(MAX_NOTE_ID_LENGHT, id_note_string, false));
 		id_note = atoi(id_note_string);
 		param[0].is_null = &is_null;
@@ -776,10 +805,10 @@ void insert_remove_contact() {
 	
 	is_null = 1;
 	
-	print_color("Fiscal Code: ", "yellow", ' ', false, false, false, false);
+	print_color("Tax code: ", "yellow", ' ', false, false, false, false);
 	getInput(MAX_CF_LENGHT, cf, false);
 	
-	// Check if the user has this fiscal code
+	// Check if the user has this tax code
 	if(!view_personal_information(cf, conf.username, 1))
 		return;
 	
@@ -883,7 +912,7 @@ void view_contact() {
 	
 	memset(param, 0, sizeof(param));
 	
-	print_color("Fiscal Code: ", "yellow", ' ', false, false, false, false);
+	print_color("Tax code: ", "yellow", ' ', false, false, false, false);
 	getInput(MAX_CF_LENGHT, cf, false);
 	
 	request = yesOrNo("Do you want to see favorite contact?", 'y', 'n');
@@ -919,8 +948,8 @@ void send_message() {
 	
 	char receiver_username[45], text[100];
 	
-	print_color("   Username of the user that you want to send the message", "white", ' ', true, true, false, false);
-	print_color("Username: ", "yellow", ' ', false, false, false, false);
+	print_color("    Username of the user that you want to send the message", "white", ' ', true, true, false, false);
+	print_color("Username: ", "yellow", ' ', true, false, false, false);
 	getInput(45, receiver_username, false);
 	
 	print_color("Message text: ", "yellow", ' ', false, false, false, false);
@@ -1103,15 +1132,36 @@ void view_ad_followed() {
 
 void view_report_ucc() {
 	MYSQL_STMT *prepared_stmt;
-	MYSQL_BIND param[1];
-		
+	MYSQL_BIND param[2];
+	
+	char report_code_string[10];
+	int report_code;
+	
+	bool request, is_null;
+	
+	is_null = 1;
+	
+	request = yesOrNo("Do you know the report code?", 'y', 'n');
+	
 	memset(param, 0, sizeof(param));
 	
-	param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
-	param[0].buffer = conf.username;
-	param[0].buffer_length = strlen(conf.username);
+	if(request) {	
+		print_color("Report code: ", "light cyan", ' ', false, false, false, false);
+		getInput(10, report_code_string, false);
+		report_code = atoi(report_code_string);
+	} else
+		param[0].is_null = &is_null;
+
 	
-	if (!setup_prepared_stmt(&prepared_stmt, "call visualizza_report(?)", conn))
+	param[0].buffer_type = MYSQL_TYPE_LONG;
+	param[0].buffer = &report_code;
+	param[0].buffer_length = sizeof(report_code);
+	
+	param[1].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[1].buffer = conf.username;
+	param[1].buffer_length = strlen(conf.username);
+	
+	if (!setup_prepared_stmt(&prepared_stmt, "call visualizza_report(?, ?)", conn))
 		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize report statement", true);
 	
 	if (mysql_stmt_bind_param(prepared_stmt, param) != 0)
@@ -1126,13 +1176,38 @@ void view_report_ucc() {
 	return;
 }
 
+void view_new_notifications_ucc() {	
+	MYSQL_STMT *prepared_stmt;
+	MYSQL_BIND param[1];
+	
+	memset(param, 0, sizeof(param));
+	
+	param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[0].buffer = conf.username;
+	param[0].buffer_length = strlen(conf.username);
+	
+	if (!setup_prepared_stmt(&prepared_stmt, "call visualizza_notifiche (?)", conn))
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
+	
+	if (mysql_stmt_bind_param(prepared_stmt, param) != 0)
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to bind parameters to view new notifications\n", true);
+	
+	if (mysql_stmt_execute(prepared_stmt) != 0)
+		print_stmt_error(prepared_stmt, NULL);
+	else
+		dump_result_set(conn, prepared_stmt, "New notifications\n");
+	
+	mysql_stmt_close(prepared_stmt);
+	return;
+}
+
 
 int run_as_ucc(MYSQL *main_conn, struct configuration main_conf){
 	conn = main_conn;
 	conf = main_conf;
 	ad_code = -1;
-	int num_list = 21, chosen_num;																												// length of list
-	char *list[] = {"1","2","3","4","5","6","7","8","9","10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"};				// list of choice
+	int num_list = 22, chosen_num;																												// length of list
+	char *list[] = {"1","2","3","4","5","6","7","8","9","10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22"};				// list of choice
 	char option;
 	
 	print_color("Welcome ", "cyan", ' ', true, false, true, false);
@@ -1157,27 +1232,28 @@ int run_as_ucc(MYSQL *main_conn, struct configuration main_conf){
 		//poll(0, 0, 290);
 		
 		print_color("  What would do you want to do? ", "white", ' ', true, true, false, false);
-		print_color(list[0], "light blue", ' ', true, false, false, false); print_color(") Insert a new ad", "light cyan", ' ', false, false, false, false);
-		print_color(list[1], "light blue", ' ', true, false, false, false); print_color(") View ad", "orange", ' ', false, false, false, false);
+		print_color(list[0], "light blue", ' ', true, false, false, false); print_color(") Insert a new Ad", "light cyan", ' ', false, false, false, false);
+		print_color(list[1], "light blue", ' ', true, false, false, false); print_color(") View Ad", "orange", ' ', false, false, false, false);
 		print_color(list[2], "light blue", ' ', true, false, false, false); print_color(") View categories", "light cyan", ' ', false, false, false, false);
 		print_color(list[3], "light blue", ' ', true, false, false, false); print_color(") Remove Ad", "orange", ' ', false, false, false, false);
-		print_color(list[4], "light blue", ' ', true, false, false, false); print_color(") Sell ad", "light cyan", ' ', false, false, false, false);
+		print_color(list[4], "light blue", ' ', true, false, false, false); print_color(") Sell Ad", "light cyan", ' ', false, false, false, false);
 		print_color(list[5], "light blue", ' ', true, false, false, false); print_color(") View Personal Information", "orange", ' ', false, false, false, false);
 		print_color(list[6], "light blue", ' ', true, false, false, false); print_color(") Edit Personal Information", "light cyan", ' ', false, false, false, false);
-		print_color(list[7], "light blue", ' ', true, false, false, false); print_color(") Add or Remove a picture of your ad", "light cyan", ' ', false, false, false, false);
-		print_color(list[8], "light blue", ' ', true, false, false, false); print_color(") View comments of an ad", "orange", ' ', false, false, false, false);
-		print_color(list[9], "light blue", ' ', true, false, false, false); print_color(") Add or Remove a comment to an ad", "light cyan", ' ', false, false, false, false);
-		print_color(list[10], "light blue", ' ', true, false, false, false); print_color(") View note of an ad", "orange", ' ', false, false, false, false);
-		print_color(list[11], "light blue", ' ', true, false, false, false); print_color(") Add or Remove a note to an ad", "light cyan", ' ', false, false, false, false);
-		print_color(list[12], "light blue", ' ', true, false, false, false); print_color(") View your contacts", "orange", ' ', false, false, false, false);
-		print_color(list[13], "light blue", ' ', true, false, false, false); print_color(") Add o remove a contact", "light cyan", ' ', false, false, false, false);
-		print_color(list[14], "light blue", ' ', true, false, false, false); print_color(") Send a message", "orange", ' ', false, false, false, false);
-		print_color(list[15], "light blue", ' ', true, false, false, false); print_color(") View your messages", "light cyan", ' ', false, false, false, false);
-		print_color(list[16], "light blue", ' ', true, false, false, false); print_color(") View your conversation history", "orange", ' ', false, false, false, false);
-		print_color(list[17], "light blue", ' ', true, false, false, false); print_color(") Follow an ad", "light cyan", ' ', false, false, false, false);
-		print_color(list[18], "light blue", ' ', true, false, false, false); print_color(") View ad followed", "orange", ' ', false, false, false, false);
-		print_color(list[19], "light blue", ' ', true, false, false, false); print_color(") View own report", "light cyan", ' ', false, false, false, false);
-		print_color(list[20], "light red", ' ', true, false, false, false); print_color(") quit", "light red", ' ', false, true, false, false);
+		print_color(list[7], "light blue", ' ', true, false, false, false); print_color(") View New Notifications", "orange", ' ', false, false, false, false);
+		print_color(list[8], "light blue", ' ', true, false, false, false); print_color(") Add or Remove a picture of your Ad", "light cyan", ' ', false, false, false, false);
+		print_color(list[9], "light blue", ' ', true, false, false, false); print_color(") View comments of an Ad", "orange", ' ', false, false, false, false);
+		print_color(list[10], "light blue", ' ', true, false, false, false); print_color(") Add or Remove a comment to an Ad", "light cyan", ' ', false, false, false, false);
+		print_color(list[11], "light blue", ' ', true, false, false, false); print_color(") View note of an Ad", "orange", ' ', false, false, false, false);
+		print_color(list[12], "light blue", ' ', true, false, false, false); print_color(") Add or Remove a note to an Ad", "light cyan", ' ', false, false, false, false);
+		print_color(list[13], "light blue", ' ', true, false, false, false); print_color(") View your contacts", "orange", ' ', false, false, false, false);
+		print_color(list[14], "light blue", ' ', true, false, false, false); print_color(") Add o remove a contact", "light cyan", ' ', false, false, false, false);
+		print_color(list[15], "light blue", ' ', true, false, false, false); print_color(") Send a message", "orange", ' ', false, false, false, false);
+		print_color(list[16], "light blue", ' ', true, false, false, false); print_color(") View your messages", "light cyan", ' ', false, false, false, false);
+		print_color(list[17], "light blue", ' ', true, false, false, false); print_color(") View your conversation history", "orange", ' ', false, false, false, false);
+		print_color(list[18], "light blue", ' ', true, false, false, false); print_color(") Follow an Ad", "light cyan", ' ', false, false, false, false);
+		print_color(list[19], "light blue", ' ', true, false, false, false); print_color(") View Ad followed", "orange", ' ', false, false, false, false);
+		print_color(list[20], "light blue", ' ', true, false, false, false); print_color(") View own report", "light cyan", ' ', false, false, false, false);
+		print_color(list[21], "light red", ' ', true, false, false, false); print_color(") quit", "light red", ' ', false, true, false, false);
 
 		multiChoice("Which do you choose?", list, num_list, &chosen_num, &option);
 		
@@ -1216,42 +1292,45 @@ int run_as_ucc(MYSQL *main_conn, struct configuration main_conf){
 				edit_personal_information(NULL, NULL, NULL);
 				break;
 			case 7:	
+				view_new_notifications_ucc();
+				break;
+			case 8:
 				edit_photo_ad();
 				break;
-			case 8:	
+			case 9:	
 				view_comment();
 				break;
-			case 9:	
+			case 10:	
 				insert_remove_comment();
 				break;
-			case 10:	
+			case 11:	
 				view_note();
 				break;
-			case 11:	
+			case 12:	
 				insert_remove_note();
 				break;
-			case 12:	
+			case 13:	
 				view_contact();
 				break;
-			case 13:	
+			case 14:	
 				insert_remove_contact();
 				break;
-			case 14:	
+			case 15:	
 				send_message();
 				break;
-			case 15:	
+			case 16:	
 				view_message();
 				break;
-			case 16:	
+			case 17:	
 				view_conversation_history();
 				break;
-			case 17:	
+			case 18:	
 				follow_ad();
 				break;
-			case 18:	
+			case 19:	
 				view_ad_followed();
 				break;
-			case 19:	
+			case 20:	
 				view_report_ucc();
 				break;
 			default:

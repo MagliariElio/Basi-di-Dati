@@ -24,7 +24,9 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Amministratore` (
   `Username` VARCHAR(45) NOT NULL,
   `Password` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`Username`))
-ENGINE = InnoDB;
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
 
 CREATE UNIQUE INDEX `Username_UNIQUE` ON `BachecaElettronicadb`.`Amministratore` (`Username` ASC) VISIBLE;
 
@@ -37,7 +39,9 @@ DROP TABLE IF EXISTS `BachecaElettronicadb`.`Categoria` ;
 CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Categoria` (
   `Nome` VARCHAR(20) NOT NULL,
   PRIMARY KEY (`Nome`))
-ENGINE = InnoDB;
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
 
 CREATE UNIQUE INDEX `Nome_UNIQUE` ON `BachecaElettronicadb`.`Categoria` (`Nome` ASC) VISIBLE;
 
@@ -57,7 +61,9 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`InformazioneAnagrafica` (
   `TipoRecapitoPreferito` ENUM('email', 'cellulare', 'social', 'sms') NOT NULL,
   `RecapitoPreferito` VARCHAR(40) NOT NULL,
   PRIMARY KEY (`CF`))
-ENGINE = InnoDB;
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
 
 CREATE UNIQUE INDEX `CF_UNIQUE` ON `BachecaElettronicadb`.`InformazioneAnagrafica` (`CF` ASC) VISIBLE;
 
@@ -70,7 +76,9 @@ DROP TABLE IF EXISTS `BachecaElettronicadb`.`StoricoConversazione` ;
 CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`StoricoConversazione` (
   `ID` INT NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`ID`))
-ENGINE = InnoDB;
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
 
 CREATE UNIQUE INDEX `ID_UNIQUE` ON `BachecaElettronicadb`.`StoricoConversazione` (`ID` ASC) VISIBLE;
 
@@ -95,7 +103,9 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`UCC` (
   CONSTRAINT `fk_UCC_StoricoConversazione1`
     FOREIGN KEY (`StoricoConversazione_ID`)
     REFERENCES `BachecaElettronicadb`.`StoricoConversazione` (`ID`))
-ENGINE = InnoDB;
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
 
 CREATE UNIQUE INDEX `Username_UNIQUE` ON `BachecaElettronicadb`.`UCC` (`Username` ASC) VISIBLE;
 
@@ -115,7 +125,7 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Annuncio` (
   `Descrizione` VARCHAR(100) NOT NULL,
   `Importo` INT NOT NULL,
   `Foto` VARCHAR(9) NULL DEFAULT NULL,
-  `Report_calcolato` TINYINT NOT NULL DEFAULT 0,
+  `Report_calcolato` TINYINT NOT NULL DEFAULT '0',
   `UCC_Username` VARCHAR(45) NOT NULL,
   `Categoria_Nome` VARCHAR(20) NOT NULL,
   PRIMARY KEY (`Codice`),
@@ -125,7 +135,9 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Annuncio` (
   CONSTRAINT `fk_Annuncio_UCC`
     FOREIGN KEY (`UCC_Username`)
     REFERENCES `BachecaElettronicadb`.`UCC` (`Username`))
-ENGINE = InnoDB;
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
 
 CREATE UNIQUE INDEX `Codice_UNIQUE` ON `BachecaElettronicadb`.`Annuncio` (`Codice` ASC) VISIBLE;
 
@@ -147,7 +159,9 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Commento` (
   CONSTRAINT `fk_Commento_Annuncio1`
     FOREIGN KEY (`Annuncio_Codice`)
     REFERENCES `BachecaElettronicadb`.`Annuncio` (`Codice`))
-ENGINE = InnoDB;
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
 
 CREATE UNIQUE INDEX `Annuncio_Codice_UNIQUE` ON `BachecaElettronicadb`.`Commento` (`Annuncio_Codice` ASC) VISIBLE;
 
@@ -171,7 +185,9 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`USCC` (
   CONSTRAINT `fk_USCC_StoricoConversazione1`
     FOREIGN KEY (`StoricoConversazione_ID`)
     REFERENCES `BachecaElettronicadb`.`StoricoConversazione` (`ID`))
-ENGINE = InnoDB;
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
 
 CREATE UNIQUE INDEX `Username_UNIQUE` ON `BachecaElettronicadb`.`USCC` (`Username` ASC) VISIBLE;
 
@@ -188,25 +204,21 @@ DROP TABLE IF EXISTS `BachecaElettronicadb`.`Conversazione` ;
 CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Conversazione` (
   `Codice` INT NOT NULL AUTO_INCREMENT,
   `UCC_Username_1` VARCHAR(45) NOT NULL,
-  `UCC_Username_2` VARCHAR(45) NULL,
-  `USCC_Username` VARCHAR(45) NULL,
+  `UCC_Username_2` VARCHAR(45) NULL DEFAULT NULL,
+  `USCC_Username` VARCHAR(45) NULL DEFAULT NULL,
   PRIMARY KEY (`Codice`),
   CONSTRAINT `fk_Conversazione_UCC1`
     FOREIGN KEY (`UCC_Username_1`)
-    REFERENCES `BachecaElettronicadb`.`UCC` (`Username`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_Conversazione_USCC1`
-    FOREIGN KEY (`USCC_Username`)
-    REFERENCES `BachecaElettronicadb`.`USCC` (`Username`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    REFERENCES `BachecaElettronicadb`.`UCC` (`Username`),
   CONSTRAINT `fk_Conversazione_UCC2`
     FOREIGN KEY (`UCC_Username_2`)
-    REFERENCES `BachecaElettronicadb`.`UCC` (`Username`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+    REFERENCES `BachecaElettronicadb`.`UCC` (`Username`),
+  CONSTRAINT `fk_Conversazione_USCC1`
+    FOREIGN KEY (`USCC_Username`)
+    REFERENCES `BachecaElettronicadb`.`USCC` (`Username`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
 
 CREATE UNIQUE INDEX `Codice_UNIQUE` ON `BachecaElettronicadb`.`Conversazione` (`Codice` ASC) VISIBLE;
 
@@ -229,7 +241,9 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`ConversazioneCodice` (
   CONSTRAINT `fk_ConversazioneCodice_StoricoConversazione1`
     FOREIGN KEY (`StoricoConversazione_ID`)
     REFERENCES `BachecaElettronicadb`.`StoricoConversazione` (`ID`))
-ENGINE = InnoDB;
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
 
 CREATE INDEX `fk_ConversazioneCodice_StoricoConversazione1_idx` ON `BachecaElettronicadb`.`ConversazioneCodice` (`StoricoConversazione_ID` ASC) VISIBLE;
 
@@ -248,59 +262,11 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Messaggio` (
   CONSTRAINT `fk_Messaggio_Conversazione1`
     FOREIGN KEY (`Conversazione_Codice`)
     REFERENCES `BachecaElettronicadb`.`Conversazione` (`Codice`))
-ENGINE = InnoDB;
-
-CREATE UNIQUE INDEX `Conversazione_Codice_UNIQUE` ON `BachecaElettronicadb`.`Messaggio` (`Conversazione_Codice` ASC) VISIBLE;
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
 
 CREATE INDEX `fk_Messaggio_Conversazione1_idx` ON `BachecaElettronicadb`.`Messaggio` (`Conversazione_Codice` ASC) VISIBLE;
-
-
--- -----------------------------------------------------
--- Table `BachecaElettronicadb`.`Modificato-UCC`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `BachecaElettronicadb`.`Modificato-UCC` ;
-
-CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Modificato-UCC` (
-  `InformazioneAnagrafica_CF` VARCHAR(16) NOT NULL,
-  `UCC_Username` VARCHAR(45) NOT NULL,
-  PRIMARY KEY (`InformazioneAnagrafica_CF`),
-  CONSTRAINT `fk_Modificato-UCC_InformazioneAnagrafica1`
-    FOREIGN KEY (`InformazioneAnagrafica_CF`)
-    REFERENCES `BachecaElettronicadb`.`InformazioneAnagrafica` (`CF`),
-  CONSTRAINT `fk_Modificato-UCC_UCC1`
-    FOREIGN KEY (`UCC_Username`)
-    REFERENCES `BachecaElettronicadb`.`UCC` (`Username`))
-ENGINE = InnoDB;
-
-CREATE UNIQUE INDEX `InformazioneAnagrafica_CF_UNIQUE` ON `BachecaElettronicadb`.`Modificato-UCC` (`InformazioneAnagrafica_CF` ASC) VISIBLE;
-
-CREATE INDEX `fk_Modificato-UCC_UCC1_idx` ON `BachecaElettronicadb`.`Modificato-UCC` (`UCC_Username` ASC) VISIBLE;
-
-CREATE INDEX `fk_Modificato-UCC_InformazioneAnagrafica1_idx` ON `BachecaElettronicadb`.`Modificato-UCC` (`InformazioneAnagrafica_CF` ASC) VISIBLE;
-
-
--- -----------------------------------------------------
--- Table `BachecaElettronicadb`.`Modificato-USCC`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `BachecaElettronicadb`.`Modificato-USCC` ;
-
-CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Modificato-USCC` (
-  `InformazioneAnagrafica_CF` VARCHAR(16) NOT NULL,
-  `USCC_Username` VARCHAR(45) NOT NULL,
-  PRIMARY KEY (`InformazioneAnagrafica_CF`),
-  CONSTRAINT `fk_Modificato-USCC_InformazioneAnagrafica1`
-    FOREIGN KEY (`InformazioneAnagrafica_CF`)
-    REFERENCES `BachecaElettronicadb`.`InformazioneAnagrafica` (`CF`),
-  CONSTRAINT `fk_Modificato-USCC_USCC1`
-    FOREIGN KEY (`USCC_Username`)
-    REFERENCES `BachecaElettronicadb`.`USCC` (`Username`))
-ENGINE = InnoDB;
-
-CREATE UNIQUE INDEX `InformazioneAnagrafica_CF_UNIQUE` ON `BachecaElettronicadb`.`Modificato-USCC` (`InformazioneAnagrafica_CF` ASC) VISIBLE;
-
-CREATE INDEX `fk_Modificato-USCC_USCC1_idx` ON `BachecaElettronicadb`.`Modificato-USCC` (`USCC_Username` ASC) VISIBLE;
-
-CREATE INDEX `fk_Modificato-USCC_InformazioneAnagrafica1_idx` ON `BachecaElettronicadb`.`Modificato-USCC` (`InformazioneAnagrafica_CF` ASC) VISIBLE;
 
 
 -- -----------------------------------------------------
@@ -316,11 +282,30 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Nota` (
   CONSTRAINT `fk_Nota_Annuncio1`
     FOREIGN KEY (`Annuncio_Codice`)
     REFERENCES `BachecaElettronicadb`.`Annuncio` (`Codice`))
-ENGINE = InnoDB;
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
 
 CREATE UNIQUE INDEX `Annuncio_Codice_UNIQUE` ON `BachecaElettronicadb`.`Nota` (`Annuncio_Codice` ASC) VISIBLE;
 
 CREATE INDEX `fk_Nota_Annuncio1_idx` ON `BachecaElettronicadb`.`Nota` (`Annuncio_Codice` ASC) VISIBLE;
+
+
+-- -----------------------------------------------------
+-- Table `BachecaElettronicadb`.`Notifica`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `BachecaElettronicadb`.`Notifica` ;
+
+CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Notifica` (
+  `Codice` INT NOT NULL,
+  `Tipo_Notifica` VARCHAR(45) NOT NULL,
+  `Username_Utente` VARCHAR(45) NOT NULL,
+  `Data` DATETIME NOT NULL,
+  `Messaggio` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`Codice`, `Username_Utente`, `Data`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
 
 
 -- -----------------------------------------------------
@@ -336,7 +321,9 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`RecapitoNonPreferito` (
   CONSTRAINT `fk_RecapitoNonPreferito_InformazioneAnagrafica1`
     FOREIGN KEY (`InformazioneAnagrafica_CF`)
     REFERENCES `BachecaElettronicadb`.`InformazioneAnagrafica` (`CF`))
-ENGINE = InnoDB;
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
 
 CREATE INDEX `fk_RecapitoNonPreferito_InformazioneAnagrafica1_idx` ON `BachecaElettronicadb`.`RecapitoNonPreferito` (`InformazioneAnagrafica_CF` ASC) VISIBLE;
 
@@ -354,18 +341,20 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Report` (
   `NumeroCarta` VARCHAR(16) NOT NULL,
   `Data` DATE NOT NULL,
   `Amministratore_Username` VARCHAR(45) NOT NULL,
-  `Riscosso_Amministratore` TINYINT NOT NULL DEFAULT 0,
-  `Importo_Amministratore` INT NOT NULL DEFAULT 0,
-  `Importo_UCC` INT NOT NULL DEFAULT 0,
+  `Riscosso_Amministratore` TINYINT NOT NULL DEFAULT '0',
+  `Importo_Amministratore` INT NOT NULL DEFAULT '0',
+  `Importo_UCC` INT NOT NULL DEFAULT '0',
   PRIMARY KEY (`Codice`),
   CONSTRAINT `fk_Report_UCC1`
     FOREIGN KEY (`UCC_Username`)
     REFERENCES `BachecaElettronicadb`.`UCC` (`Username`))
-ENGINE = InnoDB;
-
-CREATE INDEX `fk_Report_UCC1_idx` ON `BachecaElettronicadb`.`Report` (`UCC_Username` ASC) VISIBLE;
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
 
 CREATE UNIQUE INDEX `Codice_UNIQUE` ON `BachecaElettronicadb`.`Report` (`Codice` ASC) VISIBLE;
+
+CREATE INDEX `fk_Report_UCC1_idx` ON `BachecaElettronicadb`.`Report` (`UCC_Username` ASC) VISIBLE;
 
 
 -- -----------------------------------------------------
@@ -383,7 +372,9 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Seguito-UCC` (
   CONSTRAINT `fk_Seguito-UCC_UCC1`
     FOREIGN KEY (`UCC_Username`)
     REFERENCES `BachecaElettronicadb`.`UCC` (`Username`))
-ENGINE = InnoDB;
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
 
 CREATE INDEX `fk_Seguito-UCC_UCC1_idx` ON `BachecaElettronicadb`.`Seguito-UCC` (`UCC_Username` ASC) VISIBLE;
 
@@ -405,7 +396,9 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Seguito-USCC` (
   CONSTRAINT `fk_Seguito-USCC_USCC1`
     FOREIGN KEY (`USCC_Username`)
     REFERENCES `BachecaElettronicadb`.`USCC` (`Username`))
-ENGINE = InnoDB;
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
 
 CREATE INDEX `fk_Seguito-USCC_Annuncio1_idx` ON `BachecaElettronicadb`.`Seguito-USCC` (`Annuncio_Codice` ASC) VISIBLE;
 
@@ -429,7 +422,9 @@ CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Tracciato` (
   CONSTRAINT `fk_Tracciato_StoricoConversazione1`
     FOREIGN KEY (`StoricoConversazione_ID`)
     REFERENCES `BachecaElettronicadb`.`StoricoConversazione` (`ID`))
-ENGINE = InnoDB;
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
 
 CREATE INDEX `fk_Tracciato_StoricoConversazione1_idx` ON `BachecaElettronicadb`.`Tracciato` (`StoricoConversazione_ID` ASC) VISIBLE;
 

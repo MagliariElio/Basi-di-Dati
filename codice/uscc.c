@@ -143,7 +143,7 @@ bool view_personal_information_uscc(char cf_owner[], char username_owner[], int 
 	
 	is_null = 1;
 	
-	print_color("Fiscal Code: ", "yellow", ' ', false, false, false, false);
+	print_color("Tax code: ", "yellow", ' ', false, false, false, false);
 	getInput(MAX_CF_LENGHT, cf, false);
 	cf[16] = '\0';
 	
@@ -208,18 +208,21 @@ void edit_personal_information_uscc(char cf_set_favorite[], char type_set_favori
 	}
 				
 	char cf[MAX_CF_LENGHT], surname[20], name[20], residential_address[20], cap_string[5], billing_address[20], type_favorite_contact[20], favorite_contact[40];
-	char *list_choice_type_it[] = {"email", "cellulare", "social", "sms"}, choice[20];
+	
+	char *list_choice_type_it[] = {"email", "cellulare", "social", "sms"};
 	char *list_choice_type_en[] = {"email", "mobile phone", "social", "sms"};
 	int lenght_choice_type = 4;
+	
+	char choice[20];
 	int cap;
 	
 	bool request;
 		
-	print_color("Fiscal Code: ", "yellow", ' ', false, false, false, false);
+	print_color("Tax code: ", "yellow", ' ', false, false, false, false);
 	getInput(MAX_CF_LENGHT, cf, false);
 	cf[16] = '\0';
 	
-	// Check if the user has this fiscal code
+	// Check if the user has this tax code
 	if(!view_personal_information_uscc(cf, conf.username, 1))
 		return;
 			
@@ -298,13 +301,9 @@ void edit_personal_information_uscc(char cf_set_favorite[], char type_set_favori
 				sprintf(type_favorite_contact, "%s", list_choice_type_it[i]);
 				type_favorite_contact[strlen(list_choice_type_it[i])] = '\0';
 				
-				printf("tipo :%s\n", type_favorite_contact);
-
 				print_color("Contact: ", "yellow", ' ', false, false, false, false);
 				getInput(40, favorite_contact, false);
-				
-				printf("contatto:%s\n", favorite_contact);
-				
+								
 				goto execution_editing_information;
 			}
 		}
@@ -483,10 +482,10 @@ void insert_remove_contact_uscc() {
 	
 	is_null = 1;
 	
-	print_color("Fiscal Code: ", "yellow", ' ', false, false, false, false);
+	print_color("Tax code: ", "yellow", ' ', false, false, false, false);
 	getInput(MAX_CF_LENGHT, cf, false);
 	
-	// Check if the user has this fiscal code
+	// Check if the user has this tax code
 	if(!view_personal_information_uscc(cf, conf.username, 1))
 		return;
 	
@@ -589,7 +588,7 @@ void view_contact_uscc() {
 	
 	memset(param, 0, sizeof(param));
 	
-	print_color("Fiscal Code: ", "yellow", ' ', false, false, false, false);
+	print_color("Tax code: ", "yellow", ' ', false, false, false, false);
 	getInput(MAX_CF_LENGHT, cf, false);
 	
 	request = yesOrNo("Do you want to see favorite contact?", 'y', 'n');
@@ -807,14 +806,39 @@ void view_ad_followed_uscc() {
 	return;
 }
 
+void view_new_notifications_uscc() {	
+	MYSQL_STMT *prepared_stmt;
+	MYSQL_BIND param[1];
+	
+	memset(param, 0, sizeof(param));
+	
+	param[0].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[0].buffer = conf.username;
+	param[0].buffer_length = strlen(conf.username);
+	
+	if (!setup_prepared_stmt(&prepared_stmt, "call visualizza_notifiche (?)", conn))
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
+	
+	if (mysql_stmt_bind_param(prepared_stmt, param) != 0)
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to bind parameters to view new notifications\n", true);
+	
+	if (mysql_stmt_execute(prepared_stmt) != 0)
+		print_stmt_error(prepared_stmt, NULL);
+	else
+		dump_result_set(conn, prepared_stmt, "New notifications\n");
+	
+	mysql_stmt_close(prepared_stmt);
+	return;
+}
+
 
 int run_as_uscc(MYSQL *main_conn, struct configuration main_conf){
 	
 	conn = main_conn;
 	conf = main_conf;
 	
-	int num_list = 15, chosen_num;																			// length of list
-	char *list[] = {"1","2","3","4","5","6","7","8","9","10", "11", "12", "13", "14", "15"};				// list of choice
+	int num_list = 16, chosen_num;																				// length of list
+	char *list[] = {"1","2","3","4","5","6","7","8","9","10", "11", "12", "13", "14", "15", "16"};				// list of choice
 	char option;
 	
 	print_color("Welcome ", "cyan", ' ', true, false, true, false);
@@ -851,9 +875,10 @@ int run_as_uscc(MYSQL *main_conn, struct configuration main_conf){
 		print_color(list[9], "light blue", ' ', true, false, false, false); print_color(") Send a message", "light cyan", ' ', false, false, false, false);
 		print_color(list[10], "light blue", ' ', true, false, false, false); print_color(") View your messages", "orange", ' ', false, false, false, false);
 		print_color(list[11], "light blue", ' ', true, false, false, false); print_color(") View your conversation history", "light cyan", ' ', false, false, false, false);
-		print_color(list[12], "light blue", ' ', true, false, false, false); print_color(") Follow an ad", "orange", ' ', false, false, false, false);
-		print_color(list[13], "light blue", ' ', true, false, false, false); print_color(") View ad followed", "light cyan", ' ', false, false, false, false);
-		print_color(list[14], "light red", ' ', true, false, false, false); print_color(") quit", "light red", ' ', false, true, false, false);
+		print_color(list[12], "light blue", ' ', true, false, false, false); print_color(") View new Notifications", "orange", ' ', false, false, false, false);
+		print_color(list[13], "light blue", ' ', true, false, false, false); print_color(") Follow an ad", "light cyan", ' ', false, false, false, false);
+		print_color(list[14], "light blue", ' ', true, false, false, false); print_color(") View ad followed", "orange", ' ', false, false, false, false);
+		print_color(list[15], "light red", ' ', true, false, false, false); print_color(") quit", "light red", ' ', false, true, false, false);
 
 		multiChoice("Which do you choose?", list, num_list, &chosen_num, &option);
 		
@@ -906,10 +931,13 @@ int run_as_uscc(MYSQL *main_conn, struct configuration main_conf){
 			case 11:	
 				view_conversation_history_uscc();
 				break;
-			case 12:	
-				follow_ad_uscc();
+			case 12:
+				view_new_notifications_uscc();
 				break;
 			case 13:	
+				follow_ad_uscc();
+				break;
+			case 14:	
 				view_ad_followed_uscc();
 				break;
 			default:
