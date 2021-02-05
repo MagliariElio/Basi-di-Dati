@@ -678,18 +678,18 @@ BEGIN
 	declare type_user_sender VARCHAR(4);
 	declare type_user_receiver VARCHAR(4);
 	declare sender_is_ucc, sender_is_uscc, receiver_is_ucc, receiver_is_uscc INT;
+	
 	declare exit handler for sqlexception 
-	begin 
+	BEGIN 
 		rollback; -- rollback any changes made in the transaction 
 		resignal; -- raise again the sql exceptionto the caller
-	end; 
+	END; 
 	
 	/*NOTA
 	 * Ho scelto questo livello per evitare letture
 	 * inconsistenti sull'utente nel database
 	 */
 	
-	SET AUTOCOMMIT = 0;
 	SET transaction isolation level repeatable read;
 	start transaction;
 		
@@ -738,6 +738,7 @@ BEGIN
 			signal sqlstate '45013' set message_text = 'You cannot write to another USCC user';
 		end if;	
 		
+		commit;
 		SET conversazione_codice = controllo_conversazione(NULL, sender_username, receiver_username);  -- cerca il codice della conversazione 
 		
 		if(conversazione_codice = -1) then 			-- conversazione non trovata quindi inesistente, si inserisce una nuova

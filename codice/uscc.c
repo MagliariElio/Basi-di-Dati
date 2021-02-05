@@ -672,8 +672,8 @@ void view_message_uscc() {
 	
 	is_null = 1;
 	
-	print_color("   Username of the user that you want to view the message", "white", ' ', true, true, false, false);
-	print_color("Username: ", "yellow", ' ', false, false, false, false);
+	print_color("    Username of the user that you want to view the message", "white", ' ', true, true, false, false);
+	print_color("Username: ", "yellow", ' ', true, false, false, false);
 	getInput(45, receiver_username, false);
 		
 	MYSQL_STMT *prepared_stmt;
