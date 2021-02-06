@@ -181,29 +181,55 @@ void sign_up(MYSQL *account_conn) {
 		
 		memset(param, 0, sizeof(param));
 		
+		restart_card_number:
 		print_color("Card Number: ", "yellow", ' ', false, false, false, false);
 		getInput(17, card_number, false);
 		card_number[16] = '\0';
+		if (strlen(card_number)<16) {
+			print_color("   Error Card Number", "light red", ' ', false, true, false, true);
+			goto restart_card_number;
+		}
 		
+		restart_cvc:
 		print_color("CVC: ", "yellow", ' ', false, false, false, false);
 		getInput(3, cvc_string, false);
+		cvc_string[3] = '\0';
 		cvc = atoi(cvc_string);
-		
+		if (strlen(cvc_string)<3) {
+			print_color("   Error CVC", "light red", ' ', false, true, false, true);
+			goto restart_cvc;
+		}
+				
 		print_color("Enter the expiration date in numeric format", "orange", ' ', true, true, false, false);
 		
+		restart_day:
 		print_color("Day: ", "light cyan", ' ', false, false, false, false);
 		getInput(3, day_string, false);
 		day_string[2] = '\0';
+		if(atoi(day_string)>0 && atoi(day_string)<32) {
+			print_color("   Error Day", "light red", ' ', false, true, false, true);
+			goto restart_day;
+		}
 		expiration_date.day = atoi(day_string);
 		
+		restart_month:
 		print_color("Month: ", "light cyan", ' ', false, false, false, false);
 		getInput(3, month_string, false);
 		month_string[2] = '\0';
+		if(atoi(month_string)>0 && atoi(month_string)<13) {
+			print_color("   Error Month", "light red", ' ', false, true, false, true);
+			goto restart_month;
+		}
 		expiration_date.month= atoi(month_string);
 		
+		restart_year:
 		print_color("Year: ", "light cyan", ' ', false, false, false, false);
 		getInput(5, year_string, false);
 		year_string[4] = '\0';
+		if(atoi(year_string)>=2021 && atoi(year_string)<2051) {
+			print_color("   Error Year", "light red", ' ', false, true, false, true);
+			goto restart_year;
+		}
 		expiration_date.year= atoi(year_string);
 		
 		if(!request_billing_address)
@@ -394,7 +420,7 @@ int main(void){
 	printf("\t\e[34m\e[1m@@       @@        @@          @@      @@     @@  @@   @@   @@  @@   @@@@  @@  @@       @@   @@\e[22m\e[39m\n");
 	printf("\t\e[34m\e[1m@@@@@@@  @@@@@@@@  @@@@@@@     @@      @@     @@   @@  @@@@@@@  @@    @@@  @@  @@@@@@@  @@   @@\e[22m\e[39m\n\n");
 	
-	if (yesOrNo("Do you want to sign up?", 'y', 'n')) {
+	if (yesOrNo("\nDo you want to sign up?", 'y', 'n')) {
 		sign_up(conn);
 		goto restart;
 	}

@@ -41,6 +41,7 @@ BEGIN
 	CLOSE cur_username_ucc_user;
 
 	SET loop_username = 0;
+	SET username = NULL;
 	
 	OPEN cur_username_uscc_user;
 	insert_new_uscc_warning:  LOOP
@@ -100,6 +101,7 @@ BEGIN
 	CLOSE cur_username_ucc_user;
 
 	SET loop_username = 0;
+	SET username = NULL;
 	
 	OPEN cur_username_uscc_user;
 	insert_new_uscc_warning:  LOOP
@@ -159,6 +161,7 @@ BEGIN
 	CLOSE cur_username_ucc_user;
 
 	SET loop_username = 0;
+	SET username = NULL;
 	
 	OPEN cur_username_uscc_user;
 	insert_new_uscc_warning: LOOP
@@ -218,6 +221,7 @@ BEGIN
 	CLOSE cur_username_ucc_user;
 
 	SET loop_username = 0;
+	SET username = NULL;
 	
 	OPEN cur_username_uscc_user;
 	insert_new_uscc_warning: LOOP
@@ -277,6 +281,7 @@ BEGIN
 	CLOSE cur_username_ucc_user;
 
 	SET loop_username = 0;
+	SET username = NULL;
 	
 	OPEN cur_username_uscc_user;
 	insert_new_uscc_warning: LOOP
@@ -293,42 +298,6 @@ BEGIN
 	CLOSE cur_username_uscc_user;
 
 	
-END//
-DELIMITER ;
--- -------------------------------------------------------------------
-
--- Controlla Email Recapito Preferito --------------------------------
-
-DELIMITER //
-DROP TRIGGER IF EXISTS BachecaElettronicadb.check_email ;
-CREATE DEFINER = CURRENT_USER TRIGGER BachecaElettronicadb.check_email BEFORE INSERT ON BachecaElettronicadb.InformazioneAnagrafica FOR EACH ROW
-BEGIN
-	
-	-- Controlla che il formato dell'email sia valido
-	if (NEW.TipoRecapitoPreferito = 'email') then
-		if (NEW.RecapitoPreferito not regexp'^[a-zA-Z0-9][a-zA-Z0-9._-]*[a-zA-Z0-9._-]@[a-zA-Z0-9][a-zA-Z0-9._-]*[a-zA-Z0-9]\\.[a-zA-Z]{2,63}$') then
-			signal sqlstate '45018' set message_text = 'Incorrect Email';
-		end if;
-	end if;
-
-END//
-DELIMITER ;
--- -------------------------------------------------------------------
-
--- Controlla Email Recapito Non Preferito -----------------------------
-
-DELIMITER //
-DROP TRIGGER IF EXISTS BachecaElettronicadb.check_email ;
-CREATE DEFINER = CURRENT_USER TRIGGER BachecaElettronicadb.check_email BEFORE INSERT ON BachecaElettronicadb.RecapitoNonPreferito FOR EACH ROW
-BEGIN
-	
-	-- Controlla che il formato dell'email sia valido
-	if (NEW.Tipo = 'email') then
-		if (NEW.Recapito not regexp'^[a-zA-Z0-9][a-zA-Z0-9._-]*[a-zA-Z0-9._-]@[a-zA-Z0-9][a-zA-Z0-9._-]*[a-zA-Z0-9]\\.[a-zA-Z]{2,63}$') then
-			signal sqlstate '45018' set message_text = 'Incorrect Email';
-		end if;
-	end if;
-
 END//
 DELIMITER ;
 -- -------------------------------------------------------------------
@@ -379,7 +348,45 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
+-- Controlla Annuncio in Seguito UCC ---------------------------------
 
+DELIMITER //
+DROP TRIGGER IF EXISTS BachecaElettronicadb.check_annuncio_seguito_ucc ;
+CREATE DEFINER = CURRENT_USER TRIGGER BachecaElettronicadb.check_annuncio_seguito_ucc AFTER INSERT ON BachecaElettronicadb.`Seguito-UCC` FOR EACH ROW
+BEGIN
+	
+	-- Controlla che l'annuncio esista e sia attivo 
+	if (not exists (SELECT Codice FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice = NEW.Annuncio_Codice)) then
+		signal sqlstate '45006' set message_text = 'Ad not found';
+	end if;
+	
+	if (not exists (SELECT Codice FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice = NEW.Annuncio_Codice and BachecaElettronicadb.Annuncio.Stato = 'Attivo')) then
+		signal sqlstate '45007' set message_text = 'Ad not active now';
+	end if;
+
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
+
+-- Controlla Annuncio in Seguito USCC ---------------------------------
+
+DELIMITER //
+DROP TRIGGER IF EXISTS BachecaElettronicadb.check_annuncio_seguito_uscc ;
+CREATE DEFINER = CURRENT_USER TRIGGER BachecaElettronicadb.check_annuncio_seguito_uscc AFTER INSERT ON BachecaElettronicadb.`Seguito-USCC` FOR EACH ROW
+BEGIN
+	
+	-- Controlla che l'annuncio esista e sia attivo 
+	if (not exists (SELECT Codice FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice = NEW.Annuncio_Codice)) then
+		signal sqlstate '45006' set message_text = 'Ad not found';
+	end if;
+	
+	if (not exists (SELECT Codice FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice = NEW.Annuncio_Codice and BachecaElettronicadb.Annuncio.Stato = 'Attivo')) then
+		signal sqlstate '45007' set message_text = 'Ad not active now';
+	end if;
+
+END//
+DELIMITER ;
+-- -------------------------------------------------------------------
 
 
 

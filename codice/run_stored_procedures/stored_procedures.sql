@@ -52,21 +52,21 @@ DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.modifica_RecapitoNonPreferito ;
 CREATE PROCEDURE BachecaElettronicadb.modifica_RecapitoNonPreferito (IN tipo VARCHAR(20), IN recapito VARCHAR(40), IN cf_anagrafico VARCHAR(16), IN rimuovi INT)
 BEGIN
-	declare exit handler for sqlexception 
-	begin 
-		ROLLBACK; -- rollback any changes made in the transaction 
-		RESIGNAL; -- raise again the sql exceptionto the caller
-	end; 
+	-- declare exit handler for sqlexception 
+	-- begin 
+		-- ROLLBACK; -- rollback any changes made in the transaction 
+		-- RESIGNAL; -- raise again the sql exceptionto the caller
+	-- end; 
 	
 	/*NOTA
 	 * Ho scelto questo livello perchè voglio che la scrittura
 	 * tenga il lock fino al commit
 	 */
 	
-	SET transaction isolation level read committed;
-	start transaction;
+	-- SET transaction isolation level read committed;
+	-- start transaction;
 
-		if ((SELECT count(CF) FROM BachecaElettronicadb.InformazioneAnagrafica WHERE BachecaElettronicadb.InformazioneAnagrafica.CF = cf_anagrafico) <> 1)  then
+		if (not exists (SELECT CF FROM BachecaElettronicadb.InformazioneAnagrafica WHERE BachecaElettronicadb.InformazioneAnagrafica.CF = cf_anagrafico))  then
 			signal sqlstate '45004' set message_text = "Tax code not found";
 		end if;
 		
@@ -77,7 +77,7 @@ BEGIN
 			WHERE BachecaElettronicadb.RecapitoNonPreferito.InformazioneAnagrafica_CF = cf_anagrafico AND BachecaElettronicadb.RecapitoNonPreferito.Recapito = recapito AND BachecaElettronicadb.RecapitoNonPreferito.Tipo = tipo;
 		end if;
 		
-	commit;
+	-- commit;
 	
 END//
 DELIMITER ;
@@ -97,14 +97,14 @@ BEGIN
 	end; 
 	
 	/*NOTA
-	 * Ho scelto questo livello per evitare le letture sporche
+	 * Ho scelto questo livello per evitare letture inconsistenti sugli stessi dati
 	 */
 	
 	SET transaction read only;	
-	SET transaction isolation level read committed;
+	SET transaction isolation level repeatable read;
 	start transaction;
 	
-		if ((SELECT count(CF) FROM BachecaElettronicadb.InformazioneAnagrafica WHERE BachecaElettronicadb.InformazioneAnagrafica.CF = cf_anagrafico) <> 1)  then
+		if (not exists (SELECT CF FROM BachecaElettronicadb.InformazioneAnagrafica WHERE BachecaElettronicadb.InformazioneAnagrafica.CF = cf_anagrafico)) then
 			signal sqlstate '45004' set message_text = 'Tax code not found';
 		end if;
 		
@@ -178,7 +178,7 @@ BEGIN
 		 * Questa stored procedure è utilizzata per mostrare all'utente, che lo ha chiamato, 
 		 * le sue nuove notifiche. Applica un concetto simile ad una coda di messaggi
 		 * dove è possibile fare un'estrazione dei messaggi richiesti ed infine eliminarli per non 
-		 * essere visualizzati di nuovo
+		 * essere visualizzati di nuovo. È correlata ai trigger precedentemente descritti.
 		 */
 		
 		-- Mostra le nuove notifiche rimaste in coda 
@@ -203,22 +203,22 @@ DROP PROCEDURE IF EXISTS BachecaElettronicadb.modificaInfoAnagrafiche ;
 CREATE PROCEDURE BachecaElettronicadb.modificaInfoAnagrafiche (IN cf VARCHAR(16), IN cognome VARCHAR(20), IN nome VARCHAR(20), IN indirizzoDiResidenza VARCHAR(20), IN cap INT, IN indirizzoDiFatturazione VARCHAR(20), IN tipoRecapitoPreferito VARCHAR(20), IN recapitoPreferito VARCHAR(40))
 BEGIN
 	
-	declare exit handler for sqlexception 
-	begin 
-		ROLLBACK; -- rollback any changes made in the transaction 
-		RESIGNAL; -- raise again the sql exceptionto the caller
-	end; 
+	-- declare exit handler for sqlexception 
+	-- begin 
+		-- ROLLBACK; -- rollback any changes made in the transaction 
+		-- RESIGNAL; -- raise again the sql exceptionto the caller
+	-- end; 
 	
 	/*NOTA
 	 * Ho scelto questo livello per evitare le letture sporche
 	 */
 	
-	SET transaction isolation level read committed;
-	start transaction;
+	-- SET transaction isolation level read committed;
+	-- start transaction;
 	
-		if ((SELECT count(CF) FROM BachecaElettronicadb.InformazioneAnagrafica WHERE BachecaElettronicadb.InformazioneAnagrafica.CF = cf) <> 1) then
-			signal sqlstate '45004' set message_text = 'Tax code not found';
-		end if;
+		-- if (not exists (SELECT CF FROM BachecaElettronicadb.InformazioneAnagrafica WHERE BachecaElettronicadb.InformazioneAnagrafica.CF = cf)) then
+			-- signal sqlstate '45004' set message_text = 'Tax code not found';
+		-- end if;
 		
 		IF cognome IS NOT NULL THEN
 			UPDATE BachecaElettronicadb.InformazioneAnagrafica SET BachecaElettronicadb.InformazioneAnagrafica.Cognome=cognome WHERE BachecaElettronicadb.InformazioneAnagrafica.CF=cf;
@@ -259,20 +259,20 @@ BEGIN
 	end; 
 	
 	/*NOTA
-	 * Ho scelto questo livello per evitare le letture sporche
+	 * Ho scelto questo livello per evitare le letture inconsistenti sullo stesso dato CF
 	 */
 	
 	SET transaction read only;
-	SET transaction isolation level read committed;
+	SET transaction isolation level repeatable read;
 	start transaction;
 	
-		if ((SELECT count(CF) FROM BachecaElettronicadb.InformazioneAnagrafica WHERE BachecaElettronicadb.InformazioneAnagrafica.CF=cf) <> 1) then
+		if (not exists (SELECT CF FROM BachecaElettronicadb.InformazioneAnagrafica WHERE BachecaElettronicadb.InformazioneAnagrafica.CF = cf_anagrafico)) then
 			signal sqlstate '45004' set message_text = 'Tax code not found';
 		end if;
 		
 		if ((check_owner IS NOT NULL) AND (username IS NOT NULL)) then
-			IF ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.CF_Anagrafico = cf AND BachecaElettronicadb.UCC.Username = username) <> 1) then
-				if ((SELECT(count(Username)) FROM BachecaElettronicadb.USCC WHERE BachecaElettronicadb.USCC.CF_Anagrafico = cf AND BachecaElettronicadb.USCC.Username = username) <> 1) then	
+			IF (not exists (SELECT Username FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.CF_Anagrafico = cf AND BachecaElettronicadb.UCC.Username = username)) then
+				if (not exists (SELECT Username FROM BachecaElettronicadb.USCC WHERE BachecaElettronicadb.USCC.CF_Anagrafico = cf AND BachecaElettronicadb.USCC.Username = username)) then	
 					signal sqlstate '45009' set message_text = 'The Tax code is not yours';
 				end if;
 			end IF;
@@ -292,7 +292,7 @@ DELIMITER ;
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.inserimentoNuovaCategoria ;
 CREATE PROCEDURE BachecaElettronicadb.inserimentoNuovaCategoria (IN nome VARCHAR(20))
-	BEGIN
+BEGIN
 	
 	INSERT INTO BachecaElettronicadb.Categoria (Nome) VALUES(nome);
 
@@ -313,7 +313,7 @@ BEGIN
 	
 	/*NOTA
 	 * Ho scelto questo livello per evitare le letture sporche 
-	 * in caso di inserimento di una nuova categoria
+	 * in caso di inserimento di una nuova categoria ma non andato a buon fine
 	 */
 	
 	SET transaction read only;
@@ -351,7 +351,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Inserimento o Rimozione di una foto in annuncio ------------------- Impostare un livello di isolamento per evitare repeatible read - Evento: avverti utenti che seguono l'annuncio - Inserisci o rimuovi foto a seconda del parametro
+-- Inserimento o Rimozione di una foto in annuncio ------------------- Impostare un livello di isolamento per evitare repeatible read
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.modificaFotoAnnuncio ;
 CREATE PROCEDURE BachecaElettronicadb.modificaFotoAnnuncio (IN codice INT, IN username VARCHAR(45), IN foto VARCHAR(9))
@@ -363,23 +363,22 @@ BEGIN
 	end; 
 	
 	/*NOTA
-	 * Ho scelto questo livello per evitare le letture sporche
-	 * in modo tale da restituire il lock al commit così da non rendere
-	 * il database in uno stato inconsistente 
+	 * Ho scelto questo livello per evitare le letture inconsistenti
+	 * e per restituire il lock al commit
 	 */
 	
-	SET transaction isolation level read committed;
+	SET transaction isolation level repeatable read;
 	start transaction;
 	
-		if ((SELECT(count(codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice = codice) <> 1) then
+		if (not exists (SELECT Codice FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice = codice)) then
 			signal sqlstate '45006' set  message_text = 'Ad not found';
 		end if;	
 		
-		if ((SELECT(count(codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice = codice AND BachecaElettronicadb.Annuncio.UCC_Username = username) <> 1) then
+		if (not exists (SELECT Codice FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice = codice AND BachecaElettronicadb.Annuncio.UCC_Username = username)) then
 			signal sqlstate '45008' set  message_text = 'You are not the owner of the ad';
 		end if;
 		
-		if ((SELECT(count(codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice = codice AND BachecaElettronicadb.Annuncio.Stato = 'Attivo') <> 1) then
+		if (not exists (SELECT Codice FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice = codice AND BachecaElettronicadb.Annuncio.Stato = 'Attivo')) then
 			signal sqlstate '45007' set  message_text = 'Ad not active now';
 		end if;
 		
@@ -410,23 +409,23 @@ BEGIN
 	end; 
 	
 	/*NOTA
-	 * Ho scelto questo livello per evitare le letture sporche 
+	 * Ho scelto questo livello per evitare le letture inconsistenti sullo stesso dato
 	 */
 	
 	SET transaction read only;
-	SET transaction isolation level read committed;
+	SET transaction isolation level repeatable read;
 	start transaction;
 	
-		if ((username IS NOT NULL) AND (SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username=username) <> 1) then
+		if ((username IS NOT NULL) AND not exists (SELECT Username FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username=username)) then
 			signal sqlstate '45000' set message_text = 'User not found';
 		end if;
 		
-		if ((annuncio_codice IS NOT NULL) AND (SELECT(count(annuncio_codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=annuncio_codice) <> 1) then
+		if ((annuncio_codice IS NOT NULL) AND not exists (SELECT Codice FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=annuncio_codice)) then
 			signal sqlstate '45006' set message_text = 'Ad not found';
 		end if;
 		
 		if ((check_owner = 1) AND (username IS NOT NULL) AND (annuncio_codice IS NOT NULL)) then
-			IF ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=annuncio_codice AND BachecaElettronicadb.Annuncio.UCC_Username=username) <> 1) then
+			IF (not exists (SELECT Codice FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=annuncio_codice AND BachecaElettronicadb.Annuncio.UCC_Username=username)) then
 				signal sqlstate '45008' set message_text = 'You are not the owner of the ad';
 			end IF;
 		end if;
@@ -461,19 +460,19 @@ DROP PROCEDURE IF EXISTS BachecaElettronicadb.modificaCommento ;
 CREATE PROCEDURE BachecaElettronicadb.modificaCommento (IN testo VARCHAR(45), IN annuncio_codice INT, IN ID_rimozione_commento INT)
 BEGIN
 	
-	declare exit handler for sqlexception 
-	begin 
-		ROLLBACK; -- rollback any changes made in the transaction 
-		RESIGNAL; -- raise again the sql exceptionto the caller
-	end; 
+	-- declare exit handler for sqlexception 
+	-- begin 
+		-- ROLLBACK; -- rollback any changes made in the transaction 
+		-- RESIGNAL; -- raise again the sql exceptionto the caller
+	-- end; 
 	
 	/*NOTA
 	 * Ho scelto questo livello per evitare le letture sporche 
 	 * in caso di lettura dell'annuncio da altre procedure
 	 */
 	
-	SET transaction isolation level read committed;
-	start transaction;
+	-- SET transaction isolation level read committed;
+	-- start transaction;
 		
 		if (ID_rimozione_commento is null) then	
 			INSERT INTO BachecaElettronicadb.Commento (Testo, Annuncio_Codice) VALUES(testo, annuncio_codice);
@@ -482,7 +481,7 @@ BEGIN
 			WHERE BachecaElettronicadb.Commento.ID = ID_rimozione_commento;
 		end if;
 		
-	commit;
+	-- commit;
 	
 END//
 DELIMITER ;
@@ -508,7 +507,7 @@ BEGIN
 	SET transaction isolation level read committed;
 	start transaction;
 		
-		if ((SELECT(count(Annuncio_Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=annuncio_codice AND BachecaElettronicadb.Annuncio.Stato='Attivo') <> 1) then
+		if (not exists (SELECT Codice FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=annuncio_codice AND BachecaElettronicadb.Annuncio.Stato='Attivo')) then
 			 signal sqlstate '45007' set message_text = 'Ad not active now';
 		end if;
 		
@@ -549,59 +548,38 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Seleziona Storico UCC per la stored procedure --------------------- Impostare un livello di isolamento - Privilegi a nessuno
+-- Seleziona Storico UCC per la stored procedure --------------------- Privilegi a nessuno
 DELIMITER //
-DROP PROCEDURE IF EXISTS BachecaElettronicadb.seleziona_Storico_UCC ;
-CREATE PROCEDURE BachecaElettronicadb.seleziona_Storico_UCC (IN username VARCHAR(45), OUT storico_id_ucc INT)
+DROP FUNCTION IF EXISTS BachecaElettronicadb.seleziona_Storico_UCC ;
+CREATE FUNCTION BachecaElettronicadb.seleziona_Storico_UCC (username VARCHAR(45)) RETURNS INT DETERMINISTIC
 BEGIN
-	declare exit handler for sqlexception 
-	begin 
-		ROLLBACK; -- rollback any changes made in the transaction 
-		RESIGNAL; -- raise again the sql exceptionto the caller
-	end; 
+	declare storico_id_ucc INT;
 	
-	/*NOTA
-	 * Ho scelto questo livello per evitare le letture sporche 
-	 */
+	-- Prende il codice dello storico dell'utente 
+	SELECT StoricoConversazione_ID INTO storico_id_ucc
+	FROM BachecaElettronicadb.UCC
+	WHERE BachecaElettronicadb.UCC.Username = username;
 	
-	-- SET transaction read only;
-	SET transaction isolation level read committed;
-	start transaction;
-	
-		SELECT StoricoConversazione_ID INTO storico_id_ucc
-		FROM BachecaElettronicadb.UCC
-		WHERE BachecaElettronicadb.UCC.Username = username;
-		
-	commit;
+	RETURN storico_id_ucc;
 	
 END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Seleziona Storico USCC per la stored procedure -------------------- Impostare un livello di isolamento - Privilegi a nessuno
+-- Seleziona Storico USCC per la stored procedure -------------------- Privilegi a nessuno
 DELIMITER //
-DROP PROCEDURE IF EXISTS BachecaElettronicadb.seleziona_Storico_USCC ;
-CREATE PROCEDURE BachecaElettronicadb.seleziona_Storico_USCC (IN username VARCHAR(45), OUT storico_id_uscc INT)
+DROP FUNCTION IF EXISTS BachecaElettronicadb.seleziona_Storico_USCC ;
+CREATE FUNCTION BachecaElettronicadb.seleziona_Storico_USCC (username VARCHAR(45)) RETURNS INT DETERMINISTIC
 BEGIN
-	declare exit handler for sqlexception 
-	begin 
-		ROLLBACK; -- rollback any changes made in the transaction 
-		RESIGNAL; -- raise again the sql exceptionto the caller
-	end; 
 	
-	/*NOTA
-	 * Ho scelto questo livello per evitare le letture sporche 
-	 */
+	declare storico_id_uscc INT;
 	
-	-- SET transaction read only;
-	SET transaction isolation level read committed;
-	start transaction;
+	-- Prende il codice dello storico dell'utente 
+	SELECT StoricoConversazione_ID INTO storico_id_uscc
+	FROM BachecaElettronicadb.USCC
+	WHERE BachecaElettronicadb.USCC.Username = username;
 	
-		SELECT StoricoConversazione_ID INTO storico_id_uscc
-		FROM BachecaElettronicadb.USCC
-		WHERE BachecaElettronicadb.USCC.Username = username;
-		
-	commit;
+	RETURN storico_id_uscc;
 	
 END//
 DELIMITER ;
@@ -616,8 +594,8 @@ BEGIN
 	declare storico_id_ucc, storico_id_uscc INT;
 	
 	if ((sender_ucc_username is not null) and (receiver_uscc_username is not null)) then	
-		call seleziona_Storico_UCC(sender_ucc_username, storico_id_ucc);
-		call seleziona_Storico_USCC(receiver_uscc_username, storico_id_uscc);
+		SET storico_id_ucc = seleziona_Storico_UCC(sender_ucc_username);
+		SET storico_id_uscc = seleziona_Storico_USCC(receiver_uscc_username);
 		
 		INSERT INTO BachecaElettronicadb.Tracciato (Conversazione_Codice, StoricoConversazione_ID) VALUES(conversazione_codice, storico_id_ucc);	-- traccia lo storico di UCC
 		INSERT INTO BachecaElettronicadb.Tracciato (Conversazione_Codice, StoricoConversazione_ID) VALUES(conversazione_codice, storico_id_uscc);	-- traccia lo storico di USCC
@@ -625,8 +603,8 @@ BEGIN
 		INSERT INTO BachecaElettronicadb.ConversazioneCodice (CodiceConv, StoricoConversazione_ID) VALUES(conversazione_codice, storico_id_uscc); 	-- inserisce il nuovo codice della conversazione nello storico di USCC
 	
 	elseif ((sender_ucc_username is not null) and (receiver_ucc_username is not null)) then	
-		call seleziona_Storico_UCC(sender_ucc_username, storico_id_ucc);
-		call seleziona_Storico_UCC(receiver_ucc_username, storico_id_uscc);
+		SET storico_id_ucc = seleziona_Storico_UCC(sender_ucc_username);
+		SET storico_id_uscc = seleziona_Storico_UCC(receiver_ucc_username);
 		
 		INSERT INTO BachecaElettronicadb.Tracciato (Conversazione_Codice, StoricoConversazione_ID) VALUES(conversazione_codice, storico_id_ucc);	-- traccia lo storico di UCC
 		INSERT INTO BachecaElettronicadb.Tracciato (Conversazione_Codice, StoricoConversazione_ID) VALUES(conversazione_codice, storico_id_uscc);	-- traccia lo storico di UCC
@@ -687,7 +665,8 @@ BEGIN
 	
 	/*NOTA
 	 * Ho scelto questo livello per evitare letture
-	 * inconsistenti sull'utente nel database
+	 * inconsistenti sull'utente nel database, vista la necessita di fare
+	 * più di una lettura sullo stesso dato
 	 */
 	
 	SET transaction isolation level repeatable read;
@@ -738,7 +717,7 @@ BEGIN
 			signal sqlstate '45013' set message_text = 'You cannot write to another USCC user';
 		end if;	
 		
-		commit;
+		commit; -- Inserisco un commit onde evitare un dead lock con le altre query e per non ottenere l'errore: Error 1568 (25001)
 		SET conversazione_codice = controllo_conversazione(NULL, sender_username, receiver_username);  -- cerca il codice della conversazione 
 		
 		if(conversazione_codice = -1) then 			-- conversazione non trovata quindi inesistente, si inserisce una nuova
@@ -778,7 +757,7 @@ CREATE FUNCTION BachecaElettronicadb.controllo_conversazione (id_conversation_ch
 BEGIN
 	declare conversazione_codice_controllo INT DEFAULT NULL;
 		
-	-- ricerca del codice della conversazione, basando la ricerca sulla combinazione degli username   
+	-- Ricerca del codice della conversazione, basando la ricerca sulla combinazione degli username
 	if (id_conversation_check is null) then
 		SELECT Codice into conversazione_codice_controllo
 		FROM BachecaElettronicadb.Conversazione
@@ -805,7 +784,7 @@ BEGIN
 		end if;
 	end if;
 		
-	-- Controlla che gli utenti, con gli username passati, siano autorizzati ad accedere al codice di conversazione passato   
+	-- Controlla che gli utenti, con gli username passati, siano autorizzati ad accedere al codice di conversazione passato
 	if (id_conversation_check is not null) then	
 		SELECT Codice into conversazione_codice_controllo
 		FROM BachecaElettronicadb.Conversazione
@@ -979,24 +958,19 @@ BEGIN
 	end; 
 	
 	/*NOTA
-	 * Ho scelto questo livello per evitare letture sporche sullo stesso dato
-	 * non essendoci la possibilità di eliminare l'annuncio non c'è modo di non 
-	 * avere letture inconsistenti e quindi di alzare il livello di isolamento
+	 * Ho scelto questo livello per evitare letture sporche
 	 */
 	
-	SET transaction isolation level repeatable read;
+	SET transaction isolation level read committed;
 	start transaction;
+		
+		/* NOTA
+		 * L'idea è: Verifica che l'utente sia un UCC, altrimenti controlla se è un USCC.
+		 * Se non fosse nè UCC e nè USCC allora l'utente non esiste
+		 */	
 	
-		if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice = codice_annuncio) = 0) then
-			signal sqlstate '45006' set message_text = 'Ad not found';
-		end if;
-		
-		if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice = codice_annuncio and BachecaElettronicadb.Annuncio.Stato = 'Attivo') = 0) then
-			signal sqlstate '45007' set message_text = 'Ad not active now';
-		end if;
-		
-		if ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username = username) <> 1) then
-			IF ((SELECT(count(Username)) FROM BachecaElettronicadb.USCC WHERE BachecaElettronicadb.USCC.Username = username) <> 1) THEN
+		if (not exists (SELECT Username FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username = username)) then
+			IF (not exists (SELECT Username FROM BachecaElettronicadb.USCC WHERE BachecaElettronicadb.USCC.Username = username)) THEN
 				signal sqlstate '45000' set message_text = 'User not found';
 			ELSE
 				INSERT INTO BachecaElettronicadb.`Seguito-USCC`(USCC_Username, Annuncio_Codice) VALUES(username, codice_annuncio);
@@ -1030,21 +1004,21 @@ BEGIN
 	SET transaction isolation level read committed;
 	start transaction;
 	
-		/* Nota
+		/* NOTA
 		 * L'idea è: Verifica che l'utente sia un UCC, altrimenti controlla se è un USCC.
 		 * Se non fosse nè UCC e nè USCC allora l'utente non esiste
 		 */	
 		
-		if ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username = username) <> 1) then
-			IF ((SELECT(count(Username)) FROM BachecaElettronicadb.USCC WHERE BachecaElettronicadb.USCC.Username = username) <> 1) THEN
+		if (not exists (SELECT Username FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username = username)) then
+			IF (not exists (SELECT Username FROM BachecaElettronicadb.USCC WHERE BachecaElettronicadb.USCC.Username = username)) THEN
 				signal sqlstate '45000' set message_text = 'User not found';
 			ELSE
-				SELECT annuncio.Codice, annuncio.Stato
+				SELECT annuncio.Codice, annuncio.Stato, annuncio.UCC_Username AS 'Proprietario'
 				FROM BachecaElettronicadb.`Seguito-USCC` AS seguiti JOIN BachecaElettronicadb.Annuncio AS annuncio ON seguiti.Annuncio_Codice = annuncio.Codice
 				WHERE seguiti.USCC_Username = username;
 			end IF;
 		else
-			SELECT annuncio.Codice, annuncio.Stato
+			SELECT annuncio.Codice, annuncio.Stato, annuncio.UCC_Username AS 'Proprietario'
 			FROM BachecaElettronicadb.`Seguito-UCC` AS seguiti JOIN BachecaElettronicadb.Annuncio AS annuncio ON seguiti.Annuncio_Codice = annuncio.Codice
 			WHERE seguiti.UCC_Username = username;
 		end if;
@@ -1060,18 +1034,18 @@ DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.modificaNota ;
 CREATE PROCEDURE BachecaElettronicadb.modificaNota (IN testo VARCHAR(45), IN annuncio_codice INT, IN ID_rimozione_nota INT, IN username VARCHAR(45))
 BEGIN
-	/*declare exit handler for sqlexception 
+	declare exit handler for sqlexception 
 	begin 
 		ROLLBACK; -- rollback any changes made in the transaction 
 		RESIGNAL; -- raise again the sql exceptionto the caller
-	end;*/ 
+	end; 
 	
 	/*NOTA
 	 * Ho scelto questo livello per evitare letture sporche
 	 */
 	
-	/*SET transaction isolation level read committed;
-	start transaction;*/
+	SET transaction isolation level read committed;
+	start transaction;
 	
 	-- possibile implementazione trigger che controlla se una nuova nota inserita sia riferita ad un annuncio attivo
 	
@@ -1090,7 +1064,7 @@ BEGIN
 			WHERE BachecaElettronicadb.Nota.ID = ID_rimozione_nota;
 		end if;
 		
-	-- commit;
+	commit;
 	
 END//
 DELIMITER ;
@@ -1129,7 +1103,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Rimozione di un Annuncio ------------------------------------------	Attivare evento avverti utente che seguono l'annuncio - Attivare evento genera report
+-- Rimozione di un Annuncio ------------------------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.rimuoviAnnuncio ;
 CREATE PROCEDURE BachecaElettronicadb.rimuoviAnnuncio (IN codice_annuncio INT)
@@ -1146,46 +1120,49 @@ BEGIN
 	
 	SET transaction isolation level read committed;
 	start transaction;
-	
-	-- possibile implementazione dei controlli con trigger che se in caso l'annuncio rimosso non era attivo lo rimette nello stato precedente 
-			
-		if (not exists (SELECT Codice FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice = codice_annuncio)) then
+		
+		if (not exists (SELECT Codice FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice = codice_annuncio and BachecaElettronicadb.Annuncio.Stato = 'Attivo')) then
 			signal sqlstate '45006' set message_text = 'Ad not found';
 		end if;
-		
-		if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice = codice_annuncio and BachecaElettronicadb.Annuncio.Stato = 'Attivo') <> 1) then
-			signal sqlstate '45007' set message_text = 'Ad not active now';
-		end if;
-		
+				
 		UPDATE BachecaElettronicadb.Annuncio
 		SET BachecaElettronicadb.Annuncio.Stato = 'Rimosso'
 		WHERE BachecaElettronicadb.Annuncio.Codice = codice_annuncio AND BachecaElettronicadb.Annuncio.Stato = 'Attivo';
 	
-	-- commit;
+	commit;
 
 END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Annuncio Venduto ------------------------------------------	Attivare evento avverti utente che seguono l'annuncio - Attivare evento genera report
+-- Annuncio Venduto --------------------------------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.vendutoAnnuncio ;
 CREATE PROCEDURE BachecaElettronicadb.vendutoAnnuncio (IN codice_annuncio INT)
 BEGIN
 	
-	-- stessa cosa anche qui
+	declare exit handler for sqlexception 
+	begin 
+		ROLLBACK; -- rollback any changes made in the transaction 
+		RESIGNAL; -- raise again the sql exceptionto the caller
+	end; 
 	
-	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=codice_annuncio) <> 1) then
-		signal sqlstate '45006' set message_text = 'Ad not found';
-	end if;
+	/*NOTA
+	 * Ho scelto questo livello per evitare letture sporche
+	 */
 	
-	if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice = codice_annuncio and BachecaElettronicadb.Annuncio.Stato = 'Attivo') <> 1) then
-		signal sqlstate '45007' set message_text = 'Ad not active now';
-	end if;
+	SET transaction isolation level read committed;
+	start transaction;
 	
-	UPDATE BachecaElettronicadb.Annuncio
-	SET BachecaElettronicadb.Annuncio.Stato = 'Venduto'
-	WHERE BachecaElettronicadb.Annuncio.Codice = codice_annuncio AND BachecaElettronicadb.Annuncio.Stato = 'Attivo';
+		if (not exists (SELECT Codice FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.Codice=codice_annuncio and BachecaElettronicadb.Annuncio.Stato = 'Attivo')) then
+			signal sqlstate '45006' set message_text = 'Ad not found';
+		end if;
+		
+		UPDATE BachecaElettronicadb.Annuncio
+		SET BachecaElettronicadb.Annuncio.Stato = 'Venduto'
+		WHERE BachecaElettronicadb.Annuncio.Codice = codice_annuncio AND BachecaElettronicadb.Annuncio.Stato = 'Attivo';
+	
+	commit;
 
 END//
 DELIMITER ;
@@ -1212,10 +1189,11 @@ BEGIN
 	end; 
 	
 	/*NOTA
-	 * Ho scelto questo livello per evitare letture sporche
+	 * Ho scelto questo livello per evitare letture inconsistenti
+	 * leggendo l'utente più di una volta  
 	 */
 	
-	SET transaction isolation level read committed;
+	SET transaction isolation level repeatable read;
 	start transaction;
 	
 		/*NOTA
@@ -1230,11 +1208,11 @@ BEGIN
 		 * Calcolare la somma degli importi di tutti gli annunci venduti non calcolati e la percentuale per l'amministratore che ha chiamanto la stored procedure
 		 */
 	
-		if ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username = ucc_username) <> 1) then
+		if (not exists (SELECT Username FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username = ucc_username)) then
 			signal sqlstate '45000' set message_text = 'User not found';
 		end if;
 		
-		if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.UCC_Username = ucc_username and BachecaElettronicadb.Annuncio.Stato = 'Venduto') = 0) then
+		if (not exists (SELECT Codice FROM BachecaElettronicadb.Annuncio WHERE BachecaElettronicadb.Annuncio.UCC_Username = ucc_username and BachecaElettronicadb.Annuncio.Stato = 'Venduto')) then
 			signal sqlstate '45014' set message_text = 'This user has not sold any ads';
 		end if;
 		
@@ -1287,26 +1265,26 @@ BEGIN
 	end; 
 	
 	/*NOTA
-	 * Ho scelto questo livello per evitare letture sporche
+	 * Ho scelto questo livello per evitare letture inconsistenti con il report
 	 */
 	
-	SET transaction isolation level read committed;
+	SET transaction isolation level repeatable read;
 	start transaction;
 	
-		if ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username = ucc_username) <> 1) then
+		if (not exists (SELECT Username FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username = ucc_username)) then
 			signal sqlstate '45000' set message_text = 'User not found';
 		end if;
 		
-		if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Report WHERE BachecaElettronicadb.Report.Codice = codice_report and BachecaElettronicadb.Report.UCC_Username = ucc_username) <> 1) then
+		if (not exists (SELECT Codice FROM BachecaElettronicadb.Report WHERE BachecaElettronicadb.Report.Codice = codice_report and BachecaElettronicadb.Report.UCC_Username = ucc_username)) then
 			signal sqlstate '45015' set message_text = 'Report not found';
 		end if;
 		
-		if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Report WHERE BachecaElettronicadb.Report.Codice = codice_report and BachecaElettronicadb.Report.Riscosso_Amministratore = true) = 1) then
+		if (exists (SELECT Codice FROM BachecaElettronicadb.Report WHERE BachecaElettronicadb.Report.Codice = codice_report and BachecaElettronicadb.Report.Riscosso_Amministratore = true)) then
 			signal sqlstate '45016' set message_text = 'Report already collected';
 		end if;
 		
 		-- Solo l'amministratore che ha generato il report può riscuotere
-		if ((SELECT(count(Codice)) FROM BachecaElettronicadb.Report WHERE BachecaElettronicadb.Report.Codice = codice_report and BachecaElettronicadb.Report.Amministratore_Username = amministratore_username) <> 1) then
+		if (not exists (SELECT Codice FROM BachecaElettronicadb.Report WHERE BachecaElettronicadb.Report.Codice = codice_report and BachecaElettronicadb.Report.Amministratore_Username = amministratore_username)) then
 			signal sqlstate '45017' set message_text = 'You are not the owner of the report';
 		end if;
 		
@@ -1347,10 +1325,6 @@ BEGIN
 			signal sqlstate '45000' set message_text = 'User not found';
 		end if;
 		
-		if ((codice_report is not null) and (SELECT(count(Codice)) FROM BachecaElettronicadb.Report WHERE BachecaElettronicadb.Report.Codice = codice_report and BachecaElettronicadb.Report.UCC_Username = ucc_username) <> 1) then
-			signal sqlstate '45015' set message_text = 'Report not found';
-		end if;
-		
 		if (codice_report is null) then
 			SELECT UCC_Username, ImportoTotale, NumeroAnnunci, NumeroCarta, Importo_UCC, Amministratore_Username, Riscosso_Amministratore, Importo_Amministratore
 			FROM BachecaElettronicadb.Report
@@ -1388,11 +1362,11 @@ BEGIN
 	
 		/* Nota
 		 * L'idea è: Verifica che l'utente sia un UCC, altrimenti controlla se è un USCC.
-		 * Se non sarà nè UCC e nè USCC allora l'utente non esiste
+		 * Se non sarà nè UCC e nè USCC allora l'utente non esiste.
 		 */	
 		
-		if ((SELECT(count(Username)) FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username=username) <> 1) then
-			IF ((SELECT(count(Username)) FROM BachecaElettronicadb.USCC WHERE BachecaElettronicadb.USCC.Username=username) <> 1) THEN
+		if (not exists (SELECT Username FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username=username)) then
+			IF (not exists (SELECT Username FROM BachecaElettronicadb.USCC WHERE BachecaElettronicadb.USCC.Username=username)) THEN
 				signal sqlstate '45000' set message_text = 'User not found';
 			ELSE
 				SELECT Username, Password, CF_Anagrafico AS 'Codice Fiscale'
@@ -1416,23 +1390,39 @@ DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.login ;
 CREATE PROCEDURE BachecaElettronicadb.login (IN username VARCHAR(45), IN password VARCHAR(45), OUT role INT)
 BEGIN
-	SET role = -1;
+	declare exit handler for sqlexception 
+	begin 
+		ROLLBACK; -- rollback any changes made in the transaction 
+		RESIGNAL; -- raise again the sql exceptionto the caller
+	end; 
 	
-	if exists (SELECT Username FROM BachecaElettronicadb.Amministratore WHERE BachecaElettronicadb.Amministratore.Username = username and BachecaElettronicadb.Amministratore.Password = md5(password)) then
-		SET role = 1;
-	end if;
-
-	if exists (SELECT Username FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username = username and BachecaElettronicadb.UCC.Password = md5(password)) and role = -1 then
-		SET role = 2;
-	end if;
+	/*NOTA
+	 * Ho scelto questo livello per evitare letture sporche
+	 */
 	
-	if exists (SELECT Username FROM BachecaElettronicadb.USCC WHERE BachecaElettronicadb.USCC.Username = username and BachecaElettronicadb.USCC.Password = md5(password)) and role = -1 then
-		SET role = 3;
-	end if;
+	SET transaction read only;
+	SET transaction isolation level read committed;
+	start transaction;
 	
-	if (role = -1) then
-		SET role = 4;
-	end if;
+		SET role = -1;
+		
+		if exists (SELECT Username FROM BachecaElettronicadb.Amministratore WHERE BachecaElettronicadb.Amministratore.Username = username and BachecaElettronicadb.Amministratore.Password = md5(password)) then
+			SET role = 1;
+		end if;
+	
+		if exists (SELECT Username FROM BachecaElettronicadb.UCC WHERE BachecaElettronicadb.UCC.Username = username and BachecaElettronicadb.UCC.Password = md5(password)) and role = -1 then
+			SET role = 2;
+		end if;
+		
+		if exists (SELECT Username FROM BachecaElettronicadb.USCC WHERE BachecaElettronicadb.USCC.Username = username and BachecaElettronicadb.USCC.Password = md5(password)) and role = -1 then
+			SET role = 3;
+		end if;
+		
+		if (role = -1) then
+			SET role = 4;
+		end if;
+	
+	commit;
 	
 END//
 DELIMITER ;

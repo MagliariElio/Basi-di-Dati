@@ -297,15 +297,18 @@ CREATE INDEX `fk_Nota_Annuncio1_idx` ON `BachecaElettronicadb`.`Nota` (`Annuncio
 DROP TABLE IF EXISTS `BachecaElettronicadb`.`Notifica` ;
 
 CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Notifica` (
+  `Codice_Notifica` INT NOT NULL AUTO_INCREMENT,
   `Codice` INT NOT NULL,
   `Tipo_Notifica` VARCHAR(45) NOT NULL,
   `Username_Utente` VARCHAR(45) NOT NULL,
   `Data` DATETIME NOT NULL,
   `Messaggio` VARCHAR(45) NOT NULL,
-  PRIMARY KEY (`Codice`, `Username_Utente`, `Data`))
+  PRIMARY KEY (`Codice_Notifica`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
+
+CREATE UNIQUE INDEX `Codice_Notifica_UNIQUE` ON `BachecaElettronicadb`.`Notifica` (`Codice_Notifica` ASC) VISIBLE;
 
 
 -- -----------------------------------------------------
@@ -363,9 +366,9 @@ CREATE INDEX `fk_Report_UCC1_idx` ON `BachecaElettronicadb`.`Report` (`UCC_Usern
 DROP TABLE IF EXISTS `BachecaElettronicadb`.`Seguito-UCC` ;
 
 CREATE TABLE IF NOT EXISTS `BachecaElettronicadb`.`Seguito-UCC` (
-  `UCC_Username` VARCHAR(45) NOT NULL,
   `Annuncio_Codice` INT NOT NULL,
-  PRIMARY KEY (`UCC_Username`, `Annuncio_Codice`),
+  `UCC_Username` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`Annuncio_Codice`, `UCC_Username`),
   CONSTRAINT `fk_Seguito-UCC_Annuncio1`
     FOREIGN KEY (`Annuncio_Codice`)
     REFERENCES `BachecaElettronicadb`.`Annuncio` (`Codice`),
