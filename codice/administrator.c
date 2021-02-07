@@ -10,7 +10,7 @@ void new_category() {
 	
 	char name[20];			// name of category
 	
-	printf("Name of new category: ");
+	print_color("Name of new category: ", "yellow", ' ', false, false, false, false);	
 	getInput(20, name, false);
 	
 	memset(param, 0, sizeof(param));
@@ -37,20 +37,16 @@ void new_category() {
 
 void view_category() {
 	MYSQL_STMT *prepared_stmt;
-		
+			
 	if (!setup_prepared_stmt(&prepared_stmt, "call visualizzaCategoria()", conn))
 		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize view category statement\n", true);
 	
 	if (mysql_stmt_execute(prepared_stmt) != 0)
 		print_stmt_error (prepared_stmt, "An error occurred while viewing categories.");
 	
-	if (mysql_stmt_execute(prepared_stmt) != 0)
-			print_stmt_error(prepared_stmt, NULL);
-	else {
-		dump_result_set(conn, prepared_stmt, "Online Category list\n");		// dump the result set
-		mysql_stmt_next_result(prepared_stmt);
-	}
-		
+	dump_result_set(conn, prepared_stmt, "Online Category list\n");		// dump the result set
+	mysql_stmt_next_result(prepared_stmt);
+	
 	mysql_stmt_close(prepared_stmt);
 	return;
 }
@@ -281,7 +277,7 @@ int run_as_administrator(MYSQL *main_conn, struct configuration main_conf){
 		print_color(list[3], "light blue", ' ', true, false, false, false); print_color(") Generate a report", "light cyan", ' ', false, false, false, false);
 		print_color(list[4], "light blue", ' ', true, false, false, false); print_color(") Collect reports", "orange", ' ', false, false, false, false);
 		print_color(list[5], "light blue", ' ', true, false, false, false); print_color(") View reports", "light cyan", ' ', false, false, false, false);
-		print_color(list[6], "light blue", ' ', true, false, false, false); print_color(") Quit", "light red", ' ', false, true, false, false);
+		print_color(list[6], "light red", ' ', true, false, false, false); print_color(") QUIT", "light red", ' ', false, true, false, false);
 		
 		multiChoice("Which do you choose?", list, num_list, &chosen_num, &option);
 		

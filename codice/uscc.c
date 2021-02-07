@@ -70,9 +70,8 @@ void view_ad_uscc() {
 void view_category_online_uscc() {
 	MYSQL_STMT *prepared_stmt;
 		
-	if (!setup_prepared_stmt(&prepared_stmt, "call visualizzaCategoria()", conn)) {
-		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize view category statement\n", false);
-	}
+	if (!setup_prepared_stmt(&prepared_stmt, "call visualizzaCategoria()", conn))
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize view category statement\n", true);
 	
 	if (mysql_stmt_execute(prepared_stmt) != 0)
 		print_stmt_error (prepared_stmt, "An error occurred while viewing categories.");
@@ -878,7 +877,7 @@ int run_as_uscc(MYSQL *main_conn, struct configuration main_conf){
 		print_color(list[12], "light blue", ' ', true, false, false, false); print_color(") View new Notifications", "orange", ' ', false, false, false, false);
 		print_color(list[13], "light blue", ' ', true, false, false, false); print_color(") Follow an ad", "light cyan", ' ', false, false, false, false);
 		print_color(list[14], "light blue", ' ', true, false, false, false); print_color(") View ad followed", "orange", ' ', false, false, false, false);
-		print_color(list[15], "light red", ' ', true, false, false, false); print_color(") quit", "light red", ' ', false, true, false, false);
+		print_color(list[15], "light red", ' ', true, false, false, false); print_color(") QUIT", "light red", ' ', false, true, false, false);
 
 		multiChoice("Which do you choose?", list, num_list, &chosen_num, &option);
 		

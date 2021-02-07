@@ -63,7 +63,7 @@ void new_ad() {
 	
 		
 	if (!setup_prepared_stmt(&prepared_stmt, "call inserimentoNuovoAnnuncio(?, ?, ?, ?, ?)", conn))
-		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", false);
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
 	
 	if (mysql_stmt_bind_param(prepared_stmt, param) != 0) {
 		finish_with_stmt_error(conn, prepared_stmt, "Unable to bind parameters for a new ad\n", true);
@@ -182,9 +182,8 @@ bool view_ad(char *username, bool check_owner_value) {
 void view_category_online() {
 	MYSQL_STMT *prepared_stmt;
 		
-	if (!setup_prepared_stmt(&prepared_stmt, "call visualizzaCategoria()", conn)) {
-		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize view category statement\n", false);
-	}
+	if (!setup_prepared_stmt(&prepared_stmt, "call visualizzaCategoria()", conn))
+		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize view category statement\n", true);
 	
 	if (mysql_stmt_execute(prepared_stmt) != 0)
 		print_stmt_error (prepared_stmt, "An error occurred while viewing categories.");
@@ -193,15 +192,18 @@ void view_category_online() {
 	mysql_stmt_next_result(prepared_stmt);
 	
 	mysql_stmt_close(prepared_stmt);
+	return;
 }
 
 
 void remove_ad() {
+	
+	// Check if the user is the owner
 	if(view_ad(conf.username, true) == false)
 		return;
 	
 	MYSQL_STMT *prepared_stmt;
-	MYSQL_BIND param[1];
+	MYSQL_BIND param[2];
 	
 	memset(param, 0, sizeof(param));
 	
@@ -209,7 +211,11 @@ void remove_ad() {
 	param[0].buffer = &ad_code;
 	param[0].buffer_length = sizeof(ad_code);
 	
-	if (!setup_prepared_stmt(&prepared_stmt, "call rimuoviAnnuncio (?)", conn))
+	param[1].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[1].buffer = conf.username;
+	param[1].buffer_length = strlen(conf.username);
+	
+	if (!setup_prepared_stmt(&prepared_stmt, "call rimuoviAnnuncio (?, ?)", conn))
 		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
 	
 	if (mysql_stmt_bind_param(prepared_stmt, param) != 0)
@@ -233,7 +239,7 @@ void ad_sold() {
 		return;
 	
 	MYSQL_STMT *prepared_stmt;
-	MYSQL_BIND param[1];	
+	MYSQL_BIND param[2];	
 	
 	memset(param, 0, sizeof(param));
 	
@@ -241,7 +247,11 @@ void ad_sold() {
 	param[0].buffer = &ad_code;
 	param[0].buffer_length = sizeof(ad_code);
 	
-	if (!setup_prepared_stmt(&prepared_stmt, "call vendutoAnnuncio (?)", conn))
+	param[1].buffer_type = MYSQL_TYPE_VAR_STRING;
+	param[1].buffer = conf.username;
+	param[1].buffer_length = strlen(conf.username);
+	
+	if (!setup_prepared_stmt(&prepared_stmt, "call vendutoAnnuncio (?, ?)", conn))
 		finish_with_stmt_error(conn, prepared_stmt, "Unable to initialize ad statement", true);
 	
 	if (mysql_stmt_bind_param(prepared_stmt, param) != 0)
@@ -1253,7 +1263,7 @@ int run_as_ucc(MYSQL *main_conn, struct configuration main_conf){
 		print_color(list[18], "light blue", ' ', true, false, false, false); print_color(") Follow an Ad", "light cyan", ' ', false, false, false, false);
 		print_color(list[19], "light blue", ' ', true, false, false, false); print_color(") View Ad followed", "orange", ' ', false, false, false, false);
 		print_color(list[20], "light blue", ' ', true, false, false, false); print_color(") View own report", "light cyan", ' ', false, false, false, false);
-		print_color(list[21], "light red", ' ', true, false, false, false); print_color(") quit", "light red", ' ', false, true, false, false);
+		print_color(list[21], "light red", ' ', true, false, false, false); print_color(") QUIT", "light red", ' ', false, true, false, false);
 
 		multiChoice("Which do you choose?", list, num_list, &chosen_num, &option);
 		

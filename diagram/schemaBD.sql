@@ -438,41 +438,78 @@ DROP USER IF EXISTS UCC;
 SET SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
 CREATE USER 'UCC' IDENTIFIED BY 'uccpassword';
 
-GRANT ALL ON `BachecaElettronicadb`.* TO 'UCC';
-GRANT SELECT ON TABLE `BachecaElettronicadb`.* TO 'UCC';
-GRANT SELECT, INSERT, TRIGGER ON TABLE `BachecaElettronicadb`.* TO 'UCC';
-GRANT SELECT, INSERT, TRIGGER, UPDATE, DELETE ON TABLE `BachecaElettronicadb`.* TO 'UCC';
-GRANT EXECUTE ON ROUTINE `BachecaElettronicadb`.* TO 'UCC';
 SET SQL_MODE = '';
 DROP USER IF EXISTS USCC;
 SET SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
 CREATE USER 'USCC' IDENTIFIED BY 'usccpassword';
 
-GRANT ALL ON `BachecaElettronicadb`.* TO 'USCC';
-GRANT SELECT ON TABLE `BachecaElettronicadb`.* TO 'USCC';
-GRANT SELECT, INSERT, TRIGGER ON TABLE `BachecaElettronicadb`.* TO 'USCC';
-GRANT SELECT, INSERT, TRIGGER, UPDATE, DELETE ON TABLE `BachecaElettronicadb`.* TO 'USCC';
-GRANT EXECUTE ON ROUTINE `BachecaElettronicadb`.* TO 'USCC';
 SET SQL_MODE = '';
 DROP USER IF EXISTS Amministratore;
 SET SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
 CREATE USER 'Amministratore' IDENTIFIED BY 'amministratorepassword';
 
-GRANT ALL ON `BachecaElettronicadb`.* TO 'Amministratore';
-GRANT SELECT ON TABLE `BachecaElettronicadb`.* TO 'Amministratore';
-GRANT SELECT, INSERT, TRIGGER ON TABLE `BachecaElettronicadb`.* TO 'Amministratore';
-GRANT SELECT, INSERT, TRIGGER, UPDATE, DELETE ON TABLE `BachecaElettronicadb`.* TO 'Amministratore';
-GRANT EXECUTE ON ROUTINE `BachecaElettronicadb`.* TO 'Amministratore';
 SET SQL_MODE = '';
 DROP USER IF EXISTS login;
 SET SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
 CREATE USER 'login' IDENTIFIED BY 'loginpassword';
 
-GRANT ALL ON `BachecaElettronicadb`.* TO 'login';
-GRANT SELECT ON TABLE `BachecaElettronicadb`.* TO 'login';
-GRANT SELECT, INSERT, TRIGGER ON TABLE `BachecaElettronicadb`.* TO 'login';
-GRANT SELECT, INSERT, TRIGGER, UPDATE, DELETE ON TABLE `BachecaElettronicadb`.* TO 'login';
-GRANT EXECUTE ON ROUTINE `BachecaElettronicadb`.* TO 'login';
+
+
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`inserimentoNuovoAnnuncio` TO `UCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`visualizzaAnnuncio` TO `UCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`visualizzaCategoria` TO `UCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`rimuoviAnnuncio` TO `UCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`vendutoAnnuncio` TO `UCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`visualizzaInfoAnagrafiche` TO `UCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`visualizza_Info_Utente` TO `UCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`modificaInfoAnagrafiche` TO `UCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`modificaFotoAnnuncio` TO `UCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`modificaCommento` TO `UCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`visualizzaCommento` TO `UCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`modificaNota` TO `UCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`visualizzaNota` TO `UCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`modifica_RecapitoNonPreferito` TO `UCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`visualizza_contatti` TO `UCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`invioMessaggio` TO `UCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`visualizzaMessaggio` TO `UCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`visualizzaStorico_UCC` TO `UCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`segui_Annuncio` TO `UCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`visualizza_Annunci_Seguiti` TO `UCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`visualizza_report` TO `UCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`visualizza_notifiche` TO `UCC`;
+
+
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`visualizzaAnnuncio` TO `USCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`visualizzaCategoria` TO `USCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`visualizzaInfoAnagrafiche` TO `USCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`visualizza_Info_Utente` TO `USCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`modificaInfoAnagrafiche` TO `USCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`modificaCommento` TO `USCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`visualizzaCommento` TO `USCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`visualizzaNota` TO `USCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`modifica_RecapitoNonPreferito` TO `USCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`visualizza_contatti` TO `USCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`invioMessaggio` TO `USCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`visualizzaMessaggio` TO `USCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`visualizzaStorico_USCC` TO `USCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`segui_Annuncio` TO `USCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`visualizza_Annunci_Seguiti` TO `USCC`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`visualizza_notifiche` TO `USCC`;
+
+
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`inserimentoNuovaCategoria` TO `Amministratore`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`visualizzaCategoria` TO `Amministratore`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`visualizzaAnnuncio` TO `Amministratore`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`genera_report` TO `Amministratore`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`riscossione_report` TO `Amministratore`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`visualizza_report` TO `Amministratore`;
+
+
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`login` TO `login`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`registra_utente_UCC` TO `login`;
+GRANT EXECUTE ON procedure `BachecaElettronicadb`.`registra_utente_USCC` TO `login`;
+
+
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
