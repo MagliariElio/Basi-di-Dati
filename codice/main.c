@@ -430,19 +430,12 @@ int main(void){
 	restart:	if (yesOrNo("Do you want continue?", 'y', 'n') == false) goto exit;
 	
 	start:
-		//strcat(conf.username, "inglucssi");
-		//strcat(conf.password, "da8a0e5a");
-		//strcat(conf.username, "ingediero");
-		//strcat(conf.password, "a46e76a9");
-		strcat(conf.username, "amm1");
-		strcat(conf.password, "password");
-		
-		//print_color("     ENTER YOUR USERNAME AND PASSWORD", "pink", ' ', true, true, false, true);
+		print_color("     ENTER YOUR USERNAME AND PASSWORD", "pink", ' ', true, true, false, true);
 
-		//print_color("Username: ", "yellow", ' ', false, false, true, false);
-		//getInput(45, conf.username, false);
-		//print_color("Password: ", "light cyan", ' ', false, false, false, false);
-		//getInput(45, conf.password, true);
+		print_color("Username: ", "yellow", ' ', false, false, true, false);
+		getInput(45, conf.username, false);
+		print_color("Password: ", "light cyan", ' ', false, false, false, false);
+		getInput(45, conf.password, true);
 	
 	role = attempt_login(conn, conf.username, conf.password);
 	

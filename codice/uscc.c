@@ -492,9 +492,9 @@ void insert_remove_contact_uscc() {
 	
 	while(1) {
 		if (request)
-			print_color("Which do you choose to add?", "white", ' ', false, true, false, false);
+			print_color("   Which do you choose to add?\n", "white", ' ', true, true, false, false);
 		else
-			print_color("Which do you choose to remove?", "white", ' ', false, true, false, false);
+			print_color(   "Which do you choose to remove?\n", "white", ' ', true, true, false, false);
 		
 		for(i=0; i<lenght_choice_type; i++) {
 			print_color(" - ", "cyan", ' ', false, false, false, false);

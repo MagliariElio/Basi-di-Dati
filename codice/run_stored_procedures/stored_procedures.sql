@@ -20,7 +20,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Inserimento di uno Storico Conversazioni -------------------------- Impostare un livello di isolamento per evitare errori con last_insert_id()
+-- Inserimento di uno Storico Conversazioni --------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.inserisci_Storico ;
 CREATE PROCEDURE BachecaElettronicadb.inserisci_Storico (OUT id INT)
@@ -141,7 +141,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Visualizzazione nuove notifiche ----------------------------------- Impostare un livello di isolamento
+-- Visualizzazione nuove notifiche -----------------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizza_notifiche ;
 CREATE PROCEDURE BachecaElettronicadb.visualizza_notifiche (IN username VARCHAR(45))
@@ -183,7 +183,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Modifica delle Informazioni Anagrafiche --------------------------- Modifico le informazioni a seconda delle cose che voglio modificare
+-- Modifica delle Informazioni Anagrafiche ---------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.modificaInfoAnagrafiche ;
 CREATE PROCEDURE BachecaElettronicadb.modificaInfoAnagrafiche (IN cf VARCHAR(16), IN cognome VARCHAR(20), IN nome VARCHAR(20), IN indirizzoDiResidenza VARCHAR(20), IN cap INT, IN indirizzoDiFatturazione VARCHAR(20), IN tipoRecapitoPreferito VARCHAR(20), IN recapitoPreferito VARCHAR(40))
@@ -263,7 +263,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Visualizzazione categoria ----------------------------------------- Impostare un livello di isolamento
+-- Visualizzazione categoria -----------------------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaCategoria ;
 CREATE PROCEDURE BachecaElettronicadb.visualizzaCategoria ()
@@ -292,7 +292,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Inserimento di un nuovo annuncio ---------------------------------- Impostare una livello di isolamento
+-- Inserimento di un nuovo annuncio ----------------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.inserimentoNuovoAnnuncio ;
 CREATE PROCEDURE BachecaElettronicadb.inserimentoNuovoAnnuncio (IN descrizione VARCHAR(100), IN importo INT, IN foto VARCHAR(9), IN ucc_username VARCHAR(45), IN categoria_nome VARCHAR(20))
@@ -308,7 +308,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Inserimento o Rimozione di una foto in annuncio ------------------- Impostare un livello di isolamento per evitare repeatible read
+-- Inserimento o Rimozione di una foto in annuncio -------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.modificaFotoAnnuncio ;
 CREATE PROCEDURE BachecaElettronicadb.modificaFotoAnnuncio (IN codice INT, IN username VARCHAR(45), IN foto VARCHAR(9))
@@ -354,7 +354,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Visualizza annuncio -----------------------------------------------  Impostare un livello di isolamento
+-- Visualizza annuncio -----------------------------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaAnnuncio ;
 CREATE PROCEDURE BachecaElettronicadb.visualizzaAnnuncio (IN annuncio_codice INT, IN username VARCHAR(45), IN check_owner INT)
@@ -428,7 +428,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Visualizzazione commento ------------------------------------------ Impostare un livello di isolamento
+-- Visualizzazione commento ------------------------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaCommento ;
 CREATE PROCEDURE BachecaElettronicadb.visualizzaCommento (IN annuncio_codice INT)
@@ -462,7 +462,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Inserimento Conversazione ----------------------------------------- Privilegi a nessuno
+-- Inserimento Conversazione -----------------------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.inserimentoConversazione ;
 CREATE PROCEDURE BachecaElettronicadb.inserimentoConversazione (OUT id_conversazione INT, IN ucc_username_1 VARCHAR(45), ucc_username_2 VARCHAR(45), IN uscc_username VARCHAR(45))
@@ -490,7 +490,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Seleziona Storico UCC per la stored procedure --------------------- Privilegi a nessuno
+-- Seleziona Storico UCC per la stored procedure ---------------------
 DELIMITER //
 DROP FUNCTION IF EXISTS BachecaElettronicadb.seleziona_Storico_UCC ;
 CREATE FUNCTION BachecaElettronicadb.seleziona_Storico_UCC (username VARCHAR(45)) RETURNS INT DETERMINISTIC
@@ -508,7 +508,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Seleziona Storico USCC per la stored procedure -------------------- Privilegi a nessuno
+-- Seleziona Storico USCC per la stored procedure --------------------
 DELIMITER //
 DROP FUNCTION IF EXISTS BachecaElettronicadb.seleziona_Storico_USCC ;
 CREATE FUNCTION BachecaElettronicadb.seleziona_Storico_USCC (username VARCHAR(45)) RETURNS INT DETERMINISTIC
@@ -527,7 +527,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Tracciamento Conversazioni ---------------------------------------- Privilegi a nessuno
+-- Tracciamento Conversazioni ----------------------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.traccia_Conversazione ;
 CREATE PROCEDURE BachecaElettronicadb.traccia_Conversazione (IN conversazione_codice INT, IN sender_ucc_username VARCHAR(45), IN receiver_ucc_username VARCHAR(45), IN receiver_uscc_username VARCHAR(45))
@@ -580,7 +580,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Invio messaggio da parte utente ----------------------------------- Evento: arrivato un nuovo messaggio
+-- Invio messaggio da parte utente -----------------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.invioMessaggio ;
 CREATE PROCEDURE BachecaElettronicadb.invioMessaggio (IN sender_username VARCHAR(45), IN receiver_username VARCHAR(45), IN testo VARCHAR(100))
@@ -683,7 +683,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Controllo Privacy e Ricerca conversazione -------------------------- Impostare un livello di isolamento - privilegi a nessuno
+-- Controllo Privacy e Ricerca conversazione -------------------------
 DELIMITER //
 DROP FUNCTION IF EXISTS BachecaElettronicadb.controllo_conversazione ;
 CREATE FUNCTION BachecaElettronicadb.controllo_conversazione (id_conversation_check INT, sender_username VARCHAR(45), receiver_username VARCHAR(45)) RETURNS INT DETERMINISTIC
@@ -750,7 +750,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Visualizza messaggio ---------------------------------------------- Impostare un livello di isolamento
+-- Visualizza messaggio ----------------------------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaMessaggio ;
 CREATE PROCEDURE BachecaElettronicadb.visualizzaMessaggio (IN id_conversation INT, sender_username VARCHAR(45), IN receiver_username VARCHAR(45))
@@ -800,7 +800,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Visualizzazione Storico UCC --------------------------------------- Impostare un livello di isolamento
+-- Visualizzazione Storico UCC ---------------------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaStorico_UCC ;
 CREATE PROCEDURE BachecaElettronicadb.visualizzaStorico_UCC (IN ucc_username VARCHAR(45))
@@ -834,7 +834,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Visualizzazione Storico USCC -------------------------------------- Impostare un livello di isolamento
+-- Visualizzazione Storico USCC --------------------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaStorico_USCC ;
 CREATE PROCEDURE BachecaElettronicadb.visualizzaStorico_USCC (IN uscc_username VARCHAR(45))
@@ -908,7 +908,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Visualizzazione degli Annunci seguiti ----------------------------- Impostare un livello di isolamento
+-- Visualizzazione degli Annunci seguiti -----------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizza_Annunci_Seguiti ;
 CREATE PROCEDURE BachecaElettronicadb.visualizza_Annunci_Seguiti (IN username VARCHAR(45))
@@ -952,7 +952,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Inserimento o Rimozione nota in un Annuncio -----------------------	Attivare evento avverti utente che seguono l'annuncio
+-- Inserimento o Rimozione nota in un Annuncio -----------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.modificaNota ;
 CREATE PROCEDURE BachecaElettronicadb.modificaNota (IN testo VARCHAR(45), IN annuncio_codice INT, IN ID_rimozione_nota INT, IN username VARCHAR(45))
@@ -993,7 +993,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Visualizza nota --------------------------------------------------- Impostare un livello di isolamento
+-- Visualizza nota ---------------------------------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizzaNota ;
 CREATE PROCEDURE BachecaElettronicadb.visualizzaNota (IN annuncio_Codice INT)
@@ -1026,7 +1026,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Rimozione di un Annuncio ------------------------------------------ modificato
+-- Rimozione di un Annuncio ------------------------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.rimuoviAnnuncio ;
 CREATE PROCEDURE BachecaElettronicadb.rimuoviAnnuncio (IN codice_annuncio INT, IN ucc_username VARCHAR(45))
@@ -1051,7 +1051,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Annuncio Venduto -------------------------------------------------- modificato
+-- Annuncio Venduto --------------------------------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.vendutoAnnuncio ;
 CREATE PROCEDURE BachecaElettronicadb.vendutoAnnuncio (IN codice_annuncio INT, IN ucc_username VARCHAR(45))
@@ -1076,7 +1076,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Generazione di un nuovo report ------------------------------------ Controllare se bisogna attivare un evento per non calcolare ogni volta annunci già calcolati
+-- Generazione di un nuovo report ------------------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.genera_report ;
 CREATE PROCEDURE BachecaElettronicadb.genera_report (IN ucc_username VARCHAR(45), IN amministratore_username VARCHAR(45))
@@ -1160,7 +1160,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Riscossione di un report Amministratore --------------------------- Impostare un livello di isolamento 
+-- Riscossione di un report Amministratore ---------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.riscossione_report ;
 CREATE PROCEDURE BachecaElettronicadb.riscossione_report (IN codice_report INT, IN ucc_username VARCHAR(45), IN amministratore_username VARCHAR(45))
@@ -1210,7 +1210,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Visualizzazione report ---------------------------------------------  Impostare un livello di isolamento
+-- Visualizzazione report --------------------------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizza_report ;
 CREATE PROCEDURE BachecaElettronicadb.visualizza_report (IN codice_report INT, IN ucc_username VARCHAR(45))
@@ -1249,7 +1249,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Visualizzazione informazioni utente ------------------------------- Impostare un livello di isolamento
+-- Visualizzazione informazioni utente -------------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.visualizza_Info_Utente ;
 CREATE PROCEDURE BachecaElettronicadb.visualizza_Info_Utente (IN username VARCHAR(45))
@@ -1293,7 +1293,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Login ------------------------------------------------------------- Impostare un livello di isolamento
+-- Login -------------------------------------------------------------
 DELIMITER //
 DROP PROCEDURE IF EXISTS BachecaElettronicadb.login ;
 CREATE PROCEDURE BachecaElettronicadb.login (IN username VARCHAR(45), IN password VARCHAR(45), OUT role INT)

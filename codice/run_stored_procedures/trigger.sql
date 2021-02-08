@@ -368,7 +368,7 @@ END//
 DELIMITER ;
 -- -------------------------------------------------------------------
 
--- Controlla Annuncio in Seguito USCC ---------------------------------
+-- Controlla Annuncio in Seguito USCC --------------------------------
 
 DELIMITER //
 DROP TRIGGER IF EXISTS BachecaElettronicadb.check_annuncio_seguito_uscc ;
